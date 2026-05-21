@@ -131,6 +131,21 @@ export default function Sidebar() {
           <Layers size={18} />
           <span>Templates</span>
         </Link>
+        <Link 
+          href="/?tab=template-setup" 
+          className={getTabClass('template-setup')} 
+          style={{ 
+            justifyContent: 'flex-start',
+            marginLeft: '1rem',
+            paddingLeft: '1rem',
+            borderLeft: '1px solid var(--border)',
+            borderRadius: '0 8px 8px 0',
+            fontSize: '0.85rem'
+          }}
+        >
+          <Settings size={16} />
+          <span>Template Setup</span>
+        </Link>
 
         <div style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '1rem' }}>
           Collaboration

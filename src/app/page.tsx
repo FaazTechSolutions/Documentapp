@@ -30,6 +30,7 @@ import {
 import QuickDraftEditor from '@/components/QuickDraftEditor';
 import CustomDocumentEditor from '@/components/CustomDocumentEditor';
 import SavedDocumentsList from '@/components/SavedDocumentsList';
+import TemplateSetup from '@/components/TemplateSetup/TemplateSetup';
 
 const getBrdTemplateBlocks = (title: string) => {
   const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -1753,6 +1754,9 @@ function MainDashboardContent() {
     case 'builder':
       return <CustomDocumentEditor />;
       
+    case 'template-setup':
+      return <TemplateSetup />;
+
     case 'documents':
     case 'saved':
       return <SavedDocumentsList useTemplate={useTemplate} />;

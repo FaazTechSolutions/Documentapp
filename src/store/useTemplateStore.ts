@@ -157,7 +157,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   },
 
   saveAsNewTemplate: (templateData, blocks) => {
-    const id = \`tmpl_\${Date.now()}_\${Math.random().toString(36).substring(2, 9)}\`;
+    const id = `tmpl_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const newTemplate: EditableTemplate = {
       ...templateData,
       id,
@@ -210,7 +210,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
               ...t,
               blocks: targetVersion.blocks,
               lastEdited: new Date().toISOString(),
-              versions: [...t.versions, { version: t.version, timestamp: new Date().toISOString(), blocks: [...t.blocks], changesDescription: \`Auto-save before restoring \${versionString}\` }].slice(-10)
+              versions: [...t.versions, { version: t.version, timestamp: new Date().toISOString(), blocks: [...t.blocks], changesDescription: `Auto-save before restoring ${versionString}` }].slice(-10)
             };
           }
         }
@@ -239,11 +239,11 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       const target = state.templates.find(t => t.id === id);
       if (!target) return state;
       
-      newId = \`tmpl_\${Date.now()}_\${Math.random().toString(36).substring(2, 9)}\`;
+      newId = `tmpl_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       const duplicated: EditableTemplate = {
         ...target,
         id: newId,
-        name: \`\${target.name} (Copy)\`,
+        name: `${target.name} (Copy)`,
         status: 'Draft',
         createdAt: new Date().toISOString(),
         lastEdited: new Date().toISOString(),
@@ -267,7 +267,7 @@ function incrementVersion(ver: string): string {
   if (match) {
     const major = parseInt(match[1]);
     const minor = parseInt(match[2]);
-    return \`v\${major}.\${minor + 1}\`;
+    return `v${major}.${minor + 1}`;
   }
-  return \`\${ver}_new\`;
+  return `${ver}_new`;
 }

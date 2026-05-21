@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect, useState } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
@@ -31,24 +31,514 @@ import QuickDraftEditor from '@/components/QuickDraftEditor';
 import CustomDocumentEditor from '@/components/CustomDocumentEditor';
 import SavedDocumentsList from '@/components/SavedDocumentsList';
 import TemplateSetup from '@/components/TemplateSetup/TemplateSetup';
+import * as Initializers from '@/lib/templateInitializers';
 
 
-import { getBrdTemplateBlocks, getFrdTemplateBlocks, getEnterpriseSrsTemplateBlocks, getTddTemplateBlocks, getTestPlanTemplateBlocks, getTestCasesTemplateBlocks, getBugLogTemplateBlocks, getUatTemplateBlocks, getDevopsDeployTemplateBlocks, getDevopsServerTemplateBlocks, getDevopsBackupTemplateBlocks, getDevopsPipelineTemplateBlocks, getDevopsEnvTemplateBlocks, getDevopsMonitorTemplateBlocks, getSupportUserManualBlocks, getSupportAdminManualBlocks, getSupportTrainingBlocks, getSupportFaqBlocks, getSupportTroubleshootBlocks, getSupportReleaseNotesBlocks } from '@/lib/templateInitializers';
+function MainDashboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tab = searchParams.get('tab') || 'dashboard';
 
-const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolean) => {
+  // Template Module state
+  const [activeTemplateModule, setActiveTemplateModule] = useState<'all' | 'pm' | 'qa' | 'devops' | 'support'>('all');
+
+  // DevOps Command Center States
+  const [selectedResource, setSelectedResource] = useState<'app' | 'db' | 'lb'>('app');
+  const [telemetryTicks, setTelemetryTicks] = useState(0);
+  const [logs, setLogs] = useState<string[]>([
+    "[INFO] 2026-05-20 18:09:53 - Connection established from LB-01",
+    "[SUCCESS] 2026-05-20 18:09:55 - Healthcheck passed for PROD-APP-01",
+    "[INFO] 2026-05-20 18:10:01 - Deployment pipeline triggered by git-push"
+  ]);
+
+  useEffect(() => {
+    if (activeTemplateModule !== 'devops') return;
+    const interval = setInterval(() => {
+      setTelemetryTicks(t => t + 1);
+      const possibleLogs = [
+        `[INFO] ${new Date().toLocaleTimeString()} - Connection established from LB-01`,
+        `[SUCCESS] ${new Date().toLocaleTimeString()} - Healthcheck passed for PROD-APP-01`,
+        `[WARN] ${new Date().toLocaleTimeString()} - High CPU usage on PROD-APP-03: ${Math.floor(88 + Math.random() * 10)}%`,
+        `[INFO] ${new Date().toLocaleTimeString()} - Deployment pipeline triggered by git-push`,
+        `[SUCCESS] ${new Date().toLocaleTimeString()} - Docker container built: tag v3.2.${Math.floor(Math.random() * 20)}`,
+        `[INFO] ${new Date().toLocaleTimeString()} - Syncing Environment variables across cluster`,
+        `[WARN] ${new Date().toLocaleTimeString()} - Conf drift detected on PROD-DB-02`,
+        `[SUCCESS] ${new Date().toLocaleTimeString()} - Automated failover dry-run complete`
+      ];
+      const randomLog = possibleLogs[Math.floor(Math.random() * possibleLogs.length)];
+      setLogs(prev => [...prev.slice(-9), randomLog]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [activeTemplateModule]);
+
+  // Help & Support Center States
+  const [supportNavSection, setSupportNavSection] = useState('user-guides');
+  const [supportSearchQuery, setSupportSearchQuery] = useState('');
+
+  useEffect(() => {
+    setActiveTemplateModule('all');
+  }, [tab]);
+
+  // Global Mock States
+  const { projects, deleteProject, syncFromStorage } = useProjectStore();
+  const [newProjectName, setNewProjectName] = useState('');
+  const [folderError, setfolderError] = useState('');
+
+  // Hydrate projects from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('docforge_projects');
+      if (saved) {
+        try {
+          // setProjects(JSON.parse(saved));
+          return;
+        } catch (e) {}
+      }
+      
+      }
+  }, []);
+
+  
+  const getDocCountForProject = (projId: number | string) => {
+    try {
+      const savedDocs = JSON.parse(localStorage.getItem('docforge_saved_documents') || '[]');
+      const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
+      
+      // Count unique document IDs associated with this project
+      const matchedIds = new Set<string>();
+      savedDocs.forEach((d: any) => {
+        if (String(d.projectId) === String(projId)) matchedIds.add(d.id);
+      });
+      metaList.forEach((m: any) => {
+        if (String(m.projectId) === String(projId)) matchedIds.add(m.id);
+      });
+      
+      return matchedIds.size;
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  
+    
+  const [teamMembers, setTeamMembers] = useState([
+    { id: 1, name: 'Siddiq Admin', role: 'Administrator', status: 'online', avatar: '≡ƒæ¿ΓÇì≡ƒÆ╝' },
+    { id: 2, name: 'Ahmad Al-Mansoor', role: 'Senior Reviewer', status: 'away', avatar: '≡ƒæ¿ΓÇì≡ƒÆ╗' },
+    { id: 3, name: 'Fathima Zahra', role: 'Document Editor', status: 'online', avatar: '≡ƒæ⌐ΓÇì≡ƒÆ╗' }
+  ]);
+  const [inviteName, setInviteName] = useState('');
+  const [inviteRole, setInviteRole] = useState('Editor');
+
+  const [approvals, setApprovals] = useState([
+    { id: 1, title: 'NGO Grant Proposal Sign-off', reviewer: 'Siddiq Admin', status: 'pending', date: 'May 19, 2026' },
+    { id: 3, title: 'HR Compensation Policy 2026', reviewer: 'Siddiq Admin', status: 'pending', date: 'May 17, 2026' }
+  ]);
+
+  interface KanbanCard {
+    id: string;
+    title: string;
+    stage: string;
+    priority: string;
+    owner: string;
+    lastUpdated: string;
+  }
+
+  // Kanban board mock items
+  const [kanbanCards, setKanbanCards] = useState<KanbanCard[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('docforge_kanban_cards');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+    }
+    return [
+      { id: 'k1', title: 'Software Requirements Specification (SRS) - Enterprise Billing', stage: 'Draft', priority: 'High', owner: 'Fathima Zahra', lastUpdated: 'May 19, 2026' },
+      { id: 'k3', title: 'Employee Attendance Management BRD', stage: 'Review', priority: 'Medium', owner: 'Siddiq Admin', lastUpdated: 'May 19, 2026' },
+      { id: 'k4', title: 'Charitable Trust Grant Proposal v1.0', stage: 'Approval', priority: 'High', owner: 'Siddiq Admin', lastUpdated: 'May 17, 2026' },
+      { id: 'k5', title: 'HR Compensation Policy 2026', stage: 'Published', priority: 'Low', owner: 'Fathima Zahra', lastUpdated: 'May 16, 2026' }
+    ];
+  });
+
+  const [newCardTitle, setNewCardTitle] = useState('');
+  const [newCardPriority, setNewCardPriority] = useState('Medium');
+  const [newCardOwner, setNewCardOwner] = useState('Siddiq Admin');
+  const [showAddCardForm, setShowAddCardForm] = useState(false);
+
+  // Save to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('docforge_kanban_cards', JSON.stringify(kanbanCards));
+  }, [kanbanCards]);
+
+  // AI assistant workspace states
+  const [aiInput, setAiInput] = useState('');
+  const [aiOutput, setAiOutput] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTemperature, setAiTemperature] = useState(0.8);
+  const [aiMaxTokens, setAiMaxTokens] = useState(300);
+
+  // Settings states
+  const [themeMode, setThemeMode] = useState('light');
+  const [apiEndpoint, setApiEndpoint] = useState('https://portaldev.mawarid.com.sa:6080/platform-test-ai/agents/agent_1779168092372/text');
+
+  // Load theme preference on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('docforge_theme') || 'light';
+    setThemeMode(savedTheme);
+
+    // Pre-seed the templates and demo document if not already initialized
+    const metaListStr = localStorage.getItem('docforge_docs_meta');
+    let metaList: any[] = [];
+    if (metaListStr) {
+      metaList = JSON.parse(metaListStr);
+      // Clean up legacy VAT template from user's storage
+      const origLength = metaList.length;
+      metaList = metaList.filter((m: any) => m.id !== 'template-vat');
+      if (origLength !== metaList.length) {
+        localStorage.setItem('docforge_docs_meta', JSON.stringify(metaList));
+        localStorage.removeItem('docforge_doc_template-vat');
+      }
+    }
+
+    const defaultTemplates = [
+      { id: 'template-brd', title: 'Business Requirement Document (BRD)', type: 'brd', desc: 'A strict, highly structured 12-section layout including Purpose, Scope Matrix, Stakeholders, Functional & Non-Functional Requirements, Workflows, Assumptions, and approvals.' },
+      { id: 'template-frd', title: 'Feature Requirement Document (FRD)', type: 'frd', desc: 'Detailed feature specification with objectives, user stories, acceptance criteria, UI requirements, validation rules, dependencies, and comments & feedback workflow.' },
+      { id: 'template-srs', title: 'Enterprise Software Requirement Specification', type: 'srs', desc: 'Full technical SRS layout with engineering header, API explorer table, architecture flows, modules, database schema, security, DevOps, monitoring, performance, versioning, and approval workflow.' },
+      { id: 'template-tdd', title: 'Technical Design Document (TDD)', type: 'tdd', desc: 'Complete system architecture plan covering component responsibilities, database schemas, API communication, and security integrations.' },
+      { id: 'template-sprint', title: 'Sprint Planning Document', type: 'sprint', desc: 'Kanban sprint board with capacity planning, story points, burndown tracking, and team workload allocation.' },
+      { id: 'template-backlog', title: 'Product Backlog', type: 'backlog', desc: 'Feature backlog management workspace with prioritization, effort/impact scoring, department filtering, and release tagging.' },
+      { id: 'template-taskbreak', title: 'Task Breakdown Sheet', type: 'taskbreak', desc: 'Developer execution workspace with task cards, workload tracking, git branch linking, and completion progress.' },
+      { id: 'template-estimation', title: 'Estimation Document', type: 'estimation', desc: 'Financial and technical planning dashboard with module-wise cost estimation, resource allocation, and effort visualization.' },
+      { id: 'template-risk', title: 'Risk Register', type: 'risk', desc: 'Enterprise risk control dashboard with risk scoring, impact/probability heatmap, mitigation plans, and SLA alerts.' },
+      { id: 'template-cr', title: 'Change Request Document', type: 'cr', desc: 'Approval workflow platform with impact analysis, cost estimation, scope change tracking, and digital signatures.' },
+      { id: 'template-release', title: 'Release Plan', type: 'release', desc: 'DevOps rollout dashboard with deployment pipeline, release readiness scoring, rollback plans, and feature checklists.' },
+      { id: 'template-status', title: 'Daily / Weekly Status Report', type: 'status', desc: 'Executive dashboard with team progress tracking, blocker identification, achievement summaries, and trend analytics.' },
+      { id: 'template-testplan', title: 'Test Plan & Strategy', type: 'testplan', desc: 'High-level QA planning scope, browser matrices, and environment settings.' },
+      { id: 'template-testcases', title: 'Test Case Specification', type: 'testcases', desc: 'Functional test suites table with preconditions, execution steps, expected outcomes, and current status checks.' },
+      { id: 'template-buglog', title: 'Bug & Defect Register', type: 'buglog', desc: 'Centralized registry tracking active defects, blocker triage statuses, and code resolution records across sprint modules.' },
+      { id: 'template-uat', title: 'User Acceptance Testing / UAT Sign-off', type: 'uat', desc: 'UAT checklists, blocker logs, formal acceptance declarations, and signature approvals.' },
+      { id: 'template-devops-deploy', title: 'Deployment Guide', type: 'devops-deploy', desc: 'Production Rollout & Deployment Guide detailing rollout steps, checklists, pipelines, and post-release testing.' },
+      { id: 'template-devops-server', title: 'Server Configuration Document', type: 'devops-server', desc: 'Infrastructure Inventory & Server Configurations covering hardware specifications, dependency mappings, and services.' },
+      { id: 'template-devops-backup', title: 'Backup & Recovery Plan', type: 'devops-backup', desc: 'Disaster Recovery & Backup Plan defining incremental strategy flows, recovery checklist guides, and failovers.' },
+      { id: 'template-devops-pipeline', title: 'CI/CD Pipeline Document', type: 'devops-pipeline', desc: 'CI/CD Pipelines & Build Engine Configuration outlining stages, test coverage targets, triggers, and Docker settings.' },
+      { id: 'template-devops-env', title: 'Environment Configuration Sheet', type: 'devops-env', desc: 'Multi-Environment Configuration Sheet detailing Dev, Staging, and Production connection strings, IP tables, and ports.' },
+      { id: 'template-devops-monitor', title: 'Monitoring & Logging Guide', type: 'devops-monitor', desc: 'Logging & Observability Operations Guide defining alert triage protocols, ELK aggregation models, and registries.' },
+      { id: 'template-support-usermanual', title: 'User Manual', type: 'support-usermanual', desc: 'Interactive product learning portal with feature walkthroughs, guided workflows, and screenshot annotations.' },
+      { id: 'template-support-adminmanual', title: 'Admin Manual', type: 'support-adminmanual', desc: 'Operations control dashboard covering user roles, permission mappings, audit logs, and system settings.' },
+      { id: 'template-support-training', title: 'Training Material', type: 'support-training', desc: 'Corporate learning platform with course progress, video lessons, quizzes, and certification tracking.' },
+      { id: 'template-support-faq', title: 'FAQ Document', type: 'support-faq', desc: 'Search-first knowledge base with categorized Q&A accordions, trending issues, and AI-powered suggestions.' },
+      { id: 'template-support-troubleshoot', title: 'Troubleshooting Guide', type: 'support-troubleshoot', desc: 'Diagnostic support center with error resolution cards, root cause workflows, and escalation guides.' },
+      { id: 'template-support-releasenotes', title: 'Release Notes', type: 'support-releasenotes', desc: 'Product update timeline dashboard with changelogs, feature highlights, and upgrade instructions.' }
+    ];
+
+    let metaChanged = false;
+    defaultTemplates.forEach(t => {
+      const exists = metaList.some((m: any) => m.id === t.id);
+      if (!exists) {
+        metaChanged = true;
+        metaList.push({
+          id: t.id,
+          title: t.title,
+          desc: t.desc,
+          lastSaved: new Date().toLocaleString(),
+          type: t.type,
+          isTemplate: true
+        });
+
+        let blocks: Record<string, unknown>[] = [];
+        if (t.type === 'brd') blocks = Initializers.getBrdTemplateBlocks(t.title);
+        else if (t.type === 'frd') blocks = Initializers.getFrdTemplateBlocks(t.title);
+        else if (t.type === 'srs') blocks = Initializers.getEnterpriseSrsTemplateBlocks(t.title);
+        else if (t.type === 'tdd') blocks = Initializers.getTddTemplateBlocks(t.title);
+        else if (t.type === 'testplan') blocks = Initializers.getTestPlanTemplateBlocks(t.title);
+        else if (t.type === 'testcases') blocks = Initializers.getTestCasesTemplateBlocks(t.title);
+        else if (t.type === 'buglog') blocks = Initializers.getBugLogTemplateBlocks(t.title);
+        else if (t.type === 'uat') blocks = Initializers.getUatTemplateBlocks(t.title);
+        else if (t.type === 'devops-deploy') blocks = Initializers.getDevopsDeployTemplateBlocks(t.title);
+        else if (t.type === 'devops-server') blocks = Initializers.getDevopsServerTemplateBlocks(t.title);
+        else if (t.type === 'devops-backup') blocks = Initializers.getDevopsBackupTemplateBlocks(t.title);
+        else if (t.type === 'devops-pipeline') blocks = Initializers.getDevopsPipelineTemplateBlocks(t.title);
+        else if (t.type === 'devops-env') blocks = Initializers.getDevopsEnvTemplateBlocks(t.title);
+        else if (t.type === 'devops-monitor') blocks = Initializers.getDevopsMonitorTemplateBlocks(t.title);
+        else if (t.type === 'support-usermanual') blocks = Initializers.getSupportUserManualBlocks(t.title);
+        else if (t.type === 'support-adminmanual') blocks = Initializers.getSupportAdminManualBlocks(t.title);
+        else if (t.type === 'support-training') blocks = Initializers.getSupportTrainingBlocks(t.title);
+        else if (t.type === 'support-faq') blocks = Initializers.getSupportFaqBlocks(t.title);
+        else if (t.type === 'support-troubleshoot') blocks = Initializers.getSupportTroubleshootBlocks(t.title);
+        else if (t.type === 'support-releasenotes') blocks = Initializers.getSupportReleaseNotesBlocks(t.title);
+        else if (t.type === 'sprint') blocks = [
+          { id: 's1', type: 'header', headingLevel: '1', value: 'Sprint Planning Document' },
+          { id: 's2', type: 'textarea', value: 'Sprint Goal: Define and document the sprint objectives, team capacity, and task allocation for the upcoming iteration.' },
+          { id: 's3', type: 'header', headingLevel: '2', value: 'Sprint Dashboard' },
+          { id: 's4', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Sprint Number', value: '12', color: '#0284c7', desc: 'Current iteration' },
+            { title: 'Story Points', value: '42', color: '#6366f1', desc: 'Total committed' },
+            { title: 'Team Capacity', value: '160 hrs', color: '#10b981', desc: 'Available hours' },
+            { title: 'Sprint Duration', value: '2 Weeks', color: '#f59e0b', desc: '10 working days' }
+          ]) },
+          { id: 's5', type: 'header', headingLevel: '2', value: 'Sprint Board' },
+          { id: 's6', type: 'kanban-board', value: JSON.stringify([
+            { title: 'Backlog', color: '#94a3b8', items: [{ id: 'sb1', text: 'Design system tokens', priority: 'Low', assignee: 'UI Team' }] },
+            { title: 'To Do', color: '#0284c7', items: [{ id: 'sb2', text: 'JWT Authentication', priority: 'High', assignee: 'Backend Team' }] },
+            { title: 'In Progress', color: '#f59e0b', items: [{ id: 'sb3', text: 'Dashboard API integration', priority: 'Critical', assignee: 'Dev Team A' }] },
+            { title: 'Testing', color: '#8b5cf6', items: [] },
+            { title: 'Done', color: '#10b981', items: [] }
+          ]) },
+          { id: 's7', type: 'header', headingLevel: '2', value: 'Sprint Task Card' },
+          { id: 's8', type: 'detailed-card', value: JSON.stringify({ id: 'AUTH-102', title: 'JWT Authentication Module', fields: [
+            { label: 'Feature', value: 'JWT Authentication' },
+            { label: 'Assigned To', value: 'Backend Team' },
+            { label: 'Story Points', value: '8' },
+            { label: 'Priority', value: 'High' },
+            { label: 'Dependencies', value: 'User Service API' },
+            { label: 'Status', value: 'In Progress' }
+          ] }) },
+          { id: 's9', type: 'header', headingLevel: '2', value: 'Capacity Planning' },
+          { id: 's10', type: 'table', value: JSON.stringify([
+            ['Team Member', 'Capacity', 'Assigned', 'Remaining'],
+            ['Developer A', '40 hrs', '32 hrs', '8 hrs'],
+            ['QA Engineer', '35 hrs', '25 hrs', '10 hrs'],
+            ['DevOps Lead', '30 hrs', '20 hrs', '10 hrs']
+          ]) }
+        ];
+        else if (t.type === 'backlog') blocks = [
+          { id: 'b1', type: 'header', headingLevel: '1', value: 'Product Backlog' },
+          { id: 'b2', type: 'textarea', value: 'Central feature backlog for tracking, prioritizing, and managing all product requirements across departments.' },
+          { id: 'b3', type: 'header', headingLevel: '2', value: 'Backlog Overview' },
+          { id: 'b4', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Total Features', value: '124', color: '#0284c7', desc: 'All tracked items' },
+            { title: 'Pending', value: '46', color: '#f59e0b', desc: 'Awaiting assignment' },
+            { title: 'High Priority', value: '12', color: '#ef4444', desc: 'Needs immediate attention' },
+            { title: 'Completed', value: '66', color: '#10b981', desc: 'Shipped to production' }
+          ]) },
+          { id: 'b5', type: 'header', headingLevel: '2', value: 'Feature Backlog Cards' },
+          { id: 'b6', type: 'detailed-card', value: JSON.stringify({ id: 'CRM-201', title: 'Lead Assignment Automation', fields: [
+            { label: 'Business Impact', value: 'High' },
+            { label: 'Priority', value: 'Critical' },
+            { label: 'Estimated Time', value: '18 Hours' },
+            { label: 'Requested By', value: 'Sales Department' },
+            { label: 'Status', value: 'Backlog' }
+          ] }) },
+          { id: 'b7', type: 'detailed-card', value: JSON.stringify({ id: 'CRM-202', title: 'Customer Portal Redesign', fields: [
+            { label: 'Business Impact', value: 'Medium' },
+            { label: 'Priority', value: 'High' },
+            { label: 'Estimated Time', value: '40 Hours' },
+            { label: 'Requested By', value: 'Product Team' },
+            { label: 'Status', value: 'Pending' }
+          ] }) }
+        ];
+        else if (t.type === 'taskbreak') blocks = [
+          { id: 'tb1', type: 'header', headingLevel: '1', value: 'Task Breakdown Sheet' },
+          { id: 'tb2', type: 'textarea', value: 'Developer execution workspace for granular task tracking, code branch management, and completion monitoring.' },
+          { id: 'tb3', type: 'header', headingLevel: '2', value: 'Task Board by Department' },
+          { id: 'tb4', type: 'kanban-board', value: JSON.stringify([
+            { title: 'Frontend', color: '#0284c7', items: [
+              { id: 'tf1', text: 'Build Dashboard UI', priority: 'High', assignee: 'Frontend Dev A' },
+              { id: 'tf2', text: 'Attendance Calendar Widget', priority: 'Medium', assignee: 'Frontend Dev B' }
+            ] },
+            { title: 'Backend', color: '#6366f1', items: [
+              { id: 'tf3', text: 'Build Attendance API', priority: 'High', assignee: 'Backend Dev' }
+            ] },
+            { title: 'QA', color: '#10b981', items: [
+              { id: 'tf4', text: 'API Integration Tests', priority: 'Medium', assignee: 'QA Engineer' }
+            ] }
+          ]) },
+          { id: 'tb5', type: 'header', headingLevel: '2', value: 'Developer Task Card' },
+          { id: 'tb6', type: 'detailed-card', value: JSON.stringify({ id: 'TASK-331', title: 'Build Attendance API', fields: [
+            { label: 'Assigned To', value: 'Backend Developer' },
+            { label: 'Estimated Hours', value: '12' },
+            { label: 'Dependencies', value: 'Authentication Module' },
+            { label: 'Status', value: 'Pending' },
+            { label: 'Code Branch', value: 'feature/attendance-api' }
+          ] }) },
+          { id: 'tb7', type: 'header', headingLevel: '2', value: 'Developer Workload' },
+          { id: 'tb8', type: 'progress-bars', value: JSON.stringify([
+            { label: 'Developer A', value: 75, color: '#0284c7' },
+            { label: 'Developer B', value: 40, color: '#6366f1' },
+            { label: 'QA Engineer', value: 55, color: '#10b981' }
+          ]) }
+        ];
+        else if (t.type === 'estimation') blocks = [
+          { id: 'e1', type: 'header', headingLevel: '1', value: 'Estimation Document' },
+          { id: 'e2', type: 'textarea', value: 'Financial and technical planning dashboard for module-wise cost estimation, resource allocation, and effort visualization.' },
+          { id: 'e3', type: 'header', headingLevel: '2', value: 'Estimation Summary' },
+          { id: 'e4', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Total Cost', value: 'Γé╣8,40,000', color: '#f59e0b', desc: 'Estimated budget' },
+            { title: 'Estimated Hours', value: '420 hrs', color: '#0284c7', desc: 'Total effort' },
+            { title: 'Resources', value: '8', color: '#6366f1', desc: 'Team members allocated' },
+            { title: 'Timeline', value: '12 Weeks', color: '#10b981', desc: 'Project duration' }
+          ]) },
+          { id: 'e5', type: 'header', headingLevel: '2', value: 'Module-wise Estimation' },
+          { id: 'e6', type: 'table', value: JSON.stringify([
+            ['Module', 'Hours', 'Cost (Γé╣)', 'Resource'],
+            ['Authentication', '24', '48,000', 'Backend'],
+            ['Dashboard', '40', '80,000', 'Frontend'],
+            ['Payroll Engine', '60', '1,20,000', 'Backend'],
+            ['Reporting', '32', '64,000', 'Full Stack'],
+            ['QA & Testing', '48', '96,000', 'QA Team']
+          ]) },
+          { id: 'e7', type: 'header', headingLevel: '2', value: 'Effort Distribution' },
+          { id: 'e8', type: 'progress-bars', value: JSON.stringify([
+            { label: 'Frontend', value: 30, color: '#0284c7' },
+            { label: 'Backend', value: 45, color: '#6366f1' },
+            { label: 'QA', value: 20, color: '#f59e0b' },
+            { label: 'DevOps', value: 10, color: '#10b981' }
+          ]) }
+        ];
+        else if (t.type === 'risk') blocks = [
+          { id: 'r1', type: 'header', headingLevel: '1', value: 'Risk Register' },
+          { id: 'r2', type: 'textarea', value: 'Enterprise risk control dashboard for identifying, scoring, and mitigating project risks with real-time monitoring.' },
+          { id: 'r3', type: 'header', headingLevel: '2', value: 'Risk Dashboard' },
+          { id: 'r4', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Critical Risks', value: '3', color: '#ef4444', desc: 'Immediate action required' },
+            { title: 'Open Risks', value: '12', color: '#f59e0b', desc: 'Under monitoring' },
+            { title: 'Mitigated', value: '8', color: '#10b981', desc: 'Successfully resolved' },
+            { title: 'Risk Score', value: '7.2', color: '#6366f1', desc: 'Weighted average' }
+          ]) },
+          { id: 'r5', type: 'header', headingLevel: '2', value: 'Risk Cards' },
+          { id: 'r6', type: 'detailed-card', value: JSON.stringify({ id: 'RSK-101', title: 'Payment API Instability', fields: [
+            { label: 'Impact', value: 'High' },
+            { label: 'Probability', value: 'Medium' },
+            { label: 'Mitigation', value: 'Fallback payment gateway' },
+            { label: 'Owner', value: 'Technical Lead' },
+            { label: 'Status', value: 'Monitoring' }
+          ] }) },
+          { id: 'r7', type: 'detailed-card', value: JSON.stringify({ id: 'RSK-102', title: 'Data Migration Failure', fields: [
+            { label: 'Impact', value: 'Critical' },
+            { label: 'Probability', value: 'Low' },
+            { label: 'Mitigation', value: 'Incremental migration with rollback' },
+            { label: 'Owner', value: 'Database Admin' },
+            { label: 'Status', value: 'Monitoring' }
+          ] }) },
+          { id: 'r8', type: 'header', headingLevel: '2', value: 'Risk Heatmap Legend' },
+          { id: 'r9', type: 'callout', value: '≡ƒö┤ HIGH IMPACT + HIGH PROBABILITY = Critical\n≡ƒƒí MEDIUM IMPACT + MEDIUM PROBABILITY = Watch\n≡ƒƒó LOW IMPACT + LOW PROBABILITY = Acceptable' }
+        ];
+        else if (t.type === 'cr') blocks = [
+          { id: 'c1', type: 'header', headingLevel: '1', value: 'Change Request Document' },
+          { id: 'c2', type: 'textarea', value: 'Formal change request workflow for tracking scope changes, cost impact, timeline adjustments, and approval signatures.' },
+          { id: 'c3', type: 'header', headingLevel: '2', value: 'Change Request Workflow' },
+          { id: 'c4', type: 'numbered-list', value: 'Step 1: Request Submitted' },
+          { id: 'c5', type: 'numbered-list', value: 'Step 2: Impact Analysis' },
+          { id: 'c6', type: 'numbered-list', value: 'Step 3: Cost Estimation' },
+          { id: 'c7', type: 'numbered-list', value: 'Step 4: Approval' },
+          { id: 'c8', type: 'numbered-list', value: 'Step 5: Implementation' },
+          { id: 'c9', type: 'header', headingLevel: '2', value: 'Change Request Card' },
+          { id: 'c10', type: 'detailed-card', value: JSON.stringify({ id: 'CR-202', title: 'Add Biometric Attendance', fields: [
+            { label: 'Requested Change', value: 'Add biometric attendance' },
+            { label: 'Reason', value: 'Client requirement update' },
+            { label: 'Impact', value: 'Medium' },
+            { label: 'Additional Cost', value: 'Γé╣45,000' },
+            { label: 'Additional Time', value: '5 Days' },
+            { label: 'Status', value: 'Pending' }
+          ] }) },
+          { id: 'c11', type: 'header', headingLevel: '2', value: 'Impact Summary' },
+          { id: 'c12', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Scope Changes', value: '3', color: '#f59e0b', desc: 'Pending review' },
+            { title: 'Cost Impact', value: 'Γé╣1,35,000', color: '#ef4444', desc: 'Additional budget' },
+            { title: 'Timeline Impact', value: '+12 Days', color: '#0284c7', desc: 'Schedule extension' },
+            { title: 'Approved CRs', value: '7', color: '#10b981', desc: 'Implemented' }
+          ]) }
+        ];
+        else if (t.type === 'release') blocks = [
+          { id: 'rl1', type: 'header', headingLevel: '1', value: 'Release Plan' },
+          { id: 'rl2', type: 'textarea', value: 'DevOps rollout dashboard for tracking deployment pipelines, release readiness, rollback plans, and feature inclusion.' },
+          { id: 'rl3', type: 'header', headingLevel: '2', value: 'Release Overview' },
+          { id: 'rl4', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Current Release', value: 'v2.1', color: '#0284c7', desc: 'Production target' },
+            { title: 'Features', value: '8', color: '#6366f1', desc: 'Included in release' },
+            { title: 'Readiness Score', value: '92%', color: '#10b981', desc: 'Deployment confidence' },
+            { title: 'Deploy Date', value: '20-May-2026', color: '#f59e0b', desc: 'Scheduled' }
+          ]) },
+          { id: 'rl5', type: 'header', headingLevel: '2', value: 'Release Card' },
+          { id: 'rl6', type: 'detailed-card', value: JSON.stringify({ id: 'REL-2.1', title: 'Production Release v2.1', fields: [
+            { label: 'Features', value: 'Attendance, Payroll, Leave Mgmt' },
+            { label: 'Deploy Date', value: '20-May-2026' },
+            { label: 'Rollback Plan', value: 'Available' },
+            { label: 'Status', value: 'Ready for Deployment' }
+          ] }) },
+          { id: 'rl7', type: 'header', headingLevel: '2', value: 'Deployment Pipeline' },
+          { id: 'rl8', type: 'progress-bars', value: JSON.stringify([
+            { label: 'Development', value: 100, color: '#10b981' },
+            { label: 'QA Testing', value: 100, color: '#10b981' },
+            { label: 'Staging', value: 85, color: '#0284c7' },
+            { label: 'Production', value: 0, color: '#94a3b8' }
+          ]) },
+          { id: 'rl9', type: 'header', headingLevel: '2', value: 'Feature Checklist' },
+          { id: 'rl10', type: 'todo-list', value: 'Attendance Module\nPayroll Calculations\nLeave Management\nDashboard Analytics\nAPI Documentation\nSecurity Audit\nPerformance Testing\nUser Acceptance Testing' }
+        ];
+        else if (t.type === 'status') blocks = [
+          { id: 'st1', type: 'header', headingLevel: '1', value: 'Daily / Weekly Status Report' },
+          { id: 'st2', type: 'textarea', value: 'Executive dashboard for tracking overall project progress, team performance, blockers, and daily achievements.' },
+          { id: 'st3', type: 'header', headingLevel: '2', value: 'Status Overview' },
+          { id: 'st4', type: 'metric-cards', value: JSON.stringify([
+            { title: 'Overall Progress', value: '72%', color: '#0284c7', desc: 'Sprint completion' },
+            { title: 'Blockers', value: '4', color: '#ef4444', desc: 'Needs resolution' },
+            { title: 'Tasks Completed', value: '28', color: '#10b981', desc: 'This week' },
+            { title: 'Tasks Remaining', value: '14', color: '#f59e0b', desc: 'In pipeline' }
+          ]) },
+          { id: 'st5', type: 'header', headingLevel: '2', value: 'Team Progress' },
+          { id: 'st6', type: 'progress-bars', value: JSON.stringify([
+            { label: 'Frontend', value: 80, color: '#0284c7' },
+            { label: 'Backend', value: 65, color: '#6366f1' },
+            { label: 'QA', value: 40, color: '#f59e0b' },
+            { label: 'DevOps', value: 90, color: '#10b981' }
+          ]) },
+          { id: 'st7', type: 'header', headingLevel: '2', value: "Today's Achievements" },
+          { id: 'st8', type: 'todo-list', value: 'Login API completed\nPayroll calculations optimized\nUI bug fixes deployed\nDatabase migration scripts ready' },
+          { id: 'st9', type: 'header', headingLevel: '2', value: 'Blockers' },
+          { id: 'st10', type: 'callout', value: 'ΓÜá Payment gateway integration delayed - awaiting vendor credentials\nΓÜá Client approval pending on dashboard design\nΓÜá SSL certificate renewal required before staging deploy\nΓÜá Third-party API rate limiting issue under investigation' }
+        ];
+
+        localStorage.setItem(`doc_root_${t.id}`, JSON.stringify(blocks));
+      }
+    });
+
+    if (!metaList.find((m: any) => m.id === 'brd-demo-attend')) {
+      metaChanged = true;
+      metaList.push({
+        id: 'brd-demo-attend',
+        title: 'Employee Attendance Management BRD',
+        lastSaved: new Date().toLocaleString(),
+        type: 'custom'
+      });
+      const demoBlocks = Initializers.getBrdTemplateBlocks('Employee Attendance Management System');
+      localStorage.setItem('doc_root_brd-demo-attend', JSON.stringify(demoBlocks));
+    }
+
+    if (metaChanged) {
+      localStorage.setItem('docforge_docs_meta', JSON.stringify(metaList));
+    }
+  }, []);
+
+  const handleToggleTheme = (theme: string) => {
+    setThemeMode(theme);
+    localStorage.setItem('docforge_theme', theme);
+    const wrapper = document.querySelector('.login-layout-wrapper');
+    if (theme === 'dark') {
+      document.body.classList.add('dark-theme');
+      if (wrapper) wrapper.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+      if (wrapper) wrapper.classList.remove('dark-theme');
+    }
+  };
+
+  // Helper to initialize custom document from templates
+  const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolean) => {
     const id = Math.random().toString(36).substring(2, 11);
     
-    // Always try to fetch the blocks from the global useTemplateStore first
-    // This guarantees template inheritance (e.g. if an Admin updated the BRD template, new documents inherit it)
+    // If it's a builder mode, try to fetch the blocks from useTemplateStore first
     let initialBlocks = [];
-    try {
-      const editableTemplates = JSON.parse(localStorage.getItem('docforge_editable_templates') || '[]');
-      const targetTemplate = editableTemplates.find((t: any) => t.id === templateIdOrType);
-      if (targetTemplate && targetTemplate.blocks && targetTemplate.blocks.length > 0) {
-        // Deep clone to prevent reference mutations
-        initialBlocks = JSON.parse(JSON.stringify(targetTemplate.blocks));
-      }
-    } catch (e) {}
+    if (isBuilder) {
+      try {
+        const editableTemplates = JSON.parse(localStorage.getItem('docforge_editable_templates') || '[]');
+        const targetTemplate = editableTemplates.find((t: any) => t.id === templateIdOrType);
+        if (targetTemplate && targetTemplate.blocks && targetTemplate.blocks.length > 0) {
+          initialBlocks = targetTemplate.blocks;
+        }
+      } catch (e) {}
+    }
 
     if (initialBlocks.length === 0) {
       try {
@@ -56,10 +546,10 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
         if (savedBlocks) {
           initialBlocks = JSON.parse(savedBlocks);
         } else {
-          if (templateIdOrType === 'template-srs' || templateIdOrType === 'srs') initialBlocks = getEnterpriseSrsTemplateBlocks(title);
-          else if (templateIdOrType === 'template-tdd' || templateIdOrType === 'tdd') initialBlocks = getTddTemplateBlocks(title);
-          else if (templateIdOrType === 'template-brd' || templateIdOrType === 'brd') initialBlocks = getBrdTemplateBlocks(title);
-          else if (templateIdOrType === 'template-frd' || templateIdOrType === 'frd') initialBlocks = getFrdTemplateBlocks(title);
+          if (templateIdOrType === 'template-srs' || templateIdOrType === 'srs') initialBlocks = Initializers.getEnterpriseSrsTemplateBlocks(title);
+          else if (templateIdOrType === 'template-tdd' || templateIdOrType === 'tdd') initialBlocks = Initializers.getTddTemplateBlocks(title);
+          else if (templateIdOrType === 'template-brd' || templateIdOrType === 'brd') initialBlocks = Initializers.getBrdTemplateBlocks(title);
+          else if (templateIdOrType === 'template-frd' || templateIdOrType === 'frd') initialBlocks = Initializers.getFrdTemplateBlocks(title);
           else {
             initialBlocks = [
               { id: '1', type: 'header', headingLevel: '1', value: title },
@@ -169,7 +659,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>📁 Projects</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒôü Projects</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Centralized projects managing multi-branch document scopes.</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
@@ -201,7 +691,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                     left: '2px', 
                     marginTop: '0.15rem' 
                   }}>
-                    ⚠️ {folderError}
+                    ΓÜá∩╕Å {folderError}
                   </span>
                 )}
               </div>
@@ -238,7 +728,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 style={{ cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
               >
                 <div className="project-card-header">
-                  <span className="project-folder-icon" style={{ color: proj.color }}>📂</span>
+                  <span className="project-folder-icon" style={{ color: proj.color }}>≡ƒôé</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <span className={`project-badge ${proj.status}`}>{proj.status}</span>
                     <button 
@@ -272,8 +762,8 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   Category: {proj.category}
                 </span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>📄 {getDocCountForProject(proj.id)} Documents</span>
-                  <span style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--primary)' }}>Open ➔</span>
+                  <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>≡ƒôä {getDocCountForProject(proj.id)} Documents</span>
+                  <span style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--primary)' }}>Open Γ₧ö</span>
                 </div>
               </div>
             ))}
@@ -320,7 +810,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
-                ← Back to Templates
+                ΓåÉ Back to Templates
               </button>
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>Development & Project Management Documents</h1>
@@ -346,7 +836,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                       className="btn btn-secondary" 
                       style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 600 }}
                     >
-                      ✏️ Edit Template
+                      Γ£Å∩╕Å Edit Template
                     </button>
                     <button 
                       onClick={() => useTemplate(t.title, t.id)} 
@@ -383,7 +873,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
-                ← Back to Templates
+                ΓåÉ Back to Templates
               </button>
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>Testing & QA Documents</h1>
@@ -409,7 +899,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                       className="btn btn-secondary" 
                       style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 600 }}
                     >
-                      ✏️ Edit Template
+                      Γ£Å∩╕Å Edit Template
                     </button>
                     <button 
                       onClick={() => useTemplate(t.title, t.id)} 
@@ -450,10 +940,10 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = '#3B82F6'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = '#334155'; }}
               >
-                ← Back to Templates
+                ΓåÉ Back to Templates
               </button>
               <div>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#F8FAFC' }}>🛠 DevOps Command Center</h1>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#F8FAFC' }}>≡ƒ¢á DevOps Command Center</h1>
                 <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginTop: '0.25rem' }}>Manage live environment clusters, active pipelines, telemetry analytics, and operational compliance templates.</p>
               </div>
             </div>
@@ -470,22 +960,22 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                       onClick={() => setSelectedResource('app')}
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: selectedResource === 'app' ? '#2563EB' : '#0F172A', border: '1px solid #334155', transition: 'all 0.2s' }}
                     >
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>💻 App Servers</span>
-                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>🟢 Active</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>≡ƒÆ╗ App Servers</span>
+                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>≡ƒƒó Active</span>
                     </div>
                     <div 
                       onClick={() => setSelectedResource('db')}
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: selectedResource === 'db' ? '#2563EB' : '#0F172A', border: '1px solid #334155', transition: 'all 0.2s' }}
                     >
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>🗄 Databases</span>
-                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>🟢 Active</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>≡ƒùä Databases</span>
+                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>≡ƒƒó Active</span>
                     </div>
                     <div 
                       onClick={() => setSelectedResource('lb')}
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: selectedResource === 'lb' ? '#2563EB' : '#0F172A', border: '1px solid #334155', transition: 'all 0.2s' }}
                     >
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>⚖ Load Balancers</span>
-                      <span style={{ fontSize: '0.75rem', color: '#F59E0B', fontWeight: 'bold' }}>🟡 Warning</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>ΓÜû Load Balancers</span>
+                      <span style={{ fontSize: '0.75rem', color: '#F59E0B', fontWeight: 'bold' }}>≡ƒƒí Warning</span>
                     </div>
                   </div>
                 </div>
@@ -494,13 +984,13 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Active Pipelines</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
-                      <span style={{ color: '#4ADE80' }}>✔</span> <span>Build / Compile</span>
+                      <span style={{ color: '#4ADE80' }}>Γ£ö</span> <span>Build / Compile</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
-                      <span style={{ color: '#4ADE80' }}>✔</span> <span>Unit Testing (92%)</span>
+                      <span style={{ color: '#4ADE80' }}>Γ£ö</span> <span>Unit Testing (92%)</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
-                      <span style={{ color: '#4ADE80' }}>✔</span> <span>Docker Registry Sync</span>
+                      <span style={{ color: '#4ADE80' }}>Γ£ö</span> <span>Docker Registry Sync</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
                       <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#3B82F6', borderRadius: '50%' }}></span> 
@@ -516,7 +1006,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 {/* Telemetry Gauge Display (Dynamic) */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
                   <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    📊 Observability Telemetry - {selectedResource === 'app' ? 'App Servers' : selectedResource === 'db' ? 'Database Nodes' : 'Load Balancers'}
+                    ≡ƒôè Observability Telemetry - {selectedResource === 'app' ? 'App Servers' : selectedResource === 'db' ? 'Database Nodes' : 'Load Balancers'}
                   </h3>
                   
                   {selectedResource === 'app' && (
@@ -544,7 +1034,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F8FAFC', margin: '0.25rem 0' }}>
                           {1240 + (telemetryTicks % 10) * 12}
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>🟢 SLA Compliant</span>
+                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>≡ƒƒó SLA Compliant</span>
                       </div>
                     </div>
                   )}
@@ -561,7 +1051,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F8FAFC', margin: '0.25rem 0' }}>
                           {820 + (telemetryTicks % 5) * 45}
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>🟢 Safe Range</span>
+                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>≡ƒƒó Safe Range</span>
                       </div>
                       <div style={{ background: '#0F172A', padding: '1rem', borderRadius: '8px', border: '1px solid #334155' }}>
                         <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Pool Connections</span>
@@ -580,19 +1070,19 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F59E0B', margin: '0.25rem 0' }}>
                           {(1.12 + Math.sin(telemetryTicks) * 0.05).toFixed(2)}s
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#F59E0B' }}>🟡 SLA Threshold Alert</span>
+                        <span style={{ fontSize: '0.7rem', color: '#F59E0B' }}>≡ƒƒí SLA Threshold Alert</span>
                       </div>
                       <div style={{ background: '#0F172A', padding: '1rem', borderRadius: '8px', border: '1px solid #334155' }}>
                         <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Requests/sec</span>
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F8FAFC', margin: '0.25rem 0' }}>
                           {450 + Math.floor(Math.sin(telemetryTicks) * 60)}
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>🟢 Balancing Load</span>
+                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>≡ƒƒó Balancing Load</span>
                       </div>
                       <div style={{ background: '#0F172A', padding: '1rem', borderRadius: '8px', border: '1px solid #334155' }}>
                         <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Active Nodes Status</span>
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#EF4444', margin: '0.25rem 0' }}>3 / 4</div>
-                        <span style={{ fontSize: '0.7rem', color: '#EF4444' }}>🔴 Node PROD-APP-03 is slow</span>
+                        <span style={{ fontSize: '0.7rem', color: '#EF4444' }}>≡ƒö┤ Node PROD-APP-03 is slow</span>
                       </div>
                     </div>
                   )}
@@ -600,7 +1090,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
 
                 {/* Live Environment Status Row */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
-                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>🌍 Live Cluster Deployments</h3>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>≡ƒîì Live Cluster Deployments</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                     <div style={{ background: '#0F172A', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #10B981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
@@ -628,7 +1118,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
 
                 {/* Templates Grid */}
                 <div>
-                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem' }}>📋 DevOps Base Blueprints & Outline Templates</h3>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem' }}>≡ƒôï DevOps Base Blueprints & Outline Templates</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem' }}>
                     {devopsTemplates.map((t: any) => (
                       <div key={t.id} className="template-card" style={{ background: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', transition: 'all 0.2s' }}>
@@ -645,7 +1135,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                             className="btn btn-secondary" 
                             style={{ flex: 1, padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', fontSize: '0.75rem', background: '#334155', border: '1px solid #475569', color: '#E2E8F0', fontWeight: 600 }}
                           >
-                            ✏️ Edit
+                            Γ£Å∩╕Å Edit
                           </button>
                           <button 
                             onClick={() => useTemplate(t.title, t.id)} 
@@ -668,7 +1158,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 {/* Live Logs Console */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
                   <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    📟 Observability Log Stream
+                    ≡ƒôƒ Observability Log Stream
                   </h3>
                   <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '8px', border: '1px solid #334155', fontFamily: 'Courier New, monospace', fontSize: '0.7rem', color: '#4ADE80', height: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     {logs.map((log, idx) => (
@@ -681,7 +1171,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
 
                 {/* Active Alerts */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
-                  <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>🚨 Incident Tickets</h3>
+                  <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>≡ƒÜ¿ Incident Tickets</h3>
                   <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', borderRadius: '8px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }} onClick={() => setSelectedResource('lb')}>
                     <span style={{ fontSize: '0.75rem', color: '#EF4444', fontWeight: 800 }}>ALERT ALT-402</span>
                     <span style={{ fontSize: '0.8rem', color: '#F8FAFC', fontWeight: 600 }}>High CPU / Latency Spike</span>
@@ -692,7 +1182,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 {/* AI Suggestions */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
                   <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    💡 Operations Copilot AI
+                    ≡ƒÆí Operations Copilot AI
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.75rem', color: '#CBD5E1' }}>
                     <div style={{ background: '#0F172A', padding: '0.65rem', borderRadius: '6px', borderLeft: '3px solid #3B82F6' }}>
@@ -720,7 +1210,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 className="btn btn-secondary"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 600, background: 'var(--surface)' }}
               >
-                ← Back to Templates
+                ΓåÉ Back to Templates
               </button>
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -739,12 +1229,12 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
               <div style={{ width: '220px', display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', paddingRight: '0.5rem', flexShrink: 0 }}>
                 <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 0.5rem', marginBottom: '0.25rem' }}>Knowledge Base</h3>
                 {[
-                  { id: 'user-guides', label: '📖 User Guides', count: 12 },
-                  { id: 'admin-docs', label: '🛡 Admin Docs', count: 8 },
-                  { id: 'training', label: '🎓 Training Material', count: 5 },
-                  { id: 'faq', label: '❓ FAQ', count: 24 },
-                  { id: 'troubleshoot', label: '🔧 Troubleshooting', count: 18 },
-                  { id: 'releases', label: '🚀 Release Notes', count: 3 }
+                  { id: 'user-guides', label: '≡ƒôû User Guides', count: 12 },
+                  { id: 'admin-docs', label: '≡ƒ¢í Admin Docs', count: 8 },
+                  { id: 'training', label: '≡ƒÄô Training Material', count: 5 },
+                  { id: 'faq', label: 'Γ¥ô FAQ', count: 24 },
+                  { id: 'troubleshoot', label: '≡ƒöº Troubleshooting', count: 18 },
+                  { id: 'releases', label: '≡ƒÜÇ Release Notes', count: 3 }
                 ].map(nav => (
                   <button
                     key={nav.id}
@@ -795,7 +1285,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                       outline: 'none'
                     }}
                   />
-                  <span style={{ position: 'absolute', left: '1rem', top: '1rem', color: 'var(--text-muted)' }}>🔍</span>
+                  <span style={{ position: 'absolute', left: '1rem', top: '1rem', color: 'var(--text-muted)' }}>≡ƒöì</span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -821,7 +1311,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                           className="btn btn-secondary" 
                           style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', fontWeight: 600 }}
                         >
-                          ✏️ Edit
+                          Γ£Å∩╕Å Edit
                         </button>
                         <button 
                           onClick={() => useTemplate(t.title, t.id)} 
@@ -873,8 +1363,8 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 <div style={{ background: 'rgba(37, 99, 235, 0.05)', border: '1px dashed rgba(37, 99, 235, 0.3)', borderRadius: '12px', padding: '1rem', textAlign: 'center' }}>
                   <h4 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Did you find what you need?</h4>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>👍 Yes</button>
-                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>👎 No</button>
+                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>≡ƒæì Yes</button>
+                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>≡ƒæÄ No</button>
                   </div>
                 </div>
               </div>
@@ -910,7 +1400,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                     className="btn btn-secondary" 
                     style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 600 }}
                   >
-                    ✏️ Edit Template
+                    Γ£Å∩╕Å Edit Template
                   </button>
                   <button 
                     onClick={() => useTemplate(t.title, t.id)} 
@@ -962,7 +1452,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary)', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  📂 8 Presets
+                  ≡ƒôé 8 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary)' }}>Module Folder</span>
               </div>
@@ -985,7 +1475,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
               >
-                Open Module ➔
+                Open Module Γ₧ö
               </button>
             </div>
 
@@ -1028,7 +1518,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary)', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  📂 4 Presets
+                  ≡ƒôé 4 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary)' }}>Module Folder</span>
               </div>
@@ -1051,7 +1541,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
               >
-                Open Module ➔
+                Open Module Γ₧ö
               </button>
             </div>
 
@@ -1094,7 +1584,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(37, 99, 235, 0.08)', color: '#2563EB', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  📂 6 Presets
+                  ≡ƒôé 6 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#2563EB' }}>Module Folder</span>
               </div>
@@ -1117,7 +1607,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700, background: '#2563EB', borderColor: '#2563EB' }}
               >
-                Open Module ➔
+                Open Module Γ₧ö
               </button>
             </div>
 
@@ -1127,7 +1617,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(37, 99, 235, 0.08)', color: '#2563EB', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  📂 6 Presets
+                  ≡ƒôé 6 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#2563EB' }}>Module Folder</span>
               </div>
@@ -1150,7 +1640,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700, background: '#2563EB', borderColor: '#2563EB' }}
               >
-                Open Module ➔
+                Open Module Γ₧ö
               </button>
             </div>
 
@@ -1173,7 +1663,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>👥 Collaborate Teams</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒæÑ Collaborate Teams</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Coordinate editing roles and security clearance keys.</p>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -1203,7 +1693,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                     name: inviteName,
                     role: inviteRole,
                     status: 'online',
-                    avatar: '👨‍💻'
+                    avatar: '≡ƒæ¿ΓÇì≡ƒÆ╗'
                   }]);
                   setInviteName('');
                 }}
@@ -1288,7 +1778,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
           <div className="enterprise-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-                📋 Workflow & Approval Board
+                ≡ƒôï Workflow & Approval Board
               </h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.25rem 0 0 0' }}>
                 Track and move enterprise documents through compliance and sign-off flow states.
@@ -1402,10 +1892,10 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                             className="form-input"
                             style={{ padding: '0.35rem', fontSize: '0.75rem' }}
                           >
-                            <option value="Low">🟢 Low</option>
-                            <option value="Medium">🔵 Medium</option>
-                            <option value="High">🟠 High</option>
-                            <option value="Critical">🔴 Critical</option>
+                            <option value="Low">≡ƒƒó Low</option>
+                            <option value="Medium">≡ƒö╡ Medium</option>
+                            <option value="High">≡ƒƒá High</option>
+                            <option value="Critical">≡ƒö┤ Critical</option>
                           </select>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
@@ -1416,9 +1906,9 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                             className="form-input"
                             style={{ padding: '0.35rem', fontSize: '0.75rem' }}
                           >
-                            <option value="Siddiq Admin">👨‍💼 Siddiq</option>
-                            <option value="Ahmad Al-Mansoor">👨‍💻 Ahmad</option>
-                            <option value="Fathima Zahra">👩‍💻 Fathima</option>
+                            <option value="Siddiq Admin">≡ƒæ¿ΓÇì≡ƒÆ╝ Siddiq</option>
+                            <option value="Ahmad Al-Mansoor">≡ƒæ¿ΓÇì≡ƒÆ╗ Ahmad</option>
+                            <option value="Fathima Zahra">≡ƒæ⌐ΓÇì≡ƒÆ╗ Fathima</option>
                           </select>
                         </div>
                       </div>
@@ -1523,7 +2013,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                             {/* Card Meta (Owner & Date) */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '0.5rem', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 500 }}>
-                                👤 {card.owner.split(' ')[0]}
+                                ≡ƒæñ {card.owner.split(' ')[0]}
                               </span>
                               <span>
                                 {card.lastUpdated}
@@ -1546,7 +2036,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                                     gap: '0.15rem'
                                   }}
                                 >
-                                  ◀ {stages[stages.indexOf(stage) - 1]}
+                                  ΓùÇ {stages[stages.indexOf(stage) - 1]}
                                 </button>
                               )}
                               {stage !== 'Published' && (
@@ -1565,7 +2055,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                                     color: 'var(--primary)'
                                   }}
                                 >
-                                  {stages[stages.indexOf(stage) + 1]} ➔
+                                  {stages[stages.indexOf(stage) + 1]} Γ₧ö
                                 </button>
                               )}
                             </div>
@@ -1587,7 +2077,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>🕘 Platform Version Timeline</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒòÿ Platform Version Timeline</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Rollback coordinates and system audit timelines.</p>
             </div>
           </div>
@@ -1625,7 +2115,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>🤖 Dedicated AI Agent Workspace</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒñû Dedicated AI Agent Workspace</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Consult the platform AI Agent directly for high-fidelity outline generations.</p>
             </div>
           </div>
@@ -1670,13 +2160,13 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   onClick={() => setAiInput("Generate a detailed outline for a Software Requirements Specification (SRS) for an ERP inventory management module.")}
                   className="copilot-suggestion-btn"
                 >
-                  📝 Generate ERP SRS Outline
+                  ≡ƒô¥ Generate ERP SRS Outline
                 </button>
                 <button 
                   onClick={() => setAiInput("Polish and rewrite the following paragraph to make it sound highly professional for an NGO grant proposal: 'We need money to feed kids and run classes. Give us funds please.'")}
                   className="copilot-suggestion-btn"
                 >
-                  ✨ Refine NGO Proposal Wording
+                  Γ£¿ Refine NGO Proposal Wording
                 </button>
 
                 <textarea 
@@ -1710,7 +2200,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
                     <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      🤖 AI Response Output
+                      ≡ƒñû AI Response Output
                     </span>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button 
@@ -1754,7 +2244,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>⚙ Settings & Controls</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>ΓÜÖ Settings & Controls</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Configure API endpoints and appearance states.</p>
             </div>
           </div>
@@ -1768,14 +2258,14 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   className={`btn ${themeMode === 'light' ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ flex: 1 }}
                 >
-                  ☀️ Light Mode
+                  ΓÿÇ∩╕Å Light Mode
                 </button>
                 <button 
                   onClick={() => handleToggleTheme('dark')} 
                   className={`btn ${themeMode === 'dark' ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ flex: 1 }}
                 >
-                  🌙 Dark Mode
+                  ≡ƒîÖ Dark Mode
                 </button>
               </div>
             </div>
@@ -1826,7 +2316,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => handleToggleTheme(themeMode === 'light' ? 'dark' : 'light')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '50%', padding: 0 }} title="Toggle Theme">
-                {themeMode === 'light' ? '🌙' : '☀️'}
+                {themeMode === 'light' ? '≡ƒîÖ' : 'ΓÿÇ∩╕Å'}
               </button>
               <button onClick={() => useTemplate('New Specification', 'blank')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <Plus size={18} /> Start Canvas
@@ -1839,25 +2329,25 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(2, 132, 199, 0.02) 100%)', border: '1px solid rgba(2, 132, 199, 0.12)' }}>
               <span className="stat-num">{projects.length}</span>
               <span className="stat-label">Active Projects</span>
-              <span className="stat-icon">📁</span>
+              <span className="stat-icon">≡ƒôü</span>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 100%)', border: '1px solid rgba(99, 102, 241, 0.12)' }}>
               <span className="stat-num">12</span>
               <span className="stat-label">Total Drafts</span>
-              <span className="stat-icon">📄</span>
+              <span className="stat-icon">≡ƒôä</span>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.02) 100%)', border: '1px solid rgba(245, 158, 11, 0.12)' }}>
               <span className="stat-num">2</span>
               <span className="stat-label">Pending Signatures</span>
-              <span className="stat-icon">✅</span>
+              <span className="stat-icon">Γ£à</span>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.02) 100%)', border: '1px solid rgba(16, 185, 129, 0.12)' }}>
               <span className="stat-num">4,250</span>
               <span className="stat-label">AI Words Made</span>
-              <span className="stat-icon">🤖</span>
+              <span className="stat-icon">≡ƒñû</span>
             </div>
           </div>
 
@@ -1865,7 +2355,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
             {/* Quick Actions Panel */}
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🚀 Rapid Document Generators
+                ≡ƒÜÇ Rapid Document Generators
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                 <div 
@@ -1875,7 +2365,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.5rem' }}>💼</span>
+                    <span style={{ fontSize: '1.5rem' }}>≡ƒÆ╝</span>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Corporate BRD Outline</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch our strict 12-section business requirement spec layout.</span>
@@ -1891,7 +2381,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.5rem' }}>⚡</span>
+                    <span style={{ fontSize: '1.5rem' }}>ΓÜí</span>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Agile FRD Outline</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch our Agile Software Feature Requirement layout with user story mapping.</span>
@@ -1923,7 +2413,7 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ec4899', minWidth: '1.5rem' }}>📐</span>
+                    <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ec4899', minWidth: '1.5rem' }}>≡ƒôÉ</span>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize TDD Template</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch the Technical Design Document for system architecture.</span>
@@ -1949,14 +2439,14 @@ const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolea
                     className="btn btn-secondary" 
                     style={{ fontSize: '0.8rem', justifyContent: 'space-between', padding: '0.6rem 0.75rem' }}
                   >
-                    <span>🤖 Open AI Chat Portal</span> ➔
+                    <span>≡ƒñû Open AI Chat Portal</span> Γ₧ö
                   </button>
                   <button 
                     onClick={() => { router.push('/?tab=teams'); }} 
                     className="btn btn-secondary" 
                     style={{ fontSize: '0.8rem', justifyContent: 'space-between', padding: '0.6rem 0.75rem' }}
                   >
-                    <span>👥 Manage Team Invitees</span> ➔
+                    <span>≡ƒæÑ Manage Team Invitees</span> Γ₧ö
                   </button>
                 </div>
               </div>

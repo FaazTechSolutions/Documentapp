@@ -9,6 +9,9 @@ import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib
 import { saveDocument, getSavedDocument } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import GithubModal from './GithubModal';
+import GlobalEnterpriseToolbar from './GlobalEnterpriseToolbar';
+import FolderDropdown from './FolderDropdown';
+import CreateFolderModal from './CreateFolderModal';
 
 export type BlockType = 
   | 'header' 
@@ -65,6 +68,7 @@ export default function CustomDocumentEditor() {
   const [isManualEdit, setIsManualEdit] = useState(false);
   const [hasEditedManually, setHasEditedManually] = useState(false);
   const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
   const [activeInsertBlockId, setActiveInsertBlockId] = useState<string | null>(null);
   const [activeActionsBlockId, setActiveActionsBlockId] = useState<string | null>(null);
@@ -4853,141 +4857,22 @@ export default function CustomDocumentEditor() {
           </div>
         </div>
 
-        {/* Centered Panel Toggles Group */}
-        <div style={{ display: 'flex', background: 'var(--background)', borderRadius: '8px', padding: '2px', border: '1px solid var(--border)' }}>
-          <button 
-            onClick={() => setShowAiPanel(!showAiPanel)}
-            style={{
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              background: showAiPanel ? 'var(--surface)' : 'transparent',
-              color: showAiPanel ? 'var(--primary)' : 'var(--text-muted)',
-              boxShadow: showAiPanel ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            🤖 AI Panel
-          </button>
-          <div style={{ width: '1px', background: 'var(--border)', margin: '4px 0' }} />
-          <button 
-            style={{
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'default',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              background: 'transparent',
-              color: 'var(--text-main)',
-              opacity: 0.8
-            }}
-          >
-            📄 Document Editor
-          </button>
-          <div style={{ width: '1px', background: 'var(--border)', margin: '4px 0' }} />
-          <button 
-            onClick={() => setShowPropertiesPanel(!showPropertiesPanel)}
-            style={{
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              borderRadius: '6px',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              background: showPropertiesPanel ? 'var(--surface)' : 'transparent',
-              color: showPropertiesPanel ? 'var(--primary)' : 'var(--text-muted)',
-              boxShadow: showPropertiesPanel ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            ⚙️ Properties
-          </button>
-        </div>
         
-        {/* Minimal Toolbar controls */}
-        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-          <div style={{ display: 'inline-flex', padding: '0.15rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', marginRight: '0.5rem' }}>
-            <button 
-              onClick={() => { setViewMode('canvas'); setIsManualEdit(false); }}
-              style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 600, borderRadius: '6px', border: 'none', cursor: 'pointer', background: viewMode === 'canvas' && !isManualEdit ? 'var(--surface)' : 'transparent', color: viewMode === 'canvas' && !isManualEdit ? 'var(--primary)' : 'var(--text-muted)', boxShadow: viewMode === 'canvas' && !isManualEdit ? 'var(--shadow-sm)' : 'none', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-            >
-              📄 Canvas View
-            </button>
-            {(docType === 'brd' || docType === 'frd' || docType === 'srs' || docType === 'tdd' || docType === 'sprint' || documentTitle.toLowerCase().includes('brd') || documentTitle.toLowerCase().includes('frd') || documentTitle.toLowerCase().includes('srs') || documentTitle.toLowerCase().includes('tdd') || documentTitle.toLowerCase().includes('sprint') || documentTitle.toLowerCase().includes('business requirement') || documentTitle.toLowerCase().includes('feature requirement') || documentTitle.toLowerCase().includes('software requirement') || documentTitle.toLowerCase().includes('technical design')) && (
-              <button 
-                onClick={() => { setViewMode('dashboard'); setIsManualEdit(false); }}
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 600, borderRadius: '6px', border: 'none', cursor: 'pointer', background: viewMode === 'dashboard' ? 'var(--surface)' : 'transparent', color: viewMode === 'dashboard' ? 'var(--primary)' : 'var(--text-muted)', boxShadow: viewMode === 'dashboard' ? 'var(--shadow-sm)' : 'none', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-              >
-                📊 Dashboard View
-              </button>
-            )}
-          </div>
-
-          {hasEditedManually && (
-            <button 
-              onClick={() => {
-                setHasEditedManually(false);
-                setIsManualEdit(false);
-                setMarkdown(generateMarkdown());
-              }} 
-              className="btn btn-secondary" 
-              style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-            >
-              Reset to Canvas
-            </button>
-          )}
-          <button 
-            onClick={() => setIsManualEdit(!isManualEdit)} 
-            className={`btn ${isManualEdit ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-          >
-            {isManualEdit ? 'Edit Inline Canvas' : 'Edit Markdown'}
-          </button>
-          
-          <div style={{ width: '1px', height: '20px', background: 'var(--border)', margin: '0 0.25rem' }} />
-
-          <button 
-            onClick={undo} 
-            disabled={past.length === 0} 
-            className="btn btn-secondary" 
-            title="Undo (Ctrl+Z)"
-            style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', opacity: past.length === 0 ? 0.4 : 1, cursor: past.length === 0 ? 'not-allowed' : 'pointer' }}
-          >
-            <Undo size={15} />
-          </button>
-          
-          <button 
-            onClick={redo} 
-            disabled={future.length === 0} 
-            className="btn btn-secondary" 
-            title="Redo (Ctrl+Y)"
-            style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', opacity: future.length === 0 ? 0.4 : 1, cursor: future.length === 0 ? 'not-allowed' : 'pointer' }}
-          >
-            <Redo size={15} />
-          </button>
-
-          <div style={{ width: '1px', height: '20px', background: 'var(--border)', margin: '0 0.25rem' }} />
-
-          <button onClick={handleSave} className="btn btn-primary" title="Save Document" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-            <Save size={15} /> Save Canvas
-          </button>
-        </div>
+        <GlobalEnterpriseToolbar
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          showAiPanel={showAiPanel}
+          setShowAiPanel={setShowAiPanel}
+          showPropertiesPanel={showPropertiesPanel}
+          setShowPropertiesPanel={setShowPropertiesPanel}
+          isManualEdit={isManualEdit}
+          setIsManualEdit={setIsManualEdit}
+          docType={docType}
+          documentTitle={documentTitle}
+        />
       </div>
 
-      {/* 3-Column Workspace Panel Row */}
+        {/* 3-Column Workspace Panel Row */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', background: 'var(--background)' }}>
         
         {/* ==============================================
@@ -5132,13 +5017,10 @@ export default function CustomDocumentEditor() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.65rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
                   <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>Folder/Project:</span>
-                  <select
-                    value={selectedProjectId}
-                    onChange={e => {
-                      const newProjId = e.target.value;
+                  <FolderDropdown 
+                    selectedProjectId={selectedProjectId || ''}
+                    onSelectProject={(newProjId) => {
                       setSelectedProjectId(newProjId);
-                      
-                      // Update active metadata immediately
                       try {
                         const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
                         const updatedMeta = metaList.map((m: any) => {
@@ -5150,25 +5032,8 @@ export default function CustomDocumentEditor() {
                         localStorage.setItem('docforge_docs_meta', JSON.stringify(updatedMeta));
                       } catch (err) {}
                     }}
-                    style={{
-                      width: '100%',
-                      padding: '0.4rem 0.5rem',
-                      borderRadius: '6px',
-                      border: '1px solid var(--border)',
-                      background: 'var(--surface)',
-                      color: 'var(--text-main)',
-                      fontSize: '0.8rem',
-                      outline: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="">-- No Folder --</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={String(p.id)}>
-                        📁 {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    onCreateNewClick={() => setIsCreateFolderOpen(true)}
+                  />
                 </div>
               </div>
             </div>
@@ -5305,6 +5170,24 @@ export default function CustomDocumentEditor() {
         onClose={() => setIsGithubModalOpen(false)} 
         markdownContent={markdown}
         defaultFilename="custom-doc"
+      />
+
+      <CreateFolderModal 
+        isOpen={isCreateFolderOpen}
+        onClose={() => setIsCreateFolderOpen(false)}
+        onSuccess={(newProjectId) => {
+          setSelectedProjectId(newProjectId);
+          try {
+            const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
+            const updatedMeta = metaList.map((m: any) => {
+              if (m.id === documentId) {
+                return { ...m, projectId: newProjectId };
+              }
+              return m;
+            });
+            localStorage.setItem('docforge_docs_meta', JSON.stringify(updatedMeta));
+          } catch (err) {}
+        }}
       />
     </div>
   );

@@ -1795,7 +1795,7 @@ function MainDashboardContent() {
       
     case 'documents':
     case 'saved':
-      return <SavedDocumentsList />;
+      return <SavedDocumentsList useTemplate={useTemplate} />;
 
     case 'projects':
       return (

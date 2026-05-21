@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from 'react';
+import { useProjectStore } from '@/store/useProjectStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { isAuthenticated, getActiveSession } from '@/lib/auth';
 import { 
@@ -1185,7 +1186,7 @@ function MainDashboardContent() {
   }, [tab]);
 
   // Global Mock States
-  const [projects, setProjects] = useState<any[]>([]);
+  const { projects, deleteProject, syncFromStorage } = useProjectStore();
   const [newProjectName, setNewProjectName] = useState('');
   const [folderError, setfolderError] = useState('');
 
@@ -1195,26 +1196,15 @@ function MainDashboardContent() {
       const saved = localStorage.getItem('docforge_projects');
       if (saved) {
         try {
-          setProjects(JSON.parse(saved));
+          // setProjects(JSON.parse(saved));
           return;
         } catch (e) {}
       }
       
-      const defaultProjects = [
-        { id: 1, name: 'Mawarid ERP Suite Integration', status: 'active', color: '#0284c7', category: 'HR & ERP' },
-        { id: 3, name: 'Charitable Trust Grant Proposal', status: 'draft', color: '#f59e0b', category: 'NGO Sector' },
-        { id: 4, name: 'Business Requirement Document (BRD)', status: 'active', color: '#10b981', category: 'Development' }
-      ];
-      setProjects(defaultProjects);
-      localStorage.setItem('docforge_projects', JSON.stringify(defaultProjects));
-    }
+      }
   }, []);
 
-  const saveProjects = (updatedProjects: any[]) => {
-    setProjects(updatedProjects);
-    localStorage.setItem('docforge_projects', JSON.stringify(updatedProjects));
-  };
-
+  
   const getDocCountForProject = (projId: number | string) => {
     try {
       const savedDocs = JSON.parse(localStorage.getItem('docforge_saved_documents') || '[]');
@@ -1235,52 +1225,8 @@ function MainDashboardContent() {
     }
   };
 
-  const handleDeleteProject = (id: number | string, name: string) => {
-    if (confirm(`Are you sure you want to delete the Project "${name}"? Documents inside this Project will not be deleted, but their Project association will be removed.`)) {
-      const updated = projects.filter(p => String(p.id) !== String(id));
-      saveProjects(updated);
-
-      // Remove association from metadata
-      try {
-        const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
-        const updatedMeta = metaList.map((m: any) => {
-          if (String(m.projectId) === String(id)) {
-            const { projectId, ...rest } = m;
-            return rest;
-          }
-          return m;
-        });
-        localStorage.setItem('docforge_docs_meta', JSON.stringify(updatedMeta));
-      } catch (e) {}
-
-      // Remove association from saved documents
-      try {
-        const savedDocs = JSON.parse(localStorage.getItem('docforge_saved_documents') || '[]');
-        const updatedDocs = savedDocs.map((d: any) => {
-          if (String(d.projectId) === String(id)) {
-            const { projectId, ...rest } = d;
-            return rest;
-          }
-          return d;
-        });
-        localStorage.setItem('docforge_saved_documents', JSON.stringify(updatedDocs));
-      } catch (e) {}
-    }
-  };
-
-  const handleEditProject = (proj: any) => {
-    const newName = prompt(`Enter new Project name for "${proj.name}":`, proj.name);
-    if (newName && newName.trim() && newName.trim() !== proj.name) {
-      const updated = projects.map(p => {
-        if (String(p.id) === String(proj.id)) {
-          return { ...p, name: newName.trim() };
-        }
-        return p;
-      });
-      saveProjects(updated);
-    }
-  };
   
+    
   const [teamMembers, setTeamMembers] = useState([
     { id: 1, name: 'Siddiq Admin', role: 'Administrator', status: 'online', avatar: '👨‍💼' },
     { id: 2, name: 'Ahmad Al-Mansoor', role: 'Senior Reviewer', status: 'away', avatar: '👨‍💻' },

@@ -90,8 +90,8 @@ export default function TemplateSetup() {
                     justifyContent: 'space-between',
                     padding: '0.85rem 1rem',
                     borderRadius: '10px',
-                    border: isActive ? \`1px solid \${cat.color}\` : '1px solid transparent',
-                    background: isActive ? \`\${cat.color}15\` : 'transparent',
+                    border: isActive ? `1px solid \${cat.color}` : '1px solid transparent',
+                    background: isActive ? `${cat.color}15` : 'transparent',
                     color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
                     fontWeight: isActive ? 600 : 500,
                     cursor: 'pointer',
@@ -165,7 +165,7 @@ export default function TemplateSetup() {
                       
                       {openMenuId === t.id && (
                         <div className="animate-fade-in" style={{ position: 'absolute', top: '100%', right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', zIndex: 50, width: '160px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)' }}>
-                          <button onClick={() => { router.push(\`/?tab=builder&id=\${t.id}\`); setOpenMenuId(null); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem', background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><Edit2 size={14} /> Edit Template</button>
+                          <button onClick={() => { router.push(`/?tab=builder&id=\${t.id}`); setOpenMenuId(null); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem', background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><Edit2 size={14} /> Edit Template</button>
                           <button onClick={() => { duplicateTemplate(t.id); setOpenMenuId(null); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem', background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><Copy size={14} /> Duplicate</button>
                           <button onClick={() => { setOpenMenuId(null); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem', background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'left', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><Share2 size={14} /> Share</button>
                           <div style={{ height: '1px', background: 'var(--border)', margin: '0.25rem 0' }} />
@@ -215,7 +215,7 @@ export default function TemplateSetup() {
                       Preview
                     </button>
                     <button 
-                      onClick={() => router.push(\`/?tab=builder&id=\${t.id}\`)}
+                      onClick={() => router.push(`/?tab=builder&id=\${t.id}`)}
                       style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', border: 'none', color: '#fff', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: 'var(--glow)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                     >
                       <Edit2 size={14} /> Edit Setup

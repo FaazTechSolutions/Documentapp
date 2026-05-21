@@ -20,34 +20,6 @@ const categories = [
   { id: 'support', label: 'User & Support', icon: '📖', items: ['User Manual', 'FAQ', 'Troubleshooting', 'Release Notes'] }
 ];
 
-const templatesDatabase = [
-  // Business
-  { id: 'template-brd', type: 'brd', name: 'Business Requirements (BRD)', category: 'business', icon: '📘', desc: 'Business requirement management workspace.', sections: 18, difficulty: 'Enterprise', tags: ['Planning', 'Strategy'], used: '2 hours ago' },
-  { id: 'template-frd', type: 'frd', name: 'Feature Requirements (FRD)', category: 'business', icon: '📗', desc: 'Feature and functional specifications map.', sections: 14, difficulty: 'Advanced', tags: ['Features', 'Product'], used: '1 day ago' },
-  { id: 'template-srs', type: 'srs', name: 'Software Requirements (SRS)', category: 'business', icon: '📙', desc: 'System requirements and architecture definition.', sections: 24, difficulty: 'Enterprise', tags: ['Architecture', 'Technical'], used: '5 hours ago' },
-  { id: 'template-tdd', type: 'tdd', name: 'Technical Design (TDD)', category: 'business', icon: '📓', desc: 'Engineering schemas and system design docs.', sections: 22, difficulty: 'Expert', tags: ['Engineering', 'Backend'], used: '3 days ago' },
-  // Agile
-  { id: 'template-sprint', type: 'sprint', name: 'Sprint Planning', category: 'agile', icon: '🏃', desc: 'Kanban boards and sprint capacity tracking.', sections: 8, difficulty: 'Intermediate', tags: ['Agile', 'Scrum'], used: '1 week ago' },
-  { id: 'template-backlog', type: 'backlog', name: 'Product Backlog', category: 'agile', icon: '📋', desc: 'Prioritized feature list and story points.', sections: 5, difficulty: 'Beginner', tags: ['Planning', 'Features'], used: '2 weeks ago' },
-  { id: 'template-risk', type: 'custom', name: 'Risk Register', category: 'agile', icon: '⚠️', desc: 'Project risks, impacts, and mitigations.', sections: 6, difficulty: 'Intermediate', tags: ['Management', 'Security'], used: 'New' },
-  { id: 'template-change', type: 'custom', name: 'Change Requests', category: 'agile', icon: '🔄', desc: 'Formal change management tracking.', sections: 7, difficulty: 'Advanced', tags: ['Scope', 'Management'], used: 'New' },
-  // QA
-  { id: 'template-testplan', type: 'custom', name: 'Master Test Plan', category: 'qa', icon: '🧪', desc: 'Comprehensive QA testing strategy.', sections: 12, difficulty: 'Advanced', tags: ['QA', 'Strategy'], used: '1 month ago' },
-  { id: 'template-testcases', type: 'custom', name: 'Test Cases', category: 'qa', icon: '✅', desc: 'Step-by-step test execution matrix.', sections: 4, difficulty: 'Intermediate', tags: ['QA', 'Execution'], used: '2 days ago' },
-  { id: 'template-bug', type: 'custom', name: 'Bug Reports', category: 'qa', icon: '🐛', desc: 'Detailed defect tracking and replication.', sections: 8, difficulty: 'Beginner', tags: ['QA', 'Triage'], used: '4 hours ago' },
-  { id: 'template-uat', type: 'custom', name: 'UAT Sign-off', category: 'qa', icon: '🤝', desc: 'User acceptance testing workflows.', sections: 5, difficulty: 'Intermediate', tags: ['Client', 'Sign-off'], used: 'New' },
-  // DevOps
-  { id: 'template-cicd', type: 'custom', name: 'CI/CD Pipeline', category: 'devops', icon: '⚡', desc: 'Continuous integration and delivery config.', sections: 9, difficulty: 'Expert', tags: ['DevOps', 'Automation'], used: 'New' },
-  { id: 'template-deploy', type: 'custom', name: 'Deployment Guide', category: 'devops', icon: '🚀', desc: 'Step-by-step production release manual.', sections: 11, difficulty: 'Advanced', tags: ['Release', 'Ops'], used: '1 week ago' },
-  { id: 'template-monitor', type: 'custom', name: 'Monitoring Setup', category: 'devops', icon: '📊', desc: 'Observability and alerting configurations.', sections: 8, difficulty: 'Advanced', tags: ['SRE', 'Ops'], used: 'New' },
-  { id: 'template-infra', type: 'custom', name: 'Infrastructure (IaC)', category: 'devops', icon: '🏗️', desc: 'Cloud resource and network topology.', sections: 15, difficulty: 'Enterprise', tags: ['Cloud', 'Architecture'], used: 'New' },
-  // Support
-  { id: 'template-manual', type: 'custom', name: 'User Manual', category: 'support', icon: '📖', desc: 'End-user product documentation.', sections: 10, difficulty: 'Beginner', tags: ['Docs', 'Client'], used: 'New' },
-  { id: 'template-faq', type: 'custom', name: 'FAQ & Help', category: 'support', icon: '❓', desc: 'Common questions and resolutions.', sections: 4, difficulty: 'Beginner', tags: ['Support', 'Docs'], used: 'New' },
-  { id: 'template-trouble', type: 'custom', name: 'Troubleshooting', category: 'support', icon: '🔧', desc: 'Diagnostic steps for system issues.', sections: 6, difficulty: 'Intermediate', tags: ['Support', 'Engineering'], used: 'New' },
-  { id: 'template-releasenotes', type: 'custom', name: 'Release Notes', category: 'support', icon: '📣', desc: 'Changelog and version announcements.', sections: 5, difficulty: 'Beginner', tags: ['Product', 'Updates'], used: '3 weeks ago' }
-];
-
 const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate: (title: string, templateId: string, isBuilder?: boolean) => void, projectIdFilter: string | null }) => {
   const { templates, duplicateTemplate, deleteTemplate, syncFromStorage } = useTemplateStore();
   const [activeCategory, setActiveCategory] = useState('business');
@@ -66,10 +38,7 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
     }
   }, [templates, selectedTemplate]);
 
-  // Merge with static templates if store is empty for display fallback
-  const displayTemplates = templates.length > 0 ? templates : templatesDatabase as any[];
-  
-  const filteredTemplates = displayTemplates.filter(t => 
+  const filteredTemplates = templates.filter(t => 
     (activeCategory === 'all' || t.category === activeCategory) &&
     (t.name.toLowerCase().includes(searchQuery.toLowerCase()) || (t.tags && t.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))))
   );

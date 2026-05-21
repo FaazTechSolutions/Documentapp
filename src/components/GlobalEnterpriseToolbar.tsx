@@ -14,6 +14,8 @@ interface GlobalEnterpriseToolbarProps {
   setIsManualEdit: (edit: boolean) => void;
   docType: string;
   documentTitle: string;
+  isTemplateBuilder?: boolean;
+  onSaveTemplateClick?: () => void;
 }
 
 export default function GlobalEnterpriseToolbar({
@@ -26,7 +28,9 @@ export default function GlobalEnterpriseToolbar({
   isManualEdit,
   setIsManualEdit,
   docType,
-  documentTitle
+  documentTitle,
+  isTemplateBuilder,
+  onSaveTemplateClick
 }: GlobalEnterpriseToolbarProps) {
 
   // Check if dashboard view should be shown

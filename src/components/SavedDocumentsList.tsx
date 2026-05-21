@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getSavedDocuments, deleteDocument, SavedDocument } from '@/lib/storage';
-import { FileText, Trash2, Clock, Plus, LayoutTemplate, Download } from 'lucide-react';
+import { FileText, Trash2, Clock, Plus, LayoutTemplate, Download, Edit2, MoreVertical, Copy, Archive, Share2 } from 'lucide-react';
+import { useTemplateStore } from '@/store/useTemplateStore';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
 import ReactMarkdown from 'react-markdown';
@@ -47,15 +48,30 @@ const templatesDatabase = [
   { id: 'template-releasenotes', type: 'custom', name: 'Release Notes', category: 'support', icon: '📣', desc: 'Changelog and version announcements.', sections: 5, difficulty: 'Beginner', tags: ['Product', 'Updates'], used: '3 weeks ago' }
 ];
 
-const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate: (title: string, templateId: string) => void, projectIdFilter: string | null }) => {
+const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate: (title: string, templateId: string, isBuilder?: boolean) => void, projectIdFilter: string | null }) => {
+  const { templates, duplicateTemplate, deleteTemplate, syncFromStorage } = useTemplateStore();
   const [activeCategory, setActiveCategory] = useState('business');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState(templatesDatabase[0]);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [isHovering, setIsHovering] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  const filteredTemplates = templatesDatabase.filter(t => 
+  useEffect(() => {
+    syncFromStorage();
+  }, [syncFromStorage]);
+
+  useEffect(() => {
+    if (templates.length > 0 && !selectedTemplate) {
+      setSelectedTemplate(templates[0]);
+    }
+  }, [templates, selectedTemplate]);
+
+  // Merge with static templates if store is empty for display fallback
+  const displayTemplates = templates.length > 0 ? templates : templatesDatabase as any[];
+  
+  const filteredTemplates = displayTemplates.filter(t => 
     (activeCategory === 'all' || t.category === activeCategory) &&
-    (t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+    (t.name.toLowerCase().includes(searchQuery.toLowerCase()) || (t.tags && t.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))))
   );
 
   return (

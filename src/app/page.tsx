@@ -1631,28 +1631,40 @@ function MainDashboardContent() {
   };
 
   // Helper to initialize custom document from templates
-  const useTemplate = (title: string, templateIdOrType: string) => {
+  const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolean) => {
     const id = Math.random().toString(36).substring(2, 11);
     
-    // Read from template doc root
+    // If it's a builder mode, try to fetch the blocks from useTemplateStore first
     let initialBlocks = [];
-    try {
-      const savedBlocks = localStorage.getItem(`doc_root_${templateIdOrType}`);
-      if (savedBlocks) {
-        initialBlocks = JSON.parse(savedBlocks);
-      } else {
-        if (templateIdOrType === 'template-srs' || templateIdOrType === 'srs') initialBlocks = getEnterpriseSrsTemplateBlocks(title);
-        else if (templateIdOrType === 'template-tdd' || templateIdOrType === 'tdd') initialBlocks = getTddTemplateBlocks(title);
-        else if (templateIdOrType === 'template-brd' || templateIdOrType === 'brd') initialBlocks = getBrdTemplateBlocks(title);
-        else if (templateIdOrType === 'template-frd' || templateIdOrType === 'frd') initialBlocks = getFrdTemplateBlocks(title);
-        else {
-          initialBlocks = [
-            { id: '1', type: 'header', headingLevel: '1', value: title },
-            { id: '2', type: 'textarea', value: 'Start writing your custom document here...' }
-          ];
+    if (isBuilder) {
+      try {
+        const editableTemplates = JSON.parse(localStorage.getItem('docforge_editable_templates') || '[]');
+        const targetTemplate = editableTemplates.find((t: any) => t.id === templateIdOrType);
+        if (targetTemplate && targetTemplate.blocks && targetTemplate.blocks.length > 0) {
+          initialBlocks = targetTemplate.blocks;
         }
-      }
-    } catch(e) {}
+      } catch (e) {}
+    }
+
+    if (initialBlocks.length === 0) {
+      try {
+        const savedBlocks = localStorage.getItem(`doc_root_${templateIdOrType}`);
+        if (savedBlocks) {
+          initialBlocks = JSON.parse(savedBlocks);
+        } else {
+          if (templateIdOrType === 'template-srs' || templateIdOrType === 'srs') initialBlocks = getEnterpriseSrsTemplateBlocks(title);
+          else if (templateIdOrType === 'template-tdd' || templateIdOrType === 'tdd') initialBlocks = getTddTemplateBlocks(title);
+          else if (templateIdOrType === 'template-brd' || templateIdOrType === 'brd') initialBlocks = getBrdTemplateBlocks(title);
+          else if (templateIdOrType === 'template-frd' || templateIdOrType === 'frd') initialBlocks = getFrdTemplateBlocks(title);
+          else {
+            initialBlocks = [
+              { id: '1', type: 'header', headingLevel: '1', value: title },
+              { id: '2', type: 'textarea', value: 'Start writing your custom document here...' }
+            ];
+          }
+        }
+      } catch(e) {}
+    }
 
     localStorage.setItem(`doc_root_${id}`, JSON.stringify(initialBlocks));
     // Save metadata
@@ -1662,7 +1674,9 @@ function MainDashboardContent() {
       title: `${title}`,
       lastSaved: new Date().toLocaleString(),
       type: templateIdOrType === 'blank' ? 'custom' : templateIdOrType.replace('template-', ''),
-      projectId: searchParams.get('projectId') || undefined
+      projectId: searchParams.get('projectId') || undefined,
+      isTemplate: !!isBuilder,
+      isTemplateBuilder: !!isBuilder
     });
     localStorage.setItem('docforge_docs_meta', JSON.stringify(metaList));
 

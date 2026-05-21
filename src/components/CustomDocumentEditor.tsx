@@ -10,6 +10,8 @@ import { saveDocument, getSavedDocument } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import GithubModal from './GithubModal';
 import GlobalEnterpriseToolbar from './GlobalEnterpriseToolbar';
+import TemplateSaveModal from './TemplateSaveModal';
+import { useTemplateStore } from '@/store/useTemplateStore';
 import FolderDropdown from './FolderDropdown';
 import CreateFolderModal from './CreateFolderModal';
 
@@ -65,6 +67,9 @@ export default function CustomDocumentEditor() {
   const [blockToFocus, setBlockToFocus] = useState<string | null>(null);
   
   const [isTemplate, setIsTemplate] = useState(false);
+  const [isTemplateBuilder, setIsTemplateBuilder] = useState(false);
+  const [isTemplateSaveModalOpen, setIsTemplateSaveModalOpen] = useState(false);
+  const { saveTemplate, drafts, saveDraft } = useTemplateStore();
   const [isManualEdit, setIsManualEdit] = useState(false);
   const [hasEditedManually, setHasEditedManually] = useState(false);
   const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
@@ -246,6 +251,9 @@ export default function CustomDocumentEditor() {
           }
           if (meta.isTemplate) {
             setIsTemplate(true);
+          }
+          if (meta.isTemplateBuilder) {
+            setIsTemplateBuilder(true);
           }
         }
       } catch (e) {}
@@ -5172,6 +5180,17 @@ export default function CustomDocumentEditor() {
         defaultFilename="custom-doc"
       />
 
+      <TemplateSaveModal
+        isOpen={isTemplateSaveModalOpen}
+        onClose={() => setIsTemplateSaveModalOpen(false)}
+        templateId={docType} // We use docType or a template ID param here
+        blocks={blocks}
+        onSuccess={() => {
+          // Toast or redirect handled here
+          console.log("Template saved successfully");
+        }}
+      />
+      
       <CreateFolderModal 
         isOpen={isCreateFolderOpen}
         onClose={() => setIsCreateFolderOpen(false)}

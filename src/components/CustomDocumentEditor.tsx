@@ -4879,48 +4879,8 @@ export default function CustomDocumentEditor() {
         </div>
       )}
       {/* Top Action Header (Toolbar) */}
-      <div className="header-actions" style={{ flexShrink: 0, height: '65px', padding: '0 1.5rem', display: isTemplateBuilder ? 'none' : 'flex' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span 
-              onClick={() => {
-                if (currentPageId) {
-                  localStorage.setItem(`doc_subpage_${currentPageId}`, JSON.stringify(blocks));
-                  if (rootBlocks) {
-                    setBlocks(rootBlocks);
-                    setRootBlocks(null);
-                  } else {
-                    const storedRoot = localStorage.getItem(`doc_root_${documentId}`);
-                    if (storedRoot) setBlocks(JSON.parse(storedRoot));
-                  }
-                  setCurrentPageId(null);
-                  setNavigationStack([]);
-                }
-              }}
-              style={{ 
-                cursor: currentPageId ? 'pointer' : 'default', 
-                color: currentPageId ? 'var(--primary)' : 'var(--text-main)',
-                fontSize: '1.15rem',
-                fontWeight: 800,
-                textDecoration: currentPageId ? 'underline' : 'none'
-              }}
-            >
-              {documentTitle || 'My Document'}
-            </span>
-            {currentPageId && (
-              <>
-                <span style={{ color: 'var(--text-muted)' }}>/</span>
-                <span style={{ color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.95rem', fontWeight: 600 }}>
-                  📄 {navigationStack[navigationStack.length - 1]?.title || 'Subpage'}
-                </span>
-              </>
-            )}
-            {saveStatus && <span style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 700, marginLeft: '0.5rem', background: 'rgba(16, 185, 129, 0.08)', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>{saveStatus}</span>}
-          </div>
-        </div>
-
-        
-        <GlobalEnterpriseToolbar
+      <div className="header-actions" style={{ flexShrink: 0, height: '60px', display: isTemplateBuilder ? 'none' : 'block' }}>
+        <EnterpriseWorkspaceToolbar
           viewMode={viewMode}
           setViewMode={setViewMode}
           showAiPanel={showAiPanel}
@@ -4931,6 +4891,23 @@ export default function CustomDocumentEditor() {
           setIsManualEdit={setIsManualEdit}
           docType={docType}
           documentTitle={documentTitle}
+          isTemplateBuilder={isTemplateBuilder}
+          currentPageId={currentPageId}
+          navigationStack={navigationStack}
+          onNavigateBack={() => {
+            if (currentPageId) {
+              localStorage.setItem(`doc_subpage_${currentPageId}`, JSON.stringify(blocks));
+              if (rootBlocks) {
+                setBlocks(rootBlocks);
+                setRootBlocks(null);
+              } else {
+                const storedRoot = localStorage.getItem(`doc_root_${documentId}`);
+                if (storedRoot) setBlocks(JSON.parse(storedRoot));
+              }
+              setCurrentPageId(null);
+              setNavigationStack([]);
+            }
+          }}
         />
       </div>
 

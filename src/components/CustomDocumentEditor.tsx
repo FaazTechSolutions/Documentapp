@@ -14,6 +14,7 @@ import TemplateSaveModal from './TemplateSaveModal';
 import { useTemplateStore } from '@/store/useTemplateStore';
 import FolderDropdown from './FolderDropdown';
 import CreateFolderModal from './CreateFolderModal';
+import TemplateConfigEditor from './TemplateSetup/TemplateConfigEditor';
 
 export type BlockType = 
   | 'header' 
@@ -67,9 +68,9 @@ export default function CustomDocumentEditor() {
   const [blockToFocus, setBlockToFocus] = useState<string | null>(null);
   
   const [isTemplate, setIsTemplate] = useState(false);
-  const [isTemplateBuilder, setIsTemplateBuilder] = useState(false);
+  const [isTemplateBuilder, setIsTemplateBuilder] = useState(searchParams.get('isBuilder') === 'true');
   const [isTemplateSaveModalOpen, setIsTemplateSaveModalOpen] = useState(false);
-  const { saveTemplate, drafts, saveDraft } = useTemplateStore();
+  const { saveTemplate, drafts, saveDraft, templates } = useTemplateStore();
   const [isManualEdit, setIsManualEdit] = useState(false);
   const [hasEditedManually, setHasEditedManually] = useState(false);
   const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
@@ -78,6 +79,7 @@ export default function CustomDocumentEditor() {
   const [activeInsertBlockId, setActiveInsertBlockId] = useState<string | null>(null);
   const [activeActionsBlockId, setActiveActionsBlockId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [configEditorOpen, setConfigEditorOpen] = useState<'sidebarItems' | 'kpiWidgets' | 'workflowSteps' | null>(null);
 
   // AI Copilot Side-Drawer States
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
@@ -234,6 +236,26 @@ export default function CustomDocumentEditor() {
   useEffect(() => {
     if (loadedId) {
       setDocumentId(loadedId);
+
+      const isBuilderParam = searchParams.get('isBuilder') === 'true';
+
+      if (isBuilderParam) {
+        // We are editing a Template from Template Setup
+        const template = templates.find((t: any) => t.id === loadedId);
+        if (template) {
+          setIsTemplate(true);
+          setIsTemplateBuilder(true);
+          setDocumentTitle(template.name);
+          setDocType(template.id);
+          setViewMode('dashboard'); // Always render Dashboard for templates
+          
+          if (template.blocks && template.blocks.length > 0) {
+            setBlocks(template.blocks as CustomBlock[]);
+          }
+          setIsLoaded(true);
+          return; // Skip standard document loading
+        }
+      }
 
       // Try to load pre-assigned project and docType from dashboard metadata list
       try {
@@ -4219,7 +4241,8 @@ export default function CustomDocumentEditor() {
   // ENTERPRISE BRD DASHBOARD - MASTER LAYOUT
   // ═══════════════════════════════════════════════════════════
   const renderBrdDashboard = () => {
-    const sidebarItems = [
+    const tmplConfig = isTemplateBuilder ? templates.find(t => t.id === loadedId)?.dashboardConfig : undefined;
+    const sidebarItems = tmplConfig?.sidebarItems || [
       { id: 'executive', icon: '📊', label: 'Executive Summary' },
       { id: 'templates', icon: '📋', label: 'BRD Templates' },
       { id: 'requirements', icon: '📄', label: 'Requirement Modules' },
@@ -4252,18 +4275,23 @@ export default function CustomDocumentEditor() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Executive Business Visibility • Real-time Requirement Intelligence</p>
               </div>
               {/* KPI Hero Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-                {[
-                  { label: 'Total Requirements', val: '486', color: '#2563EB', icon: '📋' },
-                  { label: 'Approved', val: '342', color: '#16A34A', icon: '✅' },
-                  { label: 'Pending Reviews', val: '28', color: '#F59E0B', icon: '⏳' },
-                  { label: 'Business Risks', val: '6', color: '#DC2626', icon: '⚠️' },
-                ].map((kpi, i) => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', position: 'relative' }}>
+                {isTemplateBuilder && (
+                  <button onClick={() => setConfigEditorOpen('kpiWidgets')} style={{ position: 'absolute', top: '-25px', right: 0, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.7rem', padding: '0.2rem 0.5rem', cursor: 'pointer', zIndex: 10 }}>
+                    ✏️ Edit KPIs
+                  </button>
+                )}
+                {(tmplConfig?.kpiWidgets || [
+                  { title: 'Total Requirements', value: '486', color: '#2563EB', icon: '📋' },
+                  { title: 'Approved', value: '342', color: '#16A34A', icon: '✅' },
+                  { title: 'Pending Reviews', value: '28', color: '#F59E0B', icon: '⏳' },
+                  { title: 'Business Risks', value: '6', color: '#DC2626', icon: '⚠️' },
+                ]).slice(0, 4).map((kpi, i) => (
                   <div key={i} style={{ ...ds.card, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: kpi.color }} />
-                    <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{kpi.icon}</div>
-                    <div style={{ fontSize: '2rem', fontWeight: 900, color: kpi.color, lineHeight: 1 }}>{kpi.val}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.35rem' }}>{kpi.label}</div>
+                    <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{kpi.icon || '📊'}</div>
+                    <div style={{ fontSize: '2rem', fontWeight: 900, color: kpi.color, lineHeight: 1 }}>{kpi.value}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.35rem' }}>{kpi.title}</div>
                   </div>
                 ))}
               </div>
@@ -4747,7 +4775,12 @@ export default function CustomDocumentEditor() {
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           {/* ── LEFT SIDEBAR ── */}
           <div style={{ width: '210px', borderRight: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', position: 'relative' }}>
+              {isTemplateBuilder && (
+                <button onClick={() => setConfigEditorOpen('sidebarItems')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.7rem', padding: '0.4rem', cursor: 'pointer', marginBottom: '0.5rem', fontWeight: 600 }}>
+                  ✏️ Edit Sidebar
+                </button>
+              )}
               {sidebarItems.map(item => (
                 <button
                   key={item.id}
@@ -4824,8 +4857,29 @@ export default function CustomDocumentEditor() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', overflow: 'hidden' }} className="animate-fade-in">
+      {isTemplateBuilder && (
+        <div style={{ background: 'var(--primary)', color: 'white', padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+            <Settings size={18} />
+            <span>TEMPLATE EDITING MODE: {documentTitle}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => {
+              const tmpl = templates.find(t => t.id === loadedId);
+              if (tmpl) saveTemplate(tmpl.id, blocks, false, "Live Template Edit");
+              setSaveStatus("Saved to Registry!");
+              setTimeout(() => setSaveStatus(""), 2000);
+            }} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '0.4rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
+              {saveStatus || 'Save Changes Globally'}
+            </button>
+            <button onClick={() => router.push('/?tab=template-setup')} style={{ background: 'rgba(0,0,0,0.2)', border: 'none', color: 'white', padding: '0.4rem 1rem', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}>
+              Close Editor
+            </button>
+          </div>
+        </div>
+      )}
       {/* Top Action Header (Toolbar) */}
-      <div className="header-actions" style={{ flexShrink: 0, height: '65px', padding: '0 1.5rem' }}>
+      <div className="header-actions" style={{ flexShrink: 0, height: '65px', padding: '0 1.5rem', display: isTemplateBuilder ? 'none' : 'flex' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span 
@@ -5208,6 +5262,13 @@ export default function CustomDocumentEditor() {
           } catch (err) {}
         }}
       />
+      {configEditorOpen && (
+        <TemplateConfigEditor 
+          templateId={docType} 
+          configType={configEditorOpen} 
+          onClose={() => setConfigEditorOpen(null)} 
+        />
+      )}
     </div>
   );
 }

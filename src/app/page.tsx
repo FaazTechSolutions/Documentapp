@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Suspense, useEffect, useState } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
@@ -31,6 +31,7 @@ import QuickDraftEditor from '@/components/QuickDraftEditor';
 import CustomDocumentEditor from '@/components/CustomDocumentEditor';
 import SavedDocumentsList from '@/components/SavedDocumentsList';
 import TemplateSetup from '@/components/TemplateSetup/TemplateSetup';
+import ProjectsDashboard from '@/components/ProjectsDashboard';
 import * as Initializers from '@/lib/templateInitializers';
 
 
@@ -122,9 +123,9 @@ function MainDashboardContent() {
   
     
   const [teamMembers, setTeamMembers] = useState([
-    { id: 1, name: 'Siddiq Admin', role: 'Administrator', status: 'online', avatar: '≡ƒæ¿ΓÇì≡ƒÆ╝' },
-    { id: 2, name: 'Ahmad Al-Mansoor', role: 'Senior Reviewer', status: 'away', avatar: '≡ƒæ¿ΓÇì≡ƒÆ╗' },
-    { id: 3, name: 'Fathima Zahra', role: 'Document Editor', status: 'online', avatar: '≡ƒæ⌐ΓÇì≡ƒÆ╗' }
+    { id: 1, name: 'Siddiq Admin', role: 'Administrator', status: 'online', avatar: '👨‍💼' },
+    { id: 2, name: 'Ahmad Al-Mansoor', role: 'Senior Reviewer', status: 'away', avatar: '👨‍💻' },
+    { id: 3, name: 'Fathima Zahra', role: 'Document Editor', status: 'online', avatar: '👩‍💻' }
   ]);
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState('Editor');
@@ -364,14 +365,14 @@ function MainDashboardContent() {
           { id: 'e2', type: 'textarea', value: 'Financial and technical planning dashboard for module-wise cost estimation, resource allocation, and effort visualization.' },
           { id: 'e3', type: 'header', headingLevel: '2', value: 'Estimation Summary' },
           { id: 'e4', type: 'metric-cards', value: JSON.stringify([
-            { title: 'Total Cost', value: 'Γé╣8,40,000', color: '#f59e0b', desc: 'Estimated budget' },
+            { title: 'Total Cost', value: '₹8,40,000', color: '#f59e0b', desc: 'Estimated budget' },
             { title: 'Estimated Hours', value: '420 hrs', color: '#0284c7', desc: 'Total effort' },
             { title: 'Resources', value: '8', color: '#6366f1', desc: 'Team members allocated' },
             { title: 'Timeline', value: '12 Weeks', color: '#10b981', desc: 'Project duration' }
           ]) },
           { id: 'e5', type: 'header', headingLevel: '2', value: 'Module-wise Estimation' },
           { id: 'e6', type: 'table', value: JSON.stringify([
-            ['Module', 'Hours', 'Cost (Γé╣)', 'Resource'],
+            ['Module', 'Hours', 'Cost (₹)', 'Resource'],
             ['Authentication', '24', '48,000', 'Backend'],
             ['Dashboard', '40', '80,000', 'Frontend'],
             ['Payroll Engine', '60', '1,20,000', 'Backend'],
@@ -412,7 +413,7 @@ function MainDashboardContent() {
             { label: 'Status', value: 'Monitoring' }
           ] }) },
           { id: 'r8', type: 'header', headingLevel: '2', value: 'Risk Heatmap Legend' },
-          { id: 'r9', type: 'callout', value: '≡ƒö┤ HIGH IMPACT + HIGH PROBABILITY = Critical\n≡ƒƒí MEDIUM IMPACT + MEDIUM PROBABILITY = Watch\n≡ƒƒó LOW IMPACT + LOW PROBABILITY = Acceptable' }
+          { id: 'r9', type: 'callout', value: '🔴 HIGH IMPACT + HIGH PROBABILITY = Critical\n🟡 MEDIUM IMPACT + MEDIUM PROBABILITY = Watch\n🟢 LOW IMPACT + LOW PROBABILITY = Acceptable' }
         ];
         else if (t.type === 'cr') blocks = [
           { id: 'c1', type: 'header', headingLevel: '1', value: 'Change Request Document' },
@@ -428,14 +429,14 @@ function MainDashboardContent() {
             { label: 'Requested Change', value: 'Add biometric attendance' },
             { label: 'Reason', value: 'Client requirement update' },
             { label: 'Impact', value: 'Medium' },
-            { label: 'Additional Cost', value: 'Γé╣45,000' },
+            { label: 'Additional Cost', value: '₹45,000' },
             { label: 'Additional Time', value: '5 Days' },
             { label: 'Status', value: 'Pending' }
           ] }) },
           { id: 'c11', type: 'header', headingLevel: '2', value: 'Impact Summary' },
           { id: 'c12', type: 'metric-cards', value: JSON.stringify([
             { title: 'Scope Changes', value: '3', color: '#f59e0b', desc: 'Pending review' },
-            { title: 'Cost Impact', value: 'Γé╣1,35,000', color: '#ef4444', desc: 'Additional budget' },
+            { title: 'Cost Impact', value: '₹1,35,000', color: '#ef4444', desc: 'Additional budget' },
             { title: 'Timeline Impact', value: '+12 Days', color: '#0284c7', desc: 'Schedule extension' },
             { title: 'Approved CRs', value: '7', color: '#10b981', desc: 'Implemented' }
           ]) }
@@ -487,7 +488,7 @@ function MainDashboardContent() {
           { id: 'st7', type: 'header', headingLevel: '2', value: "Today's Achievements" },
           { id: 'st8', type: 'todo-list', value: 'Login API completed\nPayroll calculations optimized\nUI bug fixes deployed\nDatabase migration scripts ready' },
           { id: 'st9', type: 'header', headingLevel: '2', value: 'Blockers' },
-          { id: 'st10', type: 'callout', value: 'ΓÜá Payment gateway integration delayed - awaiting vendor credentials\nΓÜá Client approval pending on dashboard design\nΓÜá SSL certificate renewal required before staging deploy\nΓÜá Third-party API rate limiting issue under investigation' }
+          { id: 'st10', type: 'callout', value: '⚠️ Payment gateway integration delayed - awaiting vendor credentials\n⚠️ Client approval pending on dashboard design\n⚠️ SSL certificate renewal required before staging deploy\n⚠️ Third-party API rate limiting issue under investigation' }
         ];
 
         localStorage.setItem(`doc_root_${t.id}`, JSON.stringify(blocks));
@@ -655,121 +656,7 @@ function MainDashboardContent() {
       return <SavedDocumentsList useTemplate={useTemplate} />;
 
     case 'projects':
-      return (
-        <div className="enterprise-workspace animate-fade-in">
-          <div className="enterprise-header">
-            <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒôü Projects</h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Centralized projects managing multi-branch document scopes.</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', position: 'relative' }}>
-                <input 
-                  type="text" 
-                  placeholder="Project name..." 
-                  className={`form-input ${folderError ? 'error' : ''}`} 
-                  style={{ 
-                    width: '220px', 
-                    padding: '0.5rem', 
-                    borderColor: folderError ? '#ef4444' : 'var(--border)',
-                    boxShadow: folderError ? '0 0 0 2px rgba(239, 68, 68, 0.15)' : 'none',
-                    transition: 'all 0.2s'
-                  }} 
-                  value={newProjectName}
-                  onChange={e => {
-                    setNewProjectName(e.target.value);
-                    if (e.target.value.trim()) setfolderError('');
-                  }}
-                />
-                {folderError && (
-                  <span style={{ 
-                    color: '#ef4444', 
-                    fontSize: '0.75rem', 
-                    fontWeight: 600, 
-                    position: 'absolute', 
-                    top: '100%', 
-                    left: '2px', 
-                    marginTop: '0.15rem' 
-                  }}>
-                    ΓÜá∩╕Å {folderError}
-                  </span>
-                )}
-              </div>
-              <button 
-                onClick={() => {
-                  if (!newProjectName.trim()) {
-                    setfolderError('Project name is required.');
-                    return;
-                  }
-                  setfolderError('');
-                  saveProjects([...projects, {
-                    id: Math.random().toString(36).substring(2, 9),
-                    name: newProjectName.trim(),
-                    status: 'draft',
-                    color: '#6366f1',
-                    category: 'Development'
-                  }]);
-                  setNewProjectName('');
-                }}
-                className="btn btn-primary"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', height: '38px' }}
-              >
-                <Plus size={16} /> New Project
-              </button>
-            </div>
-          </div>
-
-          <div className="projects-grid">
-            {projects.map(proj => (
-              <div 
-                key={proj.id} 
-                className="project-card"
-                onClick={() => router.push(`/?tab=documents&projectId=${proj.id}`)}
-                style={{ cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
-              >
-                <div className="project-card-header">
-                  <span className="project-folder-icon" style={{ color: proj.color }}>≡ƒôé</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span className={`project-badge ${proj.status}`}>{proj.status}</span>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditProject(proj);
-                      }} 
-                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', borderRadius: '4px', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}
-                      onMouseEnter={evt => evt.currentTarget.style.color = 'var(--primary)'}
-                      onMouseLeave={evt => evt.currentTarget.style.color = 'var(--text-muted)'}
-                      title="Rename Project"
-                    >
-                      <Edit3 size={14} />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteProject(proj.id, proj.name);
-                      }} 
-                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', borderRadius: '4px', display: 'flex', alignItems: 'center', transition: 'color 0.2s' }}
-                      onMouseEnter={evt => evt.currentTarget.style.color = '#ef4444'}
-                      onMouseLeave={evt => evt.currentTarget.style.color = 'var(--text-muted)'}
-                      title="Delete Project"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0.25rem 0' }}>{proj.name}</h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
-                  Category: {proj.category}
-                </span>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>≡ƒôä {getDocCountForProject(proj.id)} Documents</span>
-                  <span style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--primary)' }}>Open Γ₧ö</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
+      return <ProjectsDashboard />;
 
     case 'templates': {
       let customTemplates: any[] = [];
@@ -810,7 +697,7 @@ function MainDashboardContent() {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
-                ΓåÉ Back to Templates
+                ← Back to Templates
               </button>
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>Development & Project Management Documents</h1>
@@ -836,7 +723,7 @@ function MainDashboardContent() {
                       className="btn btn-secondary" 
                       style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 600 }}
                     >
-                      Γ£Å∩╕Å Edit Template
+                      ✏️ Edit Template
                     </button>
                     <button 
                       onClick={() => useTemplate(t.title, t.id)} 
@@ -873,7 +760,7 @@ function MainDashboardContent() {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
-                ΓåÉ Back to Templates
+                ← Back to Templates
               </button>
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>Testing & QA Documents</h1>
@@ -899,7 +786,7 @@ function MainDashboardContent() {
                       className="btn btn-secondary" 
                       style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 600 }}
                     >
-                      Γ£Å∩╕Å Edit Template
+                      ✏️ Edit Template
                     </button>
                     <button 
                       onClick={() => useTemplate(t.title, t.id)} 
@@ -940,10 +827,10 @@ function MainDashboardContent() {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = '#3B82F6'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = '#334155'; }}
               >
-                ΓåÉ Back to Templates
+                ← Back to Templates
               </button>
               <div>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#F8FAFC' }}>≡ƒ¢á DevOps Command Center</h1>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#F8FAFC' }}>🛠 DevOps Command Center</h1>
                 <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginTop: '0.25rem' }}>Manage live environment clusters, active pipelines, telemetry analytics, and operational compliance templates.</p>
               </div>
             </div>
@@ -960,22 +847,22 @@ function MainDashboardContent() {
                       onClick={() => setSelectedResource('app')}
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: selectedResource === 'app' ? '#2563EB' : '#0F172A', border: '1px solid #334155', transition: 'all 0.2s' }}
                     >
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>≡ƒÆ╗ App Servers</span>
-                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>≡ƒƒó Active</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>💻 App Servers</span>
+                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>🟢 Active</span>
                     </div>
                     <div 
                       onClick={() => setSelectedResource('db')}
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: selectedResource === 'db' ? '#2563EB' : '#0F172A', border: '1px solid #334155', transition: 'all 0.2s' }}
                     >
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>≡ƒùä Databases</span>
-                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>≡ƒƒó Active</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>🗄 Databases</span>
+                      <span style={{ fontSize: '0.75rem', color: '#4ADE80', fontWeight: 'bold' }}>🟢 Active</span>
                     </div>
                     <div 
                       onClick={() => setSelectedResource('lb')}
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.75rem', borderRadius: '8px', cursor: 'pointer', background: selectedResource === 'lb' ? '#2563EB' : '#0F172A', border: '1px solid #334155', transition: 'all 0.2s' }}
                     >
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>ΓÜû Load Balancers</span>
-                      <span style={{ fontSize: '0.75rem', color: '#F59E0B', fontWeight: 'bold' }}>≡ƒƒí Warning</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F8FAFC' }}>⚖️ Load Balancers</span>
+                      <span style={{ fontSize: '0.75rem', color: '#F59E0B', fontWeight: 'bold' }}>🟡 Warning</span>
                     </div>
                   </div>
                 </div>
@@ -984,13 +871,13 @@ function MainDashboardContent() {
                   <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>Active Pipelines</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
-                      <span style={{ color: '#4ADE80' }}>Γ£ö</span> <span>Build / Compile</span>
+                      <span style={{ color: '#4ADE80' }}>✔️</span> <span>Build / Compile</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
-                      <span style={{ color: '#4ADE80' }}>Γ£ö</span> <span>Unit Testing (92%)</span>
+                      <span style={{ color: '#4ADE80' }}>✔️</span> <span>Unit Testing (92%)</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
-                      <span style={{ color: '#4ADE80' }}>Γ£ö</span> <span>Docker Registry Sync</span>
+                      <span style={{ color: '#4ADE80' }}>✔️</span> <span>Docker Registry Sync</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'start', gap: '0.5rem', fontSize: '0.8rem', color: '#CBD5E1' }}>
                       <span style={{ display: 'inline-block', width: '8px', height: '8px', background: '#3B82F6', borderRadius: '50%' }}></span> 
@@ -1006,7 +893,7 @@ function MainDashboardContent() {
                 {/* Telemetry Gauge Display (Dynamic) */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
                   <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    ≡ƒôè Observability Telemetry - {selectedResource === 'app' ? 'App Servers' : selectedResource === 'db' ? 'Database Nodes' : 'Load Balancers'}
+                    📊 Observability Telemetry - {selectedResource === 'app' ? 'App Servers' : selectedResource === 'db' ? 'Database Nodes' : 'Load Balancers'}
                   </h3>
                   
                   {selectedResource === 'app' && (
@@ -1034,7 +921,7 @@ function MainDashboardContent() {
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F8FAFC', margin: '0.25rem 0' }}>
                           {1240 + (telemetryTicks % 10) * 12}
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>≡ƒƒó SLA Compliant</span>
+                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>🟢 SLA Compliant</span>
                       </div>
                     </div>
                   )}
@@ -1051,7 +938,7 @@ function MainDashboardContent() {
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F8FAFC', margin: '0.25rem 0' }}>
                           {820 + (telemetryTicks % 5) * 45}
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>≡ƒƒó Safe Range</span>
+                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>🟢 Safe Range</span>
                       </div>
                       <div style={{ background: '#0F172A', padding: '1rem', borderRadius: '8px', border: '1px solid #334155' }}>
                         <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Pool Connections</span>
@@ -1070,19 +957,19 @@ function MainDashboardContent() {
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F59E0B', margin: '0.25rem 0' }}>
                           {(1.12 + Math.sin(telemetryTicks) * 0.05).toFixed(2)}s
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#F59E0B' }}>≡ƒƒí SLA Threshold Alert</span>
+                        <span style={{ fontSize: '0.7rem', color: '#F59E0B' }}>🟡 SLA Threshold Alert</span>
                       </div>
                       <div style={{ background: '#0F172A', padding: '1rem', borderRadius: '8px', border: '1px solid #334155' }}>
                         <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Requests/sec</span>
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F8FAFC', margin: '0.25rem 0' }}>
                           {450 + Math.floor(Math.sin(telemetryTicks) * 60)}
                         </div>
-                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>≡ƒƒó Balancing Load</span>
+                        <span style={{ fontSize: '0.7rem', color: '#10B981' }}>🟢 Balancing Load</span>
                       </div>
                       <div style={{ background: '#0F172A', padding: '1rem', borderRadius: '8px', border: '1px solid #334155' }}>
                         <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Active Nodes Status</span>
                         <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#EF4444', margin: '0.25rem 0' }}>3 / 4</div>
-                        <span style={{ fontSize: '0.7rem', color: '#EF4444' }}>≡ƒö┤ Node PROD-APP-03 is slow</span>
+                        <span style={{ fontSize: '0.7rem', color: '#EF4444' }}>🔴 Node PROD-APP-03 is slow</span>
                       </div>
                     </div>
                   )}
@@ -1090,7 +977,7 @@ function MainDashboardContent() {
 
                 {/* Live Environment Status Row */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
-                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>≡ƒîì Live Cluster Deployments</h3>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>🌍 Live Cluster Deployments</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                     <div style={{ background: '#0F172A', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #10B981', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
@@ -1118,7 +1005,7 @@ function MainDashboardContent() {
 
                 {/* Templates Grid */}
                 <div>
-                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem' }}>≡ƒôï DevOps Base Blueprints & Outline Templates</h3>
+                  <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '1rem' }}>📋 DevOps Base Blueprints & Outline Templates</h3>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem' }}>
                     {devopsTemplates.map((t: any) => (
                       <div key={t.id} className="template-card" style={{ background: '#1E293B', border: '1px solid #334155', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', transition: 'all 0.2s' }}>
@@ -1135,7 +1022,7 @@ function MainDashboardContent() {
                             className="btn btn-secondary" 
                             style={{ flex: 1, padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', fontSize: '0.75rem', background: '#334155', border: '1px solid #475569', color: '#E2E8F0', fontWeight: 600 }}
                           >
-                            Γ£Å∩╕Å Edit
+                            ✏️ Edit
                           </button>
                           <button 
                             onClick={() => useTemplate(t.title, t.id)} 
@@ -1158,7 +1045,7 @@ function MainDashboardContent() {
                 {/* Live Logs Console */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
                   <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    ≡ƒôƒ Observability Log Stream
+                    📈 Observability Log Stream
                   </h3>
                   <div style={{ background: '#020617', padding: '0.75rem', borderRadius: '8px', border: '1px solid #334155', fontFamily: 'Courier New, monospace', fontSize: '0.7rem', color: '#4ADE80', height: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                     {logs.map((log, idx) => (
@@ -1171,7 +1058,7 @@ function MainDashboardContent() {
 
                 {/* Active Alerts */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
-                  <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>≡ƒÜ¿ Incident Tickets</h3>
+                  <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem' }}>🚨 Incident Tickets</h3>
                   <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', borderRadius: '8px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', cursor: 'pointer' }} onClick={() => setSelectedResource('lb')}>
                     <span style={{ fontSize: '0.75rem', color: '#EF4444', fontWeight: 800 }}>ALERT ALT-402</span>
                     <span style={{ fontSize: '0.8rem', color: '#F8FAFC', fontWeight: 600 }}>High CPU / Latency Spike</span>
@@ -1182,7 +1069,7 @@ function MainDashboardContent() {
                 {/* AI Suggestions */}
                 <div style={{ background: '#1E293B', padding: '1.25rem', borderRadius: '12px', border: '1px solid #334155' }}>
                   <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    ≡ƒÆí Operations Copilot AI
+                    💡 Operations Copilot AI
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.75rem', color: '#CBD5E1' }}>
                     <div style={{ background: '#0F172A', padding: '0.65rem', borderRadius: '6px', borderLeft: '3px solid #3B82F6' }}>
@@ -1210,7 +1097,7 @@ function MainDashboardContent() {
                 className="btn btn-secondary"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 600, background: 'var(--surface)' }}
               >
-                ΓåÉ Back to Templates
+                ← Back to Templates
               </button>
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -1229,12 +1116,12 @@ function MainDashboardContent() {
               <div style={{ width: '220px', display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', paddingRight: '0.5rem', flexShrink: 0 }}>
                 <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 0.5rem', marginBottom: '0.25rem' }}>Knowledge Base</h3>
                 {[
-                  { id: 'user-guides', label: '≡ƒôû User Guides', count: 12 },
-                  { id: 'admin-docs', label: '≡ƒ¢í Admin Docs', count: 8 },
-                  { id: 'training', label: '≡ƒÄô Training Material', count: 5 },
-                  { id: 'faq', label: 'Γ¥ô FAQ', count: 24 },
-                  { id: 'troubleshoot', label: '≡ƒöº Troubleshooting', count: 18 },
-                  { id: 'releases', label: '≡ƒÜÇ Release Notes', count: 3 }
+                  { id: 'user-guides', label: '📖 User Guides', count: 12 },
+                  { id: 'admin-docs', label: '🛡 Admin Docs', count: 8 },
+                  { id: 'training', label: '🎓 Training Material', count: 5 },
+                  { id: 'faq', label: '❓ FAQ', count: 24 },
+                  { id: 'troubleshoot', label: '🔧 Troubleshooting', count: 18 },
+                  { id: 'releases', label: '🚀 Release Notes', count: 3 }
                 ].map(nav => (
                   <button
                     key={nav.id}
@@ -1285,7 +1172,7 @@ function MainDashboardContent() {
                       outline: 'none'
                     }}
                   />
-                  <span style={{ position: 'absolute', left: '1rem', top: '1rem', color: 'var(--text-muted)' }}>≡ƒöì</span>
+                  <span style={{ position: 'absolute', left: '1rem', top: '1rem', color: 'var(--text-muted)' }}>🔍</span>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -1311,7 +1198,7 @@ function MainDashboardContent() {
                           className="btn btn-secondary" 
                           style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', fontWeight: 600 }}
                         >
-                          Γ£Å∩╕Å Edit
+                          ✏️ Edit
                         </button>
                         <button 
                           onClick={() => useTemplate(t.title, t.id)} 
@@ -1363,8 +1250,8 @@ function MainDashboardContent() {
                 <div style={{ background: 'rgba(37, 99, 235, 0.05)', border: '1px dashed rgba(37, 99, 235, 0.3)', borderRadius: '12px', padding: '1rem', textAlign: 'center' }}>
                   <h4 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Did you find what you need?</h4>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>≡ƒæì Yes</button>
-                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>≡ƒæÄ No</button>
+                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>👍 Yes</button>
+                    <button style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer' }}>👎 No</button>
                   </div>
                 </div>
               </div>
@@ -1400,7 +1287,7 @@ function MainDashboardContent() {
                     className="btn btn-secondary" 
                     style={{ flex: 1, padding: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 600 }}
                   >
-                    Γ£Å∩╕Å Edit Template
+                    ✏️ Edit Template
                   </button>
                   <button 
                     onClick={() => useTemplate(t.title, t.id)} 
@@ -1452,7 +1339,7 @@ function MainDashboardContent() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary)', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  ≡ƒôé 8 Presets
+                  📂 8 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary)' }}>Module Folder</span>
               </div>
@@ -1475,7 +1362,7 @@ function MainDashboardContent() {
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
               >
-                Open Module Γ₧ö
+                Open Module ➔
               </button>
             </div>
 
@@ -1518,7 +1405,7 @@ function MainDashboardContent() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary)', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  ≡ƒôé 4 Presets
+                  📂 4 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--primary)' }}>Module Folder</span>
               </div>
@@ -1541,7 +1428,7 @@ function MainDashboardContent() {
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700 }}
               >
-                Open Module Γ₧ö
+                Open Module ➔
               </button>
             </div>
 
@@ -1584,7 +1471,7 @@ function MainDashboardContent() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(37, 99, 235, 0.08)', color: '#2563EB', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  ≡ƒôé 6 Presets
+                  📂 6 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#2563EB' }}>Module Folder</span>
               </div>
@@ -1607,7 +1494,7 @@ function MainDashboardContent() {
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700, background: '#2563EB', borderColor: '#2563EB' }}
               >
-                Open Module Γ₧ö
+                Open Module ➔
               </button>
             </div>
 
@@ -1617,7 +1504,7 @@ function MainDashboardContent() {
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="template-badge" style={{ background: 'rgba(37, 99, 235, 0.08)', color: '#2563EB', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                  ≡ƒôé 6 Presets
+                  📂 6 Presets
                 </span>
                 <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#2563EB' }}>Module Folder</span>
               </div>
@@ -1640,7 +1527,7 @@ function MainDashboardContent() {
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 700, background: '#2563EB', borderColor: '#2563EB' }}
               >
-                Open Module Γ₧ö
+                Open Module ➔
               </button>
             </div>
 
@@ -1663,7 +1550,7 @@ function MainDashboardContent() {
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒæÑ Collaborate Teams</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>👥 Collaborate Teams</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Coordinate editing roles and security clearance keys.</p>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -1693,7 +1580,7 @@ function MainDashboardContent() {
                     name: inviteName,
                     role: inviteRole,
                     status: 'online',
-                    avatar: '≡ƒæ¿ΓÇì≡ƒÆ╗'
+                    avatar: '👨‍💻'
                   }]);
                   setInviteName('');
                 }}
@@ -1778,7 +1665,7 @@ function MainDashboardContent() {
           <div className="enterprise-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-                ≡ƒôï Workflow & Approval Board
+                📋 Workflow & Approval Board
               </h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0.25rem 0 0 0' }}>
                 Track and move enterprise documents through compliance and sign-off flow states.
@@ -1892,10 +1779,10 @@ function MainDashboardContent() {
                             className="form-input"
                             style={{ padding: '0.35rem', fontSize: '0.75rem' }}
                           >
-                            <option value="Low">≡ƒƒó Low</option>
-                            <option value="Medium">≡ƒö╡ Medium</option>
-                            <option value="High">≡ƒƒá High</option>
-                            <option value="Critical">≡ƒö┤ Critical</option>
+                            <option value="Low">🟢 Low</option>
+                            <option value="Medium">🔵 Medium</option>
+                            <option value="High">🟠 High</option>
+                            <option value="Critical">🔴 Critical</option>
                           </select>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
@@ -1906,9 +1793,9 @@ function MainDashboardContent() {
                             className="form-input"
                             style={{ padding: '0.35rem', fontSize: '0.75rem' }}
                           >
-                            <option value="Siddiq Admin">≡ƒæ¿ΓÇì≡ƒÆ╝ Siddiq</option>
-                            <option value="Ahmad Al-Mansoor">≡ƒæ¿ΓÇì≡ƒÆ╗ Ahmad</option>
-                            <option value="Fathima Zahra">≡ƒæ⌐ΓÇì≡ƒÆ╗ Fathima</option>
+                            <option value="Siddiq Admin">👨‍💼 Siddiq</option>
+                            <option value="Ahmad Al-Mansoor">👨‍💻 Ahmad</option>
+                            <option value="Fathima Zahra">👩‍💻 Fathima</option>
                           </select>
                         </div>
                       </div>
@@ -2013,7 +1900,7 @@ function MainDashboardContent() {
                             {/* Card Meta (Owner & Date) */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)', paddingTop: '0.5rem', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 500 }}>
-                                ≡ƒæñ {card.owner.split(' ')[0]}
+                                👤 {card.owner.split(' ')[0]}
                               </span>
                               <span>
                                 {card.lastUpdated}
@@ -2036,7 +1923,7 @@ function MainDashboardContent() {
                                     gap: '0.15rem'
                                   }}
                                 >
-                                  ΓùÇ {stages[stages.indexOf(stage) - 1]}
+                                  ◀ {stages[stages.indexOf(stage) - 1]}
                                 </button>
                               )}
                               {stage !== 'Published' && (
@@ -2055,7 +1942,7 @@ function MainDashboardContent() {
                                     color: 'var(--primary)'
                                   }}
                                 >
-                                  {stages[stages.indexOf(stage) + 1]} Γ₧ö
+                                  {stages[stages.indexOf(stage) + 1]} ➔
                                 </button>
                               )}
                             </div>
@@ -2077,7 +1964,7 @@ function MainDashboardContent() {
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒòÿ Platform Version Timeline</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>🕰 Platform Version Timeline</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Rollback coordinates and system audit timelines.</p>
             </div>
           </div>
@@ -2115,7 +2002,7 @@ function MainDashboardContent() {
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>≡ƒñû Dedicated AI Agent Workspace</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>🤖 Dedicated AI Agent Workspace</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Consult the platform AI Agent directly for high-fidelity outline generations.</p>
             </div>
           </div>
@@ -2160,13 +2047,13 @@ function MainDashboardContent() {
                   onClick={() => setAiInput("Generate a detailed outline for a Software Requirements Specification (SRS) for an ERP inventory management module.")}
                   className="copilot-suggestion-btn"
                 >
-                  ≡ƒô¥ Generate ERP SRS Outline
+                  📜 Generate ERP SRS Outline
                 </button>
                 <button 
                   onClick={() => setAiInput("Polish and rewrite the following paragraph to make it sound highly professional for an NGO grant proposal: 'We need money to feed kids and run classes. Give us funds please.'")}
                   className="copilot-suggestion-btn"
                 >
-                  Γ£¿ Refine NGO Proposal Wording
+                  ✨ Refine NGO Proposal Wording
                 </button>
 
                 <textarea 
@@ -2200,7 +2087,7 @@ function MainDashboardContent() {
                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
                     <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      ≡ƒñû AI Response Output
+                      🤖 AI Response Output
                     </span>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button 
@@ -2244,7 +2131,7 @@ function MainDashboardContent() {
         <div className="enterprise-workspace animate-fade-in">
           <div className="enterprise-header">
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>ΓÜÖ Settings & Controls</h1>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>⚙️ Settings & Controls</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Configure API endpoints and appearance states.</p>
             </div>
           </div>
@@ -2258,14 +2145,14 @@ function MainDashboardContent() {
                   className={`btn ${themeMode === 'light' ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ flex: 1 }}
                 >
-                  ΓÿÇ∩╕Å Light Mode
+                  ☀️ Light Mode
                 </button>
                 <button 
                   onClick={() => handleToggleTheme('dark')} 
                   className={`btn ${themeMode === 'dark' ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ flex: 1 }}
                 >
-                  ≡ƒîÖ Dark Mode
+                  🌙 Dark Mode
                 </button>
               </div>
             </div>
@@ -2316,7 +2203,7 @@ function MainDashboardContent() {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => handleToggleTheme(themeMode === 'light' ? 'dark' : 'light')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '50%', padding: 0 }} title="Toggle Theme">
-                {themeMode === 'light' ? '≡ƒîÖ' : 'ΓÿÇ∩╕Å'}
+                {themeMode === 'light' ? '🌙' : '☀️'}
               </button>
               <button onClick={() => useTemplate('New Specification', 'blank')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <Plus size={18} /> Start Canvas
@@ -2329,25 +2216,25 @@ function MainDashboardContent() {
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(2, 132, 199, 0.02) 100%)', border: '1px solid rgba(2, 132, 199, 0.12)' }}>
               <span className="stat-num">{projects.length}</span>
               <span className="stat-label">Active Projects</span>
-              <span className="stat-icon">≡ƒôü</span>
+              <span className="stat-icon">📁</span>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 100%)', border: '1px solid rgba(99, 102, 241, 0.12)' }}>
               <span className="stat-num">12</span>
               <span className="stat-label">Total Drafts</span>
-              <span className="stat-icon">≡ƒôä</span>
+              <span className="stat-icon">📄</span>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.02) 100%)', border: '1px solid rgba(245, 158, 11, 0.12)' }}>
               <span className="stat-num">2</span>
               <span className="stat-label">Pending Signatures</span>
-              <span className="stat-icon">Γ£à</span>
+              <span className="stat-icon">✅</span>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.02) 100%)', border: '1px solid rgba(16, 185, 129, 0.12)' }}>
               <span className="stat-num">4,250</span>
               <span className="stat-label">AI Words Made</span>
-              <span className="stat-icon">≡ƒñû</span>
+              <span className="stat-icon">🤖</span>
             </div>
           </div>
 
@@ -2355,7 +2242,7 @@ function MainDashboardContent() {
             {/* Quick Actions Panel */}
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                ≡ƒÜÇ Rapid Document Generators
+                🚀 Rapid Document Generators
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                 <div 
@@ -2365,7 +2252,7 @@ function MainDashboardContent() {
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.5rem' }}>≡ƒÆ╝</span>
+                    <span style={{ fontSize: '1.5rem' }}>💼</span>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Corporate BRD Outline</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch our strict 12-section business requirement spec layout.</span>
@@ -2381,7 +2268,7 @@ function MainDashboardContent() {
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.5rem' }}>ΓÜí</span>
+                    <span style={{ fontSize: '1.5rem' }}>⚡</span>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Agile FRD Outline</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch our Agile Software Feature Requirement layout with user story mapping.</span>
@@ -2413,7 +2300,7 @@ function MainDashboardContent() {
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
                 >
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ec4899', minWidth: '1.5rem' }}>≡ƒôÉ</span>
+                    <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ec4899', minWidth: '1.5rem' }}>📘</span>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize TDD Template</span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch the Technical Design Document for system architecture.</span>
@@ -2439,14 +2326,14 @@ function MainDashboardContent() {
                     className="btn btn-secondary" 
                     style={{ fontSize: '0.8rem', justifyContent: 'space-between', padding: '0.6rem 0.75rem' }}
                   >
-                    <span>≡ƒñû Open AI Chat Portal</span> Γ₧ö
+                    <span>🤖 Open AI Chat Portal</span> ➔
                   </button>
                   <button 
                     onClick={() => { router.push('/?tab=teams'); }} 
                     className="btn btn-secondary" 
                     style={{ fontSize: '0.8rem', justifyContent: 'space-between', padding: '0.6rem 0.75rem' }}
                   >
-                    <span>≡ƒæÑ Manage Team Invitees</span> Γ₧ö
+                    <span>👥 Manage Team Invitees</span> ➔
                   </button>
                 </div>
               </div>

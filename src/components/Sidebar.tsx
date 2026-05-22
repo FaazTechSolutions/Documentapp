@@ -84,35 +84,7 @@ export default function Sidebar() {
           <span>Projects</span>
         </Link>
         
-        {projects.length > 0 && (
-          <div style={{ paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
-            {projects.slice(0, 5).map(p => (
-              <Link 
-                key={p.id}
-                href={`/?tab=projects&id=${p.id}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.4rem 0.5rem',
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textDecoration: 'none',
-                  borderRadius: '6px',
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
-              >
-                <span>{p.icon || '📁'}</span>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
-              </Link>
-            ))}
-          </div>
-        )}
+
 
         <Link 
           href="/?tab=documents" 

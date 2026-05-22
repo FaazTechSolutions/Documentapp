@@ -215,7 +215,7 @@ export default function TemplateSetup() {
                       Preview
                     </button>
                     <button 
-                      onClick={() => router.push(`/?tab=builder&id=\${t.id}`)}
+                      onClick={() => router.push(`/?tab=builder&id=${t.id}&isBuilder=true`)}
                       style={{ padding: '0.5rem 1.5rem', background: 'var(--primary)', border: 'none', color: '#fff', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: 'var(--glow)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                     >
                       <Edit2 size={14} /> Edit Setup

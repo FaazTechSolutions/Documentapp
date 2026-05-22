@@ -9,6 +9,8 @@ export interface Project {
   status?: string;
   category?: string;
   createdAt?: string;
+  isFavorite?: boolean;
+  isArchived?: boolean;
 }
 
 interface ProjectState {

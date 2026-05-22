@@ -145,21 +145,21 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
                 onMouseLeave={() => setIsHovering(null)}
                 onClick={() => setSelectedTemplate(tmpl)}
                 style={{ 
-                  background: selectedTemplate.id === tmpl.id ? 'var(--mkt-hover-strong)' : 'var(--mkt-card)', 
+                  background: selectedTemplate?.id === tmpl.id ? 'var(--mkt-hover-strong)' : 'var(--mkt-card)', 
                   backdropFilter: 'blur(12px)',
                   borderRadius: '12px', 
-                  border: `1px solid ${selectedTemplate.id === tmpl.id ? 'var(--mkt-accent)' : isHovering === tmpl.id ? 'var(--mkt-border-hover)' : 'var(--mkt-border-light)'}`, 
+                  border: `1px solid ${selectedTemplate?.id === tmpl.id ? 'var(--mkt-accent)' : isHovering === tmpl.id ? 'var(--mkt-border-hover)' : 'var(--mkt-border-light)'}`, 
                   padding: '1.25rem',
                   cursor: 'pointer',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: isHovering === tmpl.id && selectedTemplate.id !== tmpl.id ? 'translateY(-4px)' : 'translateY(0)',
-                  boxShadow: selectedTemplate.id === tmpl.id ? `0 0 0 1px var(--mkt-accent), 0 10px 25px -5px var(--mkt-glow)` : isHovering === tmpl.id ? 'var(--mkt-shadow-hover)' : 'var(--mkt-shadow)',
+                  transform: isHovering === tmpl.id && selectedTemplate?.id !== tmpl.id ? 'translateY(-4px)' : 'translateY(0)',
+                  boxShadow: selectedTemplate?.id === tmpl.id ? `0 0 0 1px var(--mkt-accent), 0 10px 25px -5px var(--mkt-glow)` : isHovering === tmpl.id ? 'var(--mkt-shadow-hover)' : 'var(--mkt-shadow)',
                   position: 'relative',
                   overflow: 'hidden'
                 }}
               >
                 {/* 5. Glassmorphism Top Gradient Border */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: selectedTemplate.id === tmpl.id ? 'var(--mkt-accent)' : 'transparent' }} />
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: selectedTemplate?.id === tmpl.id ? 'var(--mkt-accent)' : 'transparent' }} />
                 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <div style={{ fontSize: '1.75rem', background: 'var(--mkt-hover)', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px' }}>{tmpl.icon}</div>
@@ -168,7 +168,7 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
                   </span>
                 </div>
                 
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: selectedTemplate.id === tmpl.id ? 'var(--mkt-accent)' : 'var(--mkt-text)' }}>{tmpl.name}</h4>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: selectedTemplate?.id === tmpl.id ? 'var(--mkt-accent)' : 'var(--mkt-text)' }}>{tmpl.name}</h4>
                 <p style={{ fontSize: '0.75rem', color: 'var(--mkt-search-icon)', lineHeight: 1.4, marginBottom: '1.25rem', height: '34px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{tmpl.desc}</p>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -176,7 +176,7 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
                   <span style={{ fontSize: '0.7rem', color: 'var(--mkt-muted)' }}>Used: {tmpl.used}</span>
                 </div>
 
-                {isHovering === tmpl.id && selectedTemplate.id !== tmpl.id && (
+                {isHovering === tmpl.id && selectedTemplate?.id !== tmpl.id && (
                   <div style={{ position: 'absolute', inset: 0, background: 'var(--mkt-glass)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 1, animation: 'fadeIn 0.2s ease-out' }}>
                     <button style={{ padding: '0.5rem 1rem', background: 'var(--mkt-accent)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px var(--mkt-glow)' }}>
                       Preview Template
@@ -190,78 +190,84 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
 
         {/* 6 & 7. RIGHT PREVIEW PANEL + AI */}
         <div style={{ width: '340px', background: 'var(--mkt-panel)', borderLeft: '1px solid var(--mkt-border)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '2.5rem' }}>{selectedTemplate.icon}</div>
-              <div>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{selectedTemplate.name}</h2>
-                <div style={{ fontSize: '0.75rem', color: 'var(--mkt-search-icon)', marginTop: '0.2rem' }}>{selectedTemplate.category.toUpperCase()} WORKSPACE</div>
-              </div>
-            </div>
-
-            <p style={{ fontSize: '0.85rem', color: 'var(--mkt-muted)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
-              {selectedTemplate.desc} Designed specifically for modern enterprise teams requiring high compliance and structural clarity.
-            </p>
-
-            {/* Dashboard Mock Preview Box */}
-            <div style={{ width: '100%', height: '140px', background: 'var(--mkt-glass)', border: '1px solid var(--mkt-border-light)', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', gap: '4px', padding: '8px', background: 'var(--mkt-hover)', borderBottom: '1px solid var(--mkt-border)' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
-              </div>
-              <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ width: '60%', height: '8px', background: 'var(--mkt-border-hover)', borderRadius: '4px' }} />
-                <div style={{ width: '80%', height: '8px', background: 'var(--mkt-hover)', borderRadius: '4px' }} />
-                <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
-                  <div style={{ flex: 1, height: '40px', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)' }} />
-                  <div style={{ flex: 1, height: '40px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.3)' }} />
+          {selectedTemplate ? (
+            <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '2.5rem' }}>{selectedTemplate.icon}</div>
+                <div>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{selectedTemplate.name}</h2>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--mkt-search-icon)', marginTop: '0.2rem' }}>{selectedTemplate.category.toUpperCase()} WORKSPACE</div>
                 </div>
               </div>
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--mkt-search-icon)', textTransform: 'uppercase' }}>Includes</div>
-              {['Auto-generated structure', 'Kanban/Dashboard views', 'AI Copilot Assistant', 'Export to PDF/Word'].map((inc, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--mkt-text)' }}>
-                  <span style={{ color: '#10b981' }}>✓</span> {inc}
-                </div>
-              ))}
-            </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--mkt-muted)', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+                {selectedTemplate.desc} Designed specifically for modern enterprise teams requiring high compliance and structural clarity.
+              </p>
 
-            <button 
-              onClick={() => onUseTemplate(selectedTemplate.name, selectedTemplate.id)}
-              style={{ width: '100%', padding: '0.85rem', background: 'var(--mkt-accent)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 15px var(--mkt-glow)', transition: 'background 0.2s', marginBottom: '2rem' }}
-              onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-hover)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'var(--mkt-accent)'}
-            >
-              Start With This Template
-            </button>
-
-            {/* 7. AI RECOMMENDATIONS */}
-            <div style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '12px', padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '1rem' }}>✨</span>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#c4b5fd', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Recommendations</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--mkt-text)' }}>
-                  <span style={{ color: '#a78bfa' }}>✦</span> Best suited for your recent ERP modules.
+              {/* Dashboard Mock Preview Box */}
+              <div style={{ width: '100%', height: '140px', background: 'var(--mkt-glass)', border: '1px solid var(--mkt-border-light)', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', gap: '4px', padding: '8px', background: 'var(--mkt-hover)', borderBottom: '1px solid var(--mkt-border)' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--mkt-text)' }}>
-                  <span style={{ color: '#a78bfa' }}>✦</span> 84% of your team starts with this for planning.
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--mkt-text)' }}>
-                  <span style={{ color: '#a78bfa' }}>✦</span> Highly recommended for Agile methodologies.
+                <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ width: '60%', height: '8px', background: 'var(--mkt-border-hover)', borderRadius: '4px' }} />
+                  <div style={{ width: '80%', height: '8px', background: 'var(--mkt-hover)', borderRadius: '4px' }} />
+                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                    <div style={{ flex: 1, height: '40px', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '6px', border: '1px solid rgba(59, 130, 246, 0.3)' }} />
+                    <div style={{ flex: 1, height: '40px', background: 'rgba(16, 185, 129, 0.2)', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.3)' }} />
+                  </div>
                 </div>
               </div>
-              <button style={{ width: '100%', padding: '0.5rem', background: 'var(--mkt-hover)', color: '#c4b5fd', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', marginTop: '1rem' }}>
-                Generate Custom Template
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--mkt-search-icon)', textTransform: 'uppercase' }}>Includes</div>
+                {['Auto-generated structure', 'Kanban/Dashboard views', 'AI Copilot Assistant', 'Export to PDF/Word'].map((inc, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: 'var(--mkt-text)' }}>
+                    <span style={{ color: '#10b981' }}>✓</span> {inc}
+                  </div>
+                ))}
+              </div>
+
+              <button 
+                onClick={() => onUseTemplate(selectedTemplate.name, selectedTemplate.id)}
+                style={{ width: '100%', padding: '0.85rem', background: 'var(--mkt-accent)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 15px var(--mkt-glow)', transition: 'background 0.2s', marginBottom: '2rem' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-hover)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'var(--mkt-accent)'}
+              >
+                Start With This Template
               </button>
+
+              {/* 7. AI RECOMMENDATIONS */}
+              <div style={{ background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '12px', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '1rem' }}>✨</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#c4b5fd', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Recommendations</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--mkt-text)' }}>
+                    <span style={{ color: '#a78bfa' }}>✦</span> Best suited for your recent ERP modules.
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--mkt-text)' }}>
+                    <span style={{ color: '#a78bfa' }}>✦</span> 84% of your team starts with this for planning.
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--mkt-text)' }}>
+                    <span style={{ color: '#a78bfa' }}>✦</span> Highly recommended for Agile methodologies.
+                  </div>
+                </div>
+                <button style={{ width: '100%', padding: '0.5rem', background: 'var(--mkt-hover)', color: '#c4b5fd', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', marginTop: '1rem' }}>
+                  Generate Custom Template
+                </button>
+              </div>
+              
             </div>
-            
-          </div>
+          ) : (
+            <div style={{ padding: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--mkt-muted)' }}>
+              Select a template to view details
+            </div>
+          )}
         </div>
       </div>
     </div>

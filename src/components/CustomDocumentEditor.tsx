@@ -6,7 +6,7 @@ import rehypeRaw from 'rehype-raw';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Download, FileText, File, Upload, Plus, Trash2, Save, ArrowUp, ArrowDown, Settings, AlignLeft, Sparkles, Sliders, Undo, Redo } from 'lucide-react';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
-import { saveDocument, getSavedDocument } from '@/lib/storage';
+import { saveDocument, getSavedDocument, generateDocumentId } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import GithubModal from './GithubModal';
 import EnterpriseWorkspaceToolbar from './EnterpriseWorkspaceToolbar';
@@ -15,6 +15,7 @@ import { useTemplateStore } from '@/store/useTemplateStore';
 import FolderDropdown from './FolderDropdown';
 import CreateFolderModal from './CreateFolderModal';
 import TemplateConfigEditor from './TemplateSetup/TemplateConfigEditor';
+import { extractDocumentMetrics } from '@/lib/documentParser';
 
 export type BlockType = 
   | 'header' 
@@ -61,7 +62,7 @@ export default function CustomDocumentEditor() {
   const router = useRouter();
   const loadedId = searchParams.get('id');
 
-  const [documentId, setDocumentId] = useState<string>(loadedId || Math.random().toString(36).substr(2, 9));
+  const [documentId, setDocumentId] = useState<string>(loadedId || generateDocumentId());
   const [documentTitle, setDocumentTitle] = useState('My Custom Document');
   const [blocks, setBlocks] = useState<CustomBlock[]>([]);
   const [markdown, setMarkdown] = useState('');
@@ -145,6 +146,9 @@ export default function CustomDocumentEditor() {
       setAiLoading(false);
     }
   };
+
+  // Generate dynamic metrics based on canvas content
+  const documentMetrics = extractDocumentMetrics(blocks);
 
   const insertTextAsBlock = (text: string) => {
     pushStateToHistory(blocks, documentTitle);
@@ -247,7 +251,7 @@ export default function CustomDocumentEditor() {
           setIsTemplateBuilder(true);
           setDocumentTitle(template.name);
           setDocType(template.id);
-          setViewMode('dashboard'); // Always render Dashboard for templates
+          setViewMode('canvas'); // Template builder strictly edits canvas structure
           
           if (template.blocks && template.blocks.length > 0) {
             setBlocks(template.blocks as CustomBlock[]);
@@ -564,34 +568,68 @@ export default function CustomDocumentEditor() {
   };
 
   const handleSave = () => {
+    setSaveStatus('Saving...');
+    
+    // Determine word count and AI generation status for metadata
+    const contentString = blocks.map(b => b.value || '').join(' ');
+    const wordCount = contentString.trim().split(/\s+/).length;
+    const isAiGenerated = contentString.includes('AI') || chatHistory.length > 1;
+
     saveDocument({
       id: documentId,
       title: documentTitle || 'Untitled Custom Document',
       templateId: docType,
       updatedAt: new Date().toISOString(),
       data: blocks,
-      projectId: selectedProjectId || undefined
+      projectId: selectedProjectId || undefined,
+      status: 'Draft',
+      wordCount,
+      isAiGenerated
     });
     
     // Bidirectionally update dashboard metadata
     try {
       const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
-      const updatedMeta = metaList.map((m: any) => {
-        if (m.id === documentId) {
-          return { ...m, title: documentTitle || 'Untitled Custom Document', projectId: selectedProjectId || undefined, type: docType };
-        }
-        return m;
-      });
-      localStorage.setItem('docforge_docs_meta', JSON.stringify(updatedMeta));
+      const existingMetaIndex = metaList.findIndex((m: any) => m.id === documentId);
+      
+      const newMeta = {
+        id: documentId,
+        title: documentTitle || 'Untitled Custom Document',
+        projectId: selectedProjectId || undefined,
+        type: docType,
+        isTemplate: isTemplate,
+        isTemplateBuilder: isTemplateBuilder
+      };
+
+      if (existingMetaIndex >= 0) {
+        metaList[existingMetaIndex] = { ...metaList[existingMetaIndex], ...newMeta };
+      } else {
+        metaList.push(newMeta);
+      }
+      localStorage.setItem('docforge_docs_meta', JSON.stringify(metaList));
     } catch (e) {}
 
-    setSaveStatus('Saved!');
-    setTimeout(() => setSaveStatus(''), 2000);
+    setSaveStatus('Saved');
+    setTimeout(() => {
+      setSaveStatus('');
+    }, 2000);
     
     if (!loadedId) {
       router.replace(`/?tab=builder&id=${documentId}`);
     }
   };
+
+  // Autosave Hook
+  useEffect(() => {
+    if (!isLoaded || blocks.length === 0) return;
+    
+    setSaveStatus('Saving...');
+    const debounceTimer = setTimeout(() => {
+      handleSave();
+    }, 2000);
+
+    return () => clearTimeout(debounceTimer);
+  }, [blocks, documentTitle, docType, isLoaded]);
 
   const renderBlockOptionsPopover = (block: CustomBlock, index: number) => {
     const colorChoices = [
@@ -2161,11 +2199,11 @@ export default function CustomDocumentEditor() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.85rem' }}>
                 {[
-                  { label: 'Total APIs', val: '128', color: '#2563EB', icon: '🔗' },
-                  { label: 'Microservices', val: '14', color: '#16A34A', icon: '⚙️' },
-                  { label: 'Database Tables', val: '46', color: '#9333EA', icon: '🗄️' },
-                  { label: 'Active Integrations', val: '18', color: '#F59E0B', icon: '🔌' },
-                  { label: 'Security Risks', val: '3', color: '#DC2626', icon: '🔒' },
+                  { label: 'Technical Requirements', val: documentMetrics.totalRequirements > 0 ? documentMetrics.totalRequirements.toString() : '12', color: '#2563EB', icon: '🔗' },
+                  { label: 'Completion %', val: `${documentMetrics.completionPercentage}%`, color: '#16A34A', icon: '⚙️' },
+                  { label: 'Canvas Blocks', val: documentMetrics.totalBlocks.toString(), color: '#9333EA', icon: '🗄️' },
+                  { label: 'Stakeholders', val: documentMetrics.stakeholderCount.toString(), color: '#F59E0B', icon: '🔌' },
+                  { label: 'Security Risks', val: documentMetrics.riskCount.toString(), color: '#DC2626', icon: '🔒' },
                 ].map((kpi, i) => (
                   <div key={i} style={{ ...ds.card, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: kpi.color }} />
@@ -2866,11 +2904,11 @@ export default function CustomDocumentEditor() {
               {/* 3. HERO KPI SECTION */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
                 {[
-                  { title: 'Total Tasks', value: '248', icon: '📋', color: '#3b82f6', trend: '+12' },
-                  { title: 'Completed', value: '182', icon: '✅', color: '#10b981', trend: '+45' },
-                  { title: 'In Progress', value: '42', icon: '⏳', color: '#f59e0b', trend: '-5' },
-                  { title: 'Blocked', value: '8', icon: '🚫', color: '#ef4444', trend: '+2' },
-                  { title: 'Sprint Velocity', value: '84 SP', icon: '🚀', color: '#8b5cf6', trend: 'Avg 78' }
+                  { title: 'Total Tasks', value: documentMetrics.totalRequirements > 0 ? documentMetrics.totalRequirements.toString() : '248', icon: '📋', color: '#3b82f6', trend: '' },
+                  { title: 'Completed', value: documentMetrics.approvedRequirements > 0 ? documentMetrics.approvedRequirements.toString() : '182', icon: '✅', color: '#10b981', trend: `${documentMetrics.completionPercentage}%` },
+                  { title: 'In Progress', value: documentMetrics.totalRequirements > 0 ? (documentMetrics.totalRequirements - documentMetrics.approvedRequirements).toString() : '42', icon: '⏳', color: '#f59e0b', trend: '' },
+                  { title: 'Blocked', value: documentMetrics.highRiskCount > 0 ? documentMetrics.highRiskCount.toString() : '8', icon: '🚫', color: '#ef4444', trend: '' },
+                  { title: 'Canvas Blocks', value: documentMetrics.totalBlocks.toString(), icon: '🚀', color: '#8b5cf6', trend: '' }
                 ].map((kpi, i) => (
                   <div key={i} style={{ ...ds.card, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderTop: `2px solid ${kpi.color}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4282,10 +4320,10 @@ export default function CustomDocumentEditor() {
                   </button>
                 )}
                 {(tmplConfig?.kpiWidgets || [
-                  { title: 'Total Requirements', value: '486', color: '#2563EB', icon: '📋' },
-                  { title: 'Approved', value: '342', color: '#16A34A', icon: '✅' },
-                  { title: 'Pending Reviews', value: '28', color: '#F59E0B', icon: '⏳' },
-                  { title: 'Business Risks', value: '6', color: '#DC2626', icon: '⚠️' },
+                  { title: 'Total Requirements', value: documentMetrics.totalRequirements > 0 ? documentMetrics.totalRequirements.toString() : '486', color: '#2563EB', icon: '📋' },
+                  { title: 'Approved', value: documentMetrics.approvedRequirements > 0 ? documentMetrics.approvedRequirements.toString() : '342', color: '#16A34A', icon: '✅' },
+                  { title: 'Pending Reviews', value: documentMetrics.totalRequirements > 0 ? (documentMetrics.totalRequirements - documentMetrics.approvedRequirements).toString() : '28', color: '#F59E0B', icon: '⏳' },
+                  { title: 'Business Risks', value: documentMetrics.riskCount > 0 ? documentMetrics.riskCount.toString() : '6', color: '#DC2626', icon: '⚠️' },
                 ]).slice(0, 4).map((kpi, i) => (
                   <div key={i} style={{ ...ds.card, position: 'relative', overflow: 'hidden' }}>
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: kpi.color }} />
@@ -4908,6 +4946,8 @@ export default function CustomDocumentEditor() {
               setNavigationStack([]);
             }
           }}
+          saveStatus={saveStatus}
+          onSave={handleSave}
         />
       </div>
 

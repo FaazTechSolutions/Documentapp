@@ -20,6 +20,8 @@ interface EnterpriseWorkspaceToolbarProps {
   currentPageId?: string | null;
   navigationStack?: { id: string; title: string }[];
   onNavigateBack?: () => void;
+  saveStatus?: string;
+  onSave?: () => void;
 }
 
 export default function EnterpriseWorkspaceToolbar({
@@ -36,7 +38,9 @@ export default function EnterpriseWorkspaceToolbar({
   isTemplateBuilder,
   currentPageId,
   navigationStack,
-  onNavigateBack
+  onNavigateBack,
+  saveStatus,
+  onSave
 }: EnterpriseWorkspaceToolbarProps) {
   
   const [showAiDropdown, setShowAiDropdown] = useState(false);
@@ -106,9 +110,22 @@ export default function EnterpriseWorkspaceToolbar({
                   </span>
                 </>
               )}
-              <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '4px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <CheckCircle size={10} /> Saved
-              </span>
+              {saveStatus && (
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  padding: '0.1rem 0.4rem', 
+                  background: saveStatus === 'Saving...' ? 'rgba(245, 158, 11, 0.1)' : saveStatus === 'Error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                  color: saveStatus === 'Saving...' ? '#f59e0b' : saveStatus === 'Error' ? '#ef4444' : '#10b981', 
+                  borderRadius: '4px', 
+                  fontWeight: 700, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.2rem' 
+                }}>
+                  {saveStatus === 'Saving...' ? <Clock size={10} className="animate-spin" /> : <CheckCircle size={10} />} 
+                  {saveStatus}
+                </span>
+              )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
               <span>Workspace</span>
@@ -197,7 +214,7 @@ export default function EnterpriseWorkspaceToolbar({
           <div style={{ display: 'flex', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
             <button style={{ padding: '0.4rem 0.6rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', borderRight: '1px solid var(--border)' }} title="Undo"><Undo size={14} /></button>
             <button style={{ padding: '0.4rem 0.6rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', borderRight: '1px solid var(--border)' }} title="Redo"><Redo size={14} /></button>
-            <button style={{ padding: '0.4rem 0.6rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Save"><Save size={14} /></button>
+            <button onClick={onSave} style={{ padding: '0.4rem 0.6rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Save"><Save size={14} /></button>
           </div>
 
           <button 

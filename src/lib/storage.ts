@@ -1,3 +1,9 @@
+export interface DocumentVersion {
+  versionId: string;
+  timestamp: string;
+  data: any;
+}
+
 export interface SavedDocument {
   id: string;
   title: string;
@@ -5,9 +11,19 @@ export interface SavedDocument {
   updatedAt: string;
   data: any; // Record<string, string> for standard, CustomBlock[] for custom
   projectId?: string;
+  status?: string; // 'Draft', 'Published', 'In Review'
+  wordCount?: number;
+  isAiGenerated?: boolean;
+  versionHistory?: DocumentVersion[];
 }
 
 const STORAGE_KEY = 'docforge_saved_documents';
+
+export function generateDocumentId(prefix: string = 'doc'): string {
+  const timestamp = Date.now().toString(36);
+  const randomStr = Math.random().toString(36).substring(2, 7);
+  return `${prefix}_${timestamp}_${randomStr}`;
+}
 
 export function getSavedDocuments(): SavedDocument[] {
   if (typeof window === 'undefined') return [];
@@ -30,7 +46,28 @@ export function saveDocument(doc: SavedDocument) {
   const docs = getSavedDocuments();
   const existingIndex = docs.findIndex(d => d.id === doc.id);
   
-  const docToSave = { ...doc, updatedAt: new Date().toISOString() };
+  // Create a version snapshot
+  const snapshot: DocumentVersion = {
+    versionId: `v_${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    data: doc.data
+  };
+
+  const existingDoc = existingIndex >= 0 ? docs[existingIndex] : null;
+  const versionHistory = existingDoc?.versionHistory || [];
+  
+  // Keep only last 5 versions
+  versionHistory.unshift(snapshot);
+  if (versionHistory.length > 5) {
+    versionHistory.pop();
+  }
+
+  const docToSave: SavedDocument = { 
+    ...existingDoc,
+    ...doc, 
+    updatedAt: new Date().toISOString(),
+    versionHistory 
+  };
   
   if (existingIndex >= 0) {
     docs[existingIndex] = docToSave;

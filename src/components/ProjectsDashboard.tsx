@@ -16,6 +16,7 @@ import {
   Filter,
   FileText
 } from 'lucide-react';
+import ProjectActionMenu from './ProjectActionMenu';
 
 export default function ProjectsDashboard() {
   const router = useRouter();
@@ -275,14 +276,7 @@ export default function ProjectsDashboard() {
                     >
                       <Star size={16} fill={proj.isFavorite ? "currentColor" : "none"} />
                     </button>
-                    <div className="dropdown-container" style={{ position: 'relative' }}>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); /* In a real app we'd toggle a specific dropdown menu here */ }}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', padding: '0.2rem', cursor: 'pointer', borderRadius: '4px' }}
-                      >
-                        <MoreVertical size={16} />
-                      </button>
-                    </div>
+                    <ProjectActionMenu project={proj} docCount={getDocCountForProject(proj.id)} />
                   </div>
                 </div>
 
@@ -353,20 +347,7 @@ export default function ProjectsDashboard() {
                         >
                           <Star size={16} fill={proj.isFavorite ? "currentColor" : "none"} />
                         </button>
-                        <button 
-                          onClick={(e) => handleToggleArchive(e, proj.id, proj.isArchived)}
-                          style={{ background: 'transparent', border: 'none', color: proj.isArchived ? 'var(--primary)' : 'var(--text-muted)', padding: '0.3rem', cursor: 'pointer', borderRadius: '4px' }}
-                          title="Toggle Archive"
-                        >
-                          <Archive size={16} />
-                        </button>
-                        <button 
-                          onClick={(e) => handleDelete(e, proj.id, proj.name)}
-                          style={{ background: 'transparent', border: 'none', color: '#ef4444', padding: '0.3rem', cursor: 'pointer', borderRadius: '4px' }}
-                          title="Delete Project"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <ProjectActionMenu project={proj} docCount={getDocCountForProject(proj.id)} />
                       </div>
                     </td>
                   </tr>

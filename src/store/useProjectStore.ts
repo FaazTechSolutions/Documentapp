@@ -19,6 +19,7 @@ interface ProjectState {
   addProject: (project: Project) => void;
   updateProject: (id: string | number, updates: Partial<Project>) => void;
   deleteProject: (id: string | number) => void;
+  duplicateProject: (id: string | number) => void;
   syncFromStorage: () => void;
 }
 
@@ -55,6 +56,21 @@ export const useProjectStore = create<ProjectState>((set) => ({
       localStorage.setItem('docforge_docs_meta', JSON.stringify(updatedMeta));
     } catch (e) {}
 
+    return { projects: updated };
+  }),
+  duplicateProject: (id) => set((state) => {
+    const projectToClone = state.projects.find(p => String(p.id) === String(id));
+    if (!projectToClone) return state;
+    
+    const clone: Project = {
+      ...projectToClone,
+      id: Math.random().toString(36).substring(2, 9),
+      name: `${projectToClone.name} (Copy)`,
+      createdAt: new Date().toISOString()
+    };
+    
+    const updated = [...state.projects, clone];
+    localStorage.setItem('docforge_projects', JSON.stringify(updated));
     return { projects: updated };
   }),
   syncFromStorage: () => {

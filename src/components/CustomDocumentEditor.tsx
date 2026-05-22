@@ -9,7 +9,7 @@ import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib
 import { saveDocument, getSavedDocument } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import GithubModal from './GithubModal';
-import GlobalEnterpriseToolbar from './GlobalEnterpriseToolbar';
+import EnterpriseWorkspaceToolbar from './EnterpriseWorkspaceToolbar';
 import TemplateSaveModal from './TemplateSaveModal';
 import { useTemplateStore } from '@/store/useTemplateStore';
 import FolderDropdown from './FolderDropdown';

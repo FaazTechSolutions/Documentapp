@@ -4921,7 +4921,7 @@ export default function CustomDocumentEditor() {
         </div>
       )}
       {/* Top Action Header (Toolbar) */}
-      <div className="header-actions" style={{ flexShrink: 0, height: '60px', display: isTemplateBuilder ? 'none' : 'block' }}>
+      <div className="header-actions" style={{ flexShrink: 0, height: '60px', position: 'relative', display: isTemplateBuilder ? 'none' : 'block' }}>
         <EnterpriseWorkspaceToolbar
           viewMode={viewMode}
           setViewMode={setViewMode}

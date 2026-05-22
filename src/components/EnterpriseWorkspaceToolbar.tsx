@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, LayoutTemplate, Sparkles, Settings, PenTool, 
-  Save, Undo, Redo, Share2, Search, Bell, ChevronDown, CheckCircle, Clock, Check, Edit3, Command, FileText
+  Save, Undo, Redo, Share2, Search, Bell, ChevronDown, Command
 } from 'lucide-react';
 import CommandPalette from './CommandPalette';
 
@@ -86,12 +86,11 @@ export default function EnterpriseWorkspaceToolbar({
       <CommandPalette />
       {/* Floating Container */}
       <div style={{
-        position: 'sticky',
-        top: '1rem',
-        zIndex: 50,
-        margin: '0 auto',
-        width: '95%',
-        maxWidth: '1400px',
+        position: 'fixed',
+        top: '12px',
+        right: '24px',
+        zIndex: 100,
+        width: 'fit-content',
         background: 'rgba(15, 23, 42, 0.65)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
@@ -99,84 +98,12 @@ export default function EnterpriseWorkspaceToolbar({
         borderRadius: '16px',
         padding: '0.5rem 1rem',
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
+        gap: '1.5rem',
         boxShadow: '0 10px 40px -10px rgba(0,0,0,0.3)',
         transition: 'all 0.3s ease',
       }}>
-        
-        {/* LEFT SECTION: Compact Document Info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, overflow: 'hidden' }}>
-          <div 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              width: '28px',
-              height: '28px',
-              borderRadius: '6px',
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              color: 'white',
-              flexShrink: 0
-            }}
-          >
-            <FileText size={14} />
-          </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <span 
-              onClick={currentPageId ? onNavigateBack : undefined}
-              style={{ 
-                fontSize: '0.85rem', 
-                fontWeight: 700, 
-                color: 'var(--text-main)', 
-                cursor: currentPageId ? 'pointer' : 'default',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden'
-              }}
-            >
-              {documentTitle || 'Untitled Document'}
-            </span>
-            
-            {currentPageId && navigationStack && (
-              <>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>/</span>
-                <span style={{ color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600 }}>
-                  {navigationStack[navigationStack.length - 1]?.title || 'Subpage'}
-                </span>
-              </>
-            )}
-
-            {/* Status Pills */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: '0.5rem' }}>
-              <span style={{ 
-                fontSize: '0.65rem', 
-                padding: '0.15rem 0.4rem', 
-                background: saveStatus === 'Saving...' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)', 
-                color: saveStatus === 'Saving...' ? '#f59e0b' : '#10b981', 
-                borderRadius: '999px', 
-                fontWeight: 700, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.25rem',
-                border: `1px solid ${saveStatus === 'Saving...' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`
-              }}>
-                {saveStatus === 'Saving...' ? <Clock size={10} className="animate-spin" /> : <Check size={10} />} 
-                {saveStatus || 'Saved'}
-              </span>
-              
-              <span style={{ 
-                fontSize: '0.65rem', 
-                color: 'var(--text-muted)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.25rem' 
-              }}>
-                <Edit3 size={10} /> Just now
-              </span>
-            </div>
-          </div>
-        </div>
 
         {/* CENTER SECTION: Segmented View Switcher */}
         <div style={{

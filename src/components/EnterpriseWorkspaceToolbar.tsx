@@ -53,15 +53,15 @@ export default function EnterpriseWorkspaceToolbar({
   const getSegmentStyles = (isActive: boolean) => ({
     display: 'flex',
     alignItems: 'center',
-    gap: '0.4rem',
-    padding: '0.35rem 0.75rem',
+    gap: '0.35rem',
+    padding: '0.25rem 0.6rem',
     fontSize: '0.75rem',
     fontWeight: isActive ? 700 : 600,
-    borderRadius: '8px',
+    borderRadius: '6px',
     border: 'none',
     cursor: 'pointer',
     background: isActive ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
-    color: isActive ? '#ffffff' : '#cbd5e1', // Bright neutral inactive text
+    color: isActive ? '#ffffff' : '#cbd5e1',
     boxShadow: isActive ? '0 4px 15px -3px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
     transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
     transition: 'all 0.2s ease',
@@ -71,12 +71,12 @@ export default function EnterpriseWorkspaceToolbar({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '32px',
-    height: '32px',
-    borderRadius: '8px',
+    width: '26px',
+    height: '26px',
+    borderRadius: '6px',
     border: 'none',
     background: 'transparent',
-    color: '#cbd5e1', // Brighter icon color
+    color: '#cbd5e1',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
   });
@@ -95,13 +95,13 @@ export default function EnterpriseWorkspaceToolbar({
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '16px',
-        padding: '0.5rem 1rem',
+        borderRadius: '12px',
+        padding: '0.35rem 0.75rem',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '1.5rem',
-        boxShadow: '0 10px 40px -10px rgba(0,0,0,0.3)',
+        gap: '1rem',
+        boxShadow: '0 8px 30px -10px rgba(0,0,0,0.3)',
         transition: 'all 0.3s ease',
       }}>
 
@@ -110,10 +110,10 @@ export default function EnterpriseWorkspaceToolbar({
           display: 'flex',
           alignItems: 'center',
           background: 'rgba(0, 0, 0, 0.25)',
-          padding: '0.25rem',
-          borderRadius: '10px',
+          padding: '0.15rem',
+          borderRadius: '8px',
           border: '1px solid rgba(255, 255, 255, 0.05)',
-          gap: '0.2rem'
+          gap: '0.15rem'
         }}>
           {isPremiumTemplate && (
             <button

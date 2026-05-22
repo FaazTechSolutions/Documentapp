@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
+import EnterpriseTopNav from '@/components/EnterpriseTopNav';
 import { Suspense, useState } from 'react';
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -43,8 +44,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           </button>
         </div>
       )}
-      <main className="main-content" style={{ flex: 1, width: isSidebarOpen ? 'calc(100vw - 260px)' : '100vw', transition: 'width 0.2s' }}>
-        {children}
+      <main className="main-content" style={{ flex: 1, width: isSidebarOpen ? 'calc(100vw - 260px)' : '100vw', transition: 'width 0.2s', display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        {!isLoginPage && <EnterpriseTopNav />}
+        <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
+          {children}
+        </div>
       </main>
     </div>
   );

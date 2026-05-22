@@ -83,7 +83,6 @@ export default function EnterpriseWorkspaceToolbar({
 
   return (
     <>
-      <CommandPalette />
       {/* Floating Container */}
       <div style={{
         position: 'fixed',

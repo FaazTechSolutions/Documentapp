@@ -609,6 +609,10 @@ export default function CustomDocumentEditor() {
       localStorage.setItem('docforge_docs_meta', JSON.stringify(metaList));
     } catch (e) {}
 
+    if (isTemplateBuilder) {
+      saveTemplate(documentId, blocks, false, "Auto-saved in template editor");
+    }
+
     setSaveStatus('Saved');
     setTimeout(() => {
       setSaveStatus('');

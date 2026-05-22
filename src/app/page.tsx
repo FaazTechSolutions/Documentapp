@@ -529,17 +529,15 @@ function MainDashboardContent() {
   const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolean) => {
     const id = Math.random().toString(36).substring(2, 11);
     
-    // If it's a builder mode, try to fetch the blocks from useTemplateStore first
+    // Always try to fetch the blocks from useTemplateStore first
     let initialBlocks = [];
-    if (isBuilder) {
-      try {
-        const editableTemplates = JSON.parse(localStorage.getItem('docforge_editable_templates') || '[]');
-        const targetTemplate = editableTemplates.find((t: any) => t.id === templateIdOrType);
-        if (targetTemplate && targetTemplate.blocks && targetTemplate.blocks.length > 0) {
-          initialBlocks = targetTemplate.blocks;
-        }
-      } catch (e) {}
-    }
+    try {
+      const editableTemplates = JSON.parse(localStorage.getItem('docforge_editable_templates') || '[]');
+      const targetTemplate = editableTemplates.find((t: any) => t.id === templateIdOrType);
+      if (targetTemplate && targetTemplate.blocks && targetTemplate.blocks.length > 0) {
+        initialBlocks = targetTemplate.blocks;
+      }
+    } catch (e) {}
 
     if (initialBlocks.length === 0) {
       try {

@@ -234,11 +234,11 @@ export default function EnterpriseWorkspaceToolbar({
               style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '0.4rem', 
-                padding: '0.4rem 0.75rem', 
+                gap: '0.35rem', 
+                padding: '0.25rem 0.6rem', 
                 background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(124, 58, 237, 0.2))', 
                 border: '1px solid rgba(168, 85, 247, 0.3)', 
-                borderRadius: '8px', 
+                borderRadius: '6px', 
                 color: '#d8b4fe', 
                 fontSize: '0.75rem', 
                 fontWeight: 700, 
@@ -286,14 +286,14 @@ export default function EnterpriseWorkspaceToolbar({
                       display: 'flex', 
                       alignItems: 'center', 
                       gap: '0.5rem', 
-                      padding: '0.5rem', 
+                      padding: '0.4rem', 
                       background: 'transparent', 
                       border: 'none', 
                       color: 'var(--text-main)', 
                       fontSize: '0.8rem', 
                       fontWeight: 500,
                       cursor: 'pointer', 
-                      borderRadius: '8px', 
+                      borderRadius: '6px', 
                       textAlign: 'left',
                       transition: 'background 0.2s ease'
                     }} 
@@ -307,7 +307,7 @@ export default function EnterpriseWorkspaceToolbar({
             )}
           </div>
           
-          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, border: '1px solid rgba(255,255,255,0.2)', marginLeft: '0.25rem', cursor: 'pointer' }}>
+          <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, border: '1px solid rgba(255,255,255,0.2)', marginLeft: '0.25rem', cursor: 'pointer' }}>
             SA
           </div>
         </div>

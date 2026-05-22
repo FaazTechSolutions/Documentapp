@@ -60,9 +60,10 @@ export default function EnterpriseWorkspaceToolbar({
     borderRadius: '8px',
     border: 'none',
     cursor: 'pointer',
-    background: isActive ? 'var(--surface)' : 'transparent',
-    color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
-    boxShadow: isActive ? '0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06)' : 'none',
+    background: isActive ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
+    color: isActive ? '#ffffff' : '#cbd5e1', // Bright neutral inactive text
+    boxShadow: isActive ? '0 4px 15px -3px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)' : 'none',
+    transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
     transition: 'all 0.2s ease',
   });
 
@@ -75,7 +76,7 @@ export default function EnterpriseWorkspaceToolbar({
     borderRadius: '8px',
     border: 'none',
     background: 'transparent',
-    color: 'var(--text-muted)',
+    color: '#cbd5e1', // Brighter icon color
     cursor: 'pointer',
     transition: 'all 0.2s ease',
   });
@@ -189,55 +190,60 @@ export default function EnterpriseWorkspaceToolbar({
         }}>
           {isPremiumTemplate && (
             <button
+              title="Dashboard View"
               onClick={() => { setViewMode('dashboard'); setIsManualEdit(false); }}
               style={getSegmentStyles(viewMode === 'dashboard')}
-              onMouseEnter={e => { if (viewMode !== 'dashboard') e.currentTarget.style.color = 'var(--text-main)'; }}
-              onMouseLeave={e => { if (viewMode !== 'dashboard') e.currentTarget.style.color = 'var(--text-muted)'; }}
+              onMouseEnter={e => { if (viewMode !== 'dashboard') { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
+              onMouseLeave={e => { if (viewMode !== 'dashboard') { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
             >
-              <LayoutDashboard size={14} style={{ color: viewMode === 'dashboard' ? '#3b82f6' : 'currentColor' }} />
+              <LayoutDashboard size={14} style={{ color: viewMode === 'dashboard' ? '#ffffff' : 'currentColor' }} />
               Dashboard
             </button>
           )}
 
           <button
+            title="Canvas View"
             onClick={() => { setViewMode('canvas'); setIsManualEdit(false); }}
             style={getSegmentStyles(viewMode === 'canvas' && !isManualEdit)}
-            onMouseEnter={e => { if (!(viewMode === 'canvas' && !isManualEdit)) e.currentTarget.style.color = 'var(--text-main)'; }}
-            onMouseLeave={e => { if (!(viewMode === 'canvas' && !isManualEdit)) e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseEnter={e => { if (!(viewMode === 'canvas' && !isManualEdit)) { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
+            onMouseLeave={e => { if (!(viewMode === 'canvas' && !isManualEdit)) { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
           >
-            <LayoutTemplate size={14} style={{ color: (viewMode === 'canvas' && !isManualEdit) ? '#3b82f6' : 'currentColor' }} />
+            <LayoutTemplate size={14} style={{ color: (viewMode === 'canvas' && !isManualEdit) ? '#ffffff' : 'currentColor' }} />
             Canvas
           </button>
 
           <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)', margin: '0 0.2rem' }} />
 
           <button
+            title="AI Copilot"
             onClick={() => setShowAiPanel(!showAiPanel)}
             style={getSegmentStyles(showAiPanel)}
-            onMouseEnter={e => { if (!showAiPanel) e.currentTarget.style.color = 'var(--text-main)'; }}
-            onMouseLeave={e => { if (!showAiPanel) e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseEnter={e => { if (!showAiPanel) { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
+            onMouseLeave={e => { if (!showAiPanel) { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
           >
-            <Sparkles size={14} style={{ color: showAiPanel ? '#a855f7' : 'currentColor' }} />
+            <Sparkles size={14} style={{ color: showAiPanel ? '#ffffff' : 'currentColor' }} />
             Copilot
           </button>
 
           <button
+            title="Document Editor"
             onClick={() => { setViewMode('canvas'); setIsManualEdit(true); }}
             style={getSegmentStyles(isManualEdit)}
-            onMouseEnter={e => { if (!isManualEdit) e.currentTarget.style.color = 'var(--text-main)'; }}
-            onMouseLeave={e => { if (!isManualEdit) e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseEnter={e => { if (!isManualEdit) { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
+            onMouseLeave={e => { if (!isManualEdit) { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
           >
-            <PenTool size={14} style={{ color: isManualEdit ? '#3b82f6' : 'currentColor' }} />
+            <PenTool size={14} style={{ color: isManualEdit ? '#ffffff' : 'currentColor' }} />
             Editor
           </button>
 
           <button
+            title="Properties"
             onClick={() => setShowPropertiesPanel(!showPropertiesPanel)}
             style={getSegmentStyles(showPropertiesPanel)}
-            onMouseEnter={e => { if (!showPropertiesPanel) e.currentTarget.style.color = 'var(--text-main)'; }}
-            onMouseLeave={e => { if (!showPropertiesPanel) e.currentTarget.style.color = 'var(--text-muted)'; }}
+            onMouseEnter={e => { if (!showPropertiesPanel) { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
+            onMouseLeave={e => { if (!showPropertiesPanel) { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
           >
-            <Settings size={14} style={{ color: showPropertiesPanel ? '#3b82f6' : 'currentColor' }} />
+            <Settings size={14} style={{ color: showPropertiesPanel ? '#ffffff' : 'currentColor' }} />
             Props
           </button>
         </div>

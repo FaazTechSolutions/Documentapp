@@ -120,7 +120,10 @@ export default function Sidebar() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ background: 'var(--primary)', padding: '0.3rem', borderRadius: '6px', color: 'white' }}>
-                  {workspaces.find(w => w.id === activeWorkspace)?.icon({ size: 14 }) || <Briefcase size={14} />}
+                  {(() => {
+                    const ActiveIcon = workspaces.find(w => w.id === activeWorkspace)?.icon || Briefcase;
+                    return <ActiveIcon size={14} />;
+                  })()}
                 </div>
                 <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{activeWorkspace}</span>
               </div>
@@ -137,7 +140,10 @@ export default function Sidebar() {
             }}
           >
             <div style={{ background: 'var(--primary)', padding: '0.4rem', borderRadius: '8px', color: 'white' }}>
-              {workspaces.find(w => w.id === activeWorkspace)?.icon({ size: 18 }) || <Briefcase size={18} />}
+              {(() => {
+                const ActiveIcon = workspaces.find(w => w.id === activeWorkspace)?.icon || Briefcase;
+                return <ActiveIcon size={18} />;
+              })()}
             </div>
           </div>
         )}
@@ -155,7 +161,9 @@ export default function Sidebar() {
                 <input type="text" placeholder="Quick find workspace..." style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.8rem', outline: 'none', width: '100%' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                {workspaces.map(w => (
+                {workspaces.map(w => {
+                  const IconComponent = w.icon;
+                  return (
                   <button 
                     key={w.id}
                     onClick={() => { setActiveWorkspace(w.id); setShowWorkspaceMenu(false); }}
@@ -169,14 +177,15 @@ export default function Sidebar() {
                     onMouseLeave={e => { if (w.id !== activeWorkspace) e.currentTarget.style.background = 'transparent' }}
                   >
                     <div style={{ color: w.id === activeWorkspace ? '#60a5fa' : 'var(--text-muted)', marginTop: '0.1rem' }}>
-                      <w.icon size={16} />
+                      <IconComponent size={16} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 600, color: w.id === activeWorkspace ? '#60a5fa' : 'var(--text-main)' }}>{w.id}</span>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{w.desc}</span>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -204,7 +213,9 @@ export default function Sidebar() {
               { id: 'm-work', label: 'Workflows', icon: Activity, alert: '2 Missing Steps', alertColor: '#ef4444' },
               { id: 'm-risk', label: 'Risks', icon: ShieldCheck, alert: '3 Critical', alertColor: '#ef4444', pinned: true },
               { id: 'm-appr', label: 'Approvals', icon: CheckSquare, alert: '1 Pending', alertColor: '#f59e0b' },
-            ].map(mod => (
+            ].map(mod => {
+              const ModIcon = mod.icon;
+              return (
               <div 
                 key={mod.id}
                 style={{ 
@@ -216,7 +227,7 @@ export default function Sidebar() {
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <mod.icon size={isCollapsed ? 20 : 16} style={{ color: mod.pinned ? '#f59e0b' : 'var(--text-muted)' }} />
+                  <ModIcon size={isCollapsed ? 20 : 16} style={{ color: mod.pinned ? '#f59e0b' : 'var(--text-muted)' }} />
                   {!isCollapsed && <span style={{ fontSize: '0.85rem', fontWeight: 500, flex: 1, color: 'var(--text-main)' }}>{mod.label}</span>}
                   {isCollapsed && mod.alert && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: mod.alertColor }} />}
                 </div>
@@ -227,7 +238,8 @@ export default function Sidebar() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
             
             <button className="btn btn-secondary" style={{ marginTop: '1rem', justifyContent: 'center', fontSize: '0.75rem' }} onClick={() => window.location.href = '/?tab=dashboard'}>
               ← Exit Builder
@@ -283,7 +295,9 @@ export default function Sidebar() {
               </div>
             )}
             
-            {mainNav.map(nav => (
+            {mainNav.map(nav => {
+              const NavIcon = nav.icon;
+              return (
               <Link 
                 key={nav.id}
                 href={`/?tab=${nav.id}`}
@@ -296,7 +310,7 @@ export default function Sidebar() {
                   position: 'relative'
                 }}
               >
-                <nav.icon size={isCollapsed ? 20 : 18} />
+                <NavIcon size={isCollapsed ? 20 : 18} />
                 {!isCollapsed && (
                   <span style={{ fontSize: '0.875rem', fontWeight: 500, flex: 1 }}>{nav.label}</span>
                 )}
@@ -317,7 +331,8 @@ export default function Sidebar() {
                   }} />
                 )}
               </Link>
-            ))}
+              );
+            })}
 
             {!isCollapsed && (
               <>

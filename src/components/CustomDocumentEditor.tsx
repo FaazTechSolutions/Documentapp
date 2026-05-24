@@ -4,12 +4,13 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Download, FileText, File, Upload, Plus, Trash2, Save, ArrowUp, ArrowDown, Settings, AlignLeft, Sparkles, Sliders, Undo, Redo } from 'lucide-react';
+import { Download, FileText, File, Upload, Plus, Trash2, Save, ArrowUp, ArrowDown, Settings, AlignLeft, Sparkles, Sliders, Undo, Redo, GripVertical, MessageSquare, ChevronDown, Check, Share2, Search, ArrowRight, LayoutDashboard, Database, RefreshCw, Layers } from 'lucide-react';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
 import { saveDocument, getSavedDocument, generateDocumentId } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import GithubModal from './GithubModal';
 import EnterpriseWorkspaceToolbar from './EnterpriseWorkspaceToolbar';
+import { useBuilderStore } from '@/store/useBuilderStore';
 import TemplateSaveModal from './TemplateSaveModal';
 import { useTemplateStore } from '@/store/useTemplateStore';
 import FolderDropdown from './FolderDropdown';
@@ -57,10 +58,13 @@ export interface CustomBlock {
   toggleCollapsed?: boolean;
 }
 
-export default function CustomDocumentEditor() {
-  const searchParams = useSearchParams();
+export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashboard' | 'canvas' }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const loadedId = searchParams.get('id');
+
+  const { activeView, setActiveView } = useBuilderStore();
+  const viewMode = forceView || (activeView === 'dashboard' ? 'dashboard' : 'canvas');
 
   const [documentId, setDocumentId] = useState<string>(loadedId || generateDocumentId());
   const [documentTitle, setDocumentTitle] = useState('My Custom Document');
@@ -95,7 +99,6 @@ export default function CustomDocumentEditor() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
   const [docType, setDocType] = useState('custom');
-  const [viewMode, setViewMode] = useState<'canvas' | 'dashboard'>('canvas');
   const [activeBrdTab, setActiveBrdTab] = useState('executive');
   const [activeFrdTab, setActiveFrdTab] = useState('overview');
   const [activeSrsTab, setActiveSrsTab] = useState('overview');
@@ -251,7 +254,7 @@ export default function CustomDocumentEditor() {
           setIsTemplateBuilder(true);
           setDocumentTitle(template.name);
           setDocType(template.id);
-          setViewMode('canvas'); // Template builder strictly edits canvas structure
+          setActiveView('canvas'); // Template builder strictly edits canvas structure
           
           if (template.blocks && template.blocks.length > 0) {
             setBlocks(template.blocks as CustomBlock[]);
@@ -272,7 +275,7 @@ export default function CustomDocumentEditor() {
           if (meta.type) {
             setDocType(meta.type);
             if (['srs', 'tdd', 'brd', 'frd', 'sprint'].includes(meta.type)) {
-              setViewMode('dashboard');
+              setActiveView('dashboard');
             }
           }
           if (meta.isTemplate) {
@@ -4923,8 +4926,6 @@ export default function CustomDocumentEditor() {
       {/* Top Action Header (Toolbar) */}
       <div className="header-actions" style={{ flexShrink: 0, height: '60px', position: 'relative', display: isTemplateBuilder ? 'none' : 'block' }}>
         <EnterpriseWorkspaceToolbar
-          viewMode={viewMode}
-          setViewMode={setViewMode}
           showAiPanel={showAiPanel}
           setShowAiPanel={setShowAiPanel}
           showPropertiesPanel={showPropertiesPanel}

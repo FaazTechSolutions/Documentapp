@@ -21,7 +21,7 @@ export default function EnterpriseTopNav() {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const { activeModule } = useBuilderStore();
+  const { activeModule, activeView } = useBuilderStore();
   const { workspaces, activeWorkspaceId, syncFromStorage } = useWorkspaceStore();
 
   useEffect(() => {
@@ -57,6 +57,16 @@ export default function EnterpriseTopNav() {
       'm-release': 'Release Tracking'
     };
     return modules[activeModule] || activeModule.replace('m-', '').toUpperCase();
+  };
+
+  const getViewLabel = () => {
+    switch (activeView) {
+      case 'dashboard': return 'Dashboard';
+      case 'canvas': return 'Canvas View';
+      case 'template': return 'Template Dashboard';
+      case 'properties': return 'Properties & Settings';
+      default: return 'Canvas View';
+    }
   };
 
   return (
@@ -117,14 +127,21 @@ export default function EnterpriseTopNav() {
             <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, background: 'var(--background)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
               <Hash size={14} color="var(--text-muted)" />
-              {activeModule ? getModuleLabel() : 'Choose Module'}
+              {activeModule ? getModuleLabel() : 'Document Context'}
+            </div>
+
+            {/* View Mode Breadcrumb */}
+            <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, background: 'var(--background)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
+              <Layout size={14} color="var(--text-muted)" />
+              {getViewLabel()}
             </div>
 
             {/* Document Breadcrumb */}
             <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
               <FileText size={14} color="#3b82f6" />
-              {activeModule ? 'Active Document' : 'Canvas'}
+              Active Document
             </div>
           </>
         )}

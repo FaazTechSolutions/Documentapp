@@ -2,6 +2,8 @@ import { create } from 'zustand';
 
 export type BuilderModule = 'm-req' | 'm-scope' | 'm-stake' | 'm-work' | 'm-risk' | 'm-appr' | 'm-testcases' | 'm-bugs' | 'm-suites' | 'm-coverage' | 'm-validation' | 'm-deploy' | 'm-pipelines' | 'm-env' | 'm-logs' | 'm-release' | 'm-portfolio' | 'm-health' | 'm-budget' | 'm-kb' | 'm-sop' | 'm-guides' | 'm-wiki' | 'm-policies' | string | null;
 
+export type ViewMode = 'dashboard' | 'canvas' | 'template' | 'properties';
+
 export interface Requirement {
   id: string;
   title: string;
@@ -49,6 +51,9 @@ interface BuilderState {
   activeModule: BuilderModule;
   setActiveModule: (module: BuilderModule) => void;
 
+  activeView: ViewMode;
+  setActiveView: (view: ViewMode) => void;
+
   requirements: Requirement[];
   risks: Risk[];
   workflows: WorkflowNode[];
@@ -84,6 +89,9 @@ const initialApprovals: Approval[] = [
 export const useBuilderStore = create<BuilderState>((set) => ({
   activeModule: 'm-req',
   setActiveModule: (module) => set({ activeModule: module }),
+
+  activeView: 'dashboard',
+  setActiveView: (view) => set({ activeView: view }),
 
   requirements: initialRequirements,
   risks: initialRisks,

@@ -3,6 +3,8 @@
 import React from 'react';
 import { useBuilderStore, BuilderModule } from '@/store/useBuilderStore';
 import CustomDocumentEditor from '@/components/CustomDocumentEditor';
+import TemplateDashboard from './TemplateDashboard';
+import WorkspaceSettings from '../workspace/WorkspaceSettings';
 import RequirementsPanel from './RequirementsPanel';
 import ScopeMatrix from './ScopeMatrix';
 import StakeholderGrid from './StakeholderGrid';
@@ -23,7 +25,7 @@ const MODULES = [
 ];
 
 export default function BuilderWorkspace() {
-  const { activeModule, setActiveModule } = useBuilderStore();
+  const { activeModule, setActiveModule, activeView } = useBuilderStore();
 
   const renderModuleContent = () => {
     switch (activeModule) {
@@ -33,20 +35,35 @@ export default function BuilderWorkspace() {
       case 'm-work': return <WorkflowDesigner />;
       case 'm-risk': return <RiskDashboard />;
       case 'm-appr': return <ApprovalCenter />;
-      default: return <CustomDocumentEditor />;
+      default: 
+        return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No module selected. Please select a module or switch to Canvas view.</div>;
+    }
+  };
+
+  const renderActiveView = () => {
+    switch (activeView) {
+      case 'canvas':
+        return <CustomDocumentEditor />;
+      case 'template':
+        return <TemplateDashboard />;
+      case 'properties':
+        return <WorkspaceSettings />;
+      case 'dashboard':
+      default:
+        // For generic documents without a module, fallback to the editor's dashboard or a placeholder
+        const currentModuleData = MODULES.find(m => m.id === activeModule);
+        if (!currentModuleData) return <CustomDocumentEditor />;
+        return renderModuleContent();
     }
   };
 
   const currentModuleData = MODULES.find(m => m.id === activeModule);
 
-  if (!currentModuleData) {
-    return <CustomDocumentEditor />;
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Current Module Context Panel */}
-      <div style={{ padding: '1.5rem 2rem', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+      {currentModuleData && (
+        <div style={{ padding: '1.5rem 2rem', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
           <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.75rem', borderRadius: '12px', color: '#3b82f6' }}>
             <currentModuleData.icon size={24} />
@@ -82,11 +99,12 @@ export default function BuilderWorkspace() {
             );
           })}
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Module Content Area */}
       <div style={{ flex: 1, overflow: 'auto', background: 'var(--background)' }}>
-        {renderModuleContent()}
+        {renderActiveView()}
       </div>
     </div>
   );

@@ -33,6 +33,9 @@ export interface EditableTemplate {
   versions: TemplateVersion[];
   baseTemplateId?: string; // If this was duplicated from a core template
   dashboardConfig?: import('@/lib/templateRegistry').TemplateDashboardConfig;
+  icon?: any;
+  difficulty?: string;
+  desc?: string;
 }
 
 interface TemplateState {
@@ -43,7 +46,7 @@ interface TemplateState {
   
   // Save Actions
   saveTemplate: (id: string, blocks: TemplateBlock[], createSnapshot?: boolean, changesDescription?: string) => void;
-  saveAsNewTemplate: (template: Omit<EditableTemplate, 'id' | 'createdAt' | 'lastEdited' | 'version' | 'versions'>, blocks: TemplateBlock[]) => string;
+  saveAsNewTemplate: (template: Omit<EditableTemplate, 'id' | 'createdAt' | 'lastEdited' | 'version' | 'versions' | 'blocks'>, blocks: TemplateBlock[]) => string;
   
   // Draft Actions
   saveDraft: (id: string, blocks: TemplateBlock[]) => void;

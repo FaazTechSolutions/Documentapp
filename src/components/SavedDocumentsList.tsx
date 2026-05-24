@@ -471,7 +471,7 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                               <FileText size={18} color="var(--primary)" />
                               <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{doc.title}</span>
-                              {doc.isAiGenerated && <Bot size={12} color="#a855f7" title="AI Generated" />}
+                              {doc.isAiGenerated && <span title="AI Generated" style={{ display: 'flex' }}><Bot size={12} color="#a855f7" /></span>}
                             </div>
                           </td>
                           <td style={{ padding: '1rem' }}>

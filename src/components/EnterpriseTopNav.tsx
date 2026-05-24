@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
   Search, 
   Bell, 
@@ -15,16 +16,29 @@ import {
   Briefcase,
   Activity,
   User as UserIcon,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
+  Download,
+  Upload,
+  CheckSquare,
+  ShieldCheck,
+  GitMerge,
+  Play
 } from 'lucide-react';
+import { useBuilderStore } from '@/store/useBuilderStore';
 
 export default function EnterpriseTopNav() {
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'dashboard';
+  
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [workspace, setWorkspace] = useState('Business Analysis');
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+
+  const { activeModule } = useBuilderStore();
 
   // Ctrl+K to open search
   useEffect(() => {
@@ -59,6 +73,48 @@ export default function EnterpriseTopNav() {
     'HR module requirements'
   ];
 
+  // Render contextual toolbar for Builder mode
+  const renderContextualToolbar = () => {
+    if (activeModule === 'm-req') {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#3b82f6', color: 'white', border: 'none', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Plus size={14} /> Add Requirement</button>
+          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.25rem' }} />
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer' }}><Upload size={14} /> Import</button>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer' }}><Download size={14} /> Export</button>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.2)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Sparkles size={14} /> Generate AI</button>
+        </div>
+      );
+    }
+    if (activeModule === 'm-work') {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#3b82f6', color: 'white', border: 'none', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Plus size={14} /> Add Node</button>
+          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.25rem' }} />
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer' }}><CheckSquare size={14} /> Validate</button>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Play size={14} /> Run Simulation</button>
+        </div>
+      );
+    }
+    if (activeModule === 'm-risk') {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#3b82f6', color: 'white', border: 'none', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Plus size={14} /> Add Risk</button>
+          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.25rem' }} />
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer' }}><Activity size={14} /> Heatmap</button>
+          <button style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(168, 85, 247, 0.1)', color: '#c084fc', border: '1px solid rgba(168, 85, 247, 0.2)', padding: '0.4rem 0.75rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}><Sparkles size={14} /> Mitigation AI</button>
+        </div>
+      );
+    }
+    
+    // Default module toolbar
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>{activeModule ? activeModule.replace('m-', '').toUpperCase() : 'BUILDER'}</span>
+      </div>
+    );
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -73,46 +129,52 @@ export default function EnterpriseTopNav() {
       height: '64px',
     }}>
       
-      {/* LEFT: Workspace Switcher & Breadcrumbs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <div style={{ position: 'relative' }}>
-          <button 
-            onClick={() => {
-              setShowWorkspaceMenu(!showWorkspaceMenu);
-              setShowQuickActions(false);
-              setShowNotifications(false);
-            }}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', 
-              padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
-              color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            <Layout size={14} style={{ color: '#60a5fa' }} />
-            {workspace}
-            <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
-          </button>
+      {/* LEFT: Contextual Toolbar OR Global Breadcrumbs */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+        {activeTab === 'builder' ? (
+          renderContextualToolbar()
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => {
+                  setShowWorkspaceMenu(!showWorkspaceMenu);
+                  setShowQuickActions(false);
+                  setShowNotifications(false);
+                }}
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', 
+                  padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
+                }}
+              >
+                <Layout size={14} style={{ color: '#60a5fa' }} />
+                {workspace}
+                <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
+              </button>
 
-          {showWorkspaceMenu && (
-            <div className="animate-fade-in" style={{ position: 'absolute', top: '100%', left: 0, marginTop: '0.5rem', width: '220px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '0.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 50 }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', padding: '0.4rem 0.5rem', letterSpacing: '0.05em' }}>Switch Workspace</div>
-              {workspaces.map(w => (
-                <button 
-                  key={w}
-                  onClick={() => { setWorkspace(w); setShowWorkspaceMenu(false); }}
-                  style={{ width: '100%', textAlign: 'left', padding: '0.5rem', background: w === workspace ? 'rgba(59, 130, 246, 0.1)' : 'transparent', border: 'none', color: w === workspace ? '#60a5fa' : 'var(--text-main)', fontSize: '0.85rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                  <Layout size={14} style={{ opacity: w === workspace ? 1 : 0.5 }} /> {w}
-                </button>
-              ))}
+              {showWorkspaceMenu && (
+                <div className="animate-fade-in" style={{ position: 'absolute', top: '100%', left: 0, marginTop: '0.5rem', width: '220px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '0.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', zIndex: 50 }}>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', padding: '0.4rem 0.5rem', letterSpacing: '0.05em' }}>Switch Workspace</div>
+                  {workspaces.map(w => (
+                    <button 
+                      key={w}
+                      onClick={() => { setWorkspace(w); setShowWorkspaceMenu(false); }}
+                      style={{ width: '100%', textAlign: 'left', padding: '0.5rem', background: w === workspace ? 'rgba(59, 130, 246, 0.1)' : 'transparent', border: 'none', color: w === workspace ? '#60a5fa' : 'var(--text-main)', fontSize: '0.85rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      <Layout size={14} style={{ opacity: w === workspace ? 1 : 0.5 }} /> {w}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
-          <Star size={14} style={{ cursor: 'pointer' }} title="Favorites" />
-          <Clock size={14} style={{ cursor: 'pointer' }} title="Recent" />
-        </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+              <span title="Favorites" style={{ display: 'flex' }}><Star size={14} style={{ cursor: 'pointer' }} /></span>
+              <span title="Recent" style={{ display: 'flex' }}><Clock size={14} style={{ cursor: 'pointer' }} /></span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* CENTER: Smart Global Search */}

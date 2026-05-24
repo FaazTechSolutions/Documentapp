@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { getActiveSession, logoutUser, ApprovedUser } from '@/lib/auth';
 import { useProjectStore } from '@/store/useProjectStore';
+import { useBuilderStore, BuilderModule } from '@/store/useBuilderStore';
 
 type WorkspaceMode = 'Executive' | 'Business Analysis' | 'Product Management' | 'QA & Testing' | 'DevOps' | 'Client Workspace' | 'Project Management' | 'Documentation';
 
@@ -19,9 +20,16 @@ export default function Sidebar() {
   const activeTab = searchParams.get('tab') || 'dashboard';
   const [user, setUser] = useState<ApprovedUser | null>(null);
   const [isDark, setIsDark] = useState(true);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [sidebarMode, setSidebarMode] = useState<'expanded' | 'compact' | 'invisible'>('invisible');
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceMode>('Business Analysis');
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isHoveringSidebar, setIsHoveringSidebar] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+
+  const { activeModule, setActiveModule, requirements, risks, approvals, workflows } = useBuilderStore();
+  
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { projects, syncFromStorage } = useProjectStore();
 
@@ -30,6 +38,48 @@ export default function Sidebar() {
     setUser(getActiveSession());
     setIsDark(document.body.classList.contains('dark-theme'));
   }, [syncFromStorage]);
+
+  // Handle 3-second auto-hide inactivity timer
+  useEffect(() => {
+    // Only auto-hide on specific pages as requested: Dashboard, Builder, Templates, Documents
+    const autoHidePages = ['dashboard', 'builder', 'templates', 'documents'];
+    if (!autoHidePages.includes(activeTab)) return;
+
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+
+    if (!isHoveringSidebar && sidebarMode !== 'invisible') {
+      inactivityTimerRef.current = setTimeout(() => {
+        setSidebarMode('invisible');
+      }, 3000);
+    }
+
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    };
+  }, [isHoveringSidebar, sidebarMode, activeTab]);
+
+  // Handle ESC key to force invisible mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSidebarMode('invisible');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Handle Ctrl+K for search command palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearchModal(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const toggleTheme = () => {
     if (isDark) {
@@ -65,70 +115,126 @@ export default function Sidebar() {
     { id: 'template-setup', label: 'Template Setup', icon: Settings },
     { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'approvals', label: 'Approvals', icon: CheckSquare, badge: '4 Pending', badgeColor: '#f59e0b' },
+    { id: 'approvals', label: 'Approvals', icon: CheckSquare, badge: `${approvals.filter(a => a.status === 'Pending').length} Pending`, badgeColor: '#f59e0b' },
     { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
     { id: 'notifications', label: 'Notifications', icon: Bell, badge: '8', badgeColor: '#ef4444' },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
+  const isCollapsed = sidebarMode === 'compact';
+  const widthMap = {
+    expanded: '260px',
+    compact: '70px',
+    invisible: '0px'
+  };
+
+  // Compute live stats for modules
+  const reqIssues = requirements.filter(r => r.status === 'Issue').length;
+  const reqProgress = requirements.length ? Math.round((requirements.filter(r => r.status === 'Approved').length / requirements.length) * 100) : 0;
+  
+  const riskCritical = risks.filter(r => r.severity === 'Critical' && r.status === 'Open').length;
+  const pendingApprovals = approvals.filter(a => a.status === 'Pending').length;
+  // Mock workflow missing steps
+  const missingWorkflowSteps = 2;
+
+  const documentModules: { id: BuilderModule, label: string, icon: any, status?: string, alert?: string, alertColor?: string, pinned?: boolean }[] = [
+    { id: 'm-req', label: 'Requirements', icon: CheckSquare, status: `${reqProgress}%`, alert: reqIssues > 0 ? `${reqIssues} Issues` : undefined, alertColor: '#f59e0b', pinned: activeModule === 'm-req' },
+    { id: 'm-scope', label: 'Scope Management', icon: Target, pinned: activeModule === 'm-scope' },
+    { id: 'm-stake', label: 'Stakeholders', icon: Users, pinned: activeModule === 'm-stake' },
+    { id: 'm-work', label: 'Workflows', icon: Activity, alert: missingWorkflowSteps > 0 ? `${missingWorkflowSteps} Missing` : undefined, alertColor: '#ef4444', pinned: activeModule === 'm-work' },
+    { id: 'm-risk', label: 'Risks', icon: ShieldCheck, alert: riskCritical > 0 ? `${riskCritical} Critical` : undefined, alertColor: '#ef4444', pinned: activeModule === 'm-risk' },
+    { id: 'm-appr', label: 'Approvals', icon: CheckSquare, alert: pendingApprovals > 0 ? `${pendingApprovals} Pending` : undefined, alertColor: '#3b82f6', pinned: activeModule === 'm-appr' },
+  ];
+
   return (
-    <aside 
-      className={`sidebar-enterprise ${isCollapsed ? 'collapsed' : ''}`} 
-      style={{ 
-        display: 'flex', flexDirection: 'column', height: '100%', 
-        width: isCollapsed ? '80px' : '280px', 
-        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        background: 'rgba(15, 23, 42, 0.95)',
-        backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(255,255,255,0.08)',
-        overflow: 'visible',
-        position: 'relative'
-      }}
-    >
-      {/* Collapse Toggle */}
-      <button 
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        style={{
-          position: 'absolute', top: '1.5rem', right: '-12px', zIndex: 50,
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          width: '24px', height: '24px', borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', color: 'var(--text-muted)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+    <>
+      {/* Invisible Trigger Area - Hover left edge to reveal */}
+      {sidebarMode === 'invisible' && (
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, width: '15px', height: '100vh', zIndex: 99, cursor: 'pointer' }}
+          onMouseEnter={() => setSidebarMode('expanded')}
+        />
+      )}
+
+      {/* Floating Logo Trigger Button */}
+      {sidebarMode === 'invisible' && (
+        <button
+          onClick={() => setSidebarMode('expanded')}
+          style={{
+            position: 'fixed', top: '1rem', left: '1rem', zIndex: 101, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)',
+            padding: '0.5rem', borderRadius: '8px', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', transition: 'all 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 1)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)'}
+        >
+          <FileText size={20} />
+        </button>
+      )}
+
+      <aside 
+        onMouseEnter={() => setIsHoveringSidebar(true)}
+        onMouseLeave={() => setIsHoveringSidebar(false)}
+        className={`sidebar-enterprise ${sidebarMode}`} 
+        style={{ 
+          display: 'flex', flexDirection: 'column', height: '100%', 
+          width: widthMap[sidebarMode],
+          opacity: sidebarMode === 'invisible' ? 0 : 1,
+          pointerEvents: sidebarMode === 'invisible' ? 'none' : 'auto',
+          transition: 'width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          transform: sidebarMode === 'invisible' ? 'translateX(-100%)' : 'translateX(0)',
+          background: 'rgba(15, 23, 42, 0.85)',
+          backdropFilter: 'blur(30px)',
+          borderRight: '1px solid rgba(255,255,255,0.08)',
+          overflow: 'visible',
+          position: 'fixed',
+          top: 0, left: 0, bottom: 0,
+          zIndex: 100,
+          boxShadow: '4px 0 24px rgba(0,0,0,0.4)'
         }}
       >
-        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-      </button>
+        {/* Collapse Toggle */}
+        <button 
+          onClick={() => setSidebarMode(sidebarMode === 'expanded' ? 'compact' : sidebarMode === 'compact' ? 'invisible' : 'expanded')}
+          style={{
+            position: 'absolute', top: '1.5rem', right: '-12px', zIndex: 102,
+            background: 'rgba(30, 41, 59, 1)', border: '1px solid rgba(255,255,255,0.1)',
+            width: '24px', height: '24px', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', color: 'var(--text-muted)', boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
+          }}
+        >
+          {sidebarMode === 'expanded' ? <ChevronLeft size={14} /> : sidebarMode === 'compact' ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+        </button>
 
       {/* SECTION 1: GLOBAL WORKSPACE */}
-      <div style={{ padding: isCollapsed ? '1rem 0.5rem' : '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', position: 'relative' }}>
+      <div style={{ padding: isCollapsed ? '1.5rem 0.5rem' : '1.5rem 1.5rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'relative' }}>
         {!isCollapsed ? (
           <div 
             onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
             style={{ 
-              background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px', padding: '0.75rem', cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', gap: '0.25rem',
-              transition: 'background 0.2s ease'
+              background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '8px', padding: '0.6rem 0.75rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Workspace</span>
-              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>ACTIVE</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ background: 'var(--primary)', padding: '0.3rem', borderRadius: '6px', color: 'white' }}>
-                  {(() => {
-                    const ActiveIcon = workspaces.find(w => w.id === activeWorkspace)?.icon || Briefcase;
-                    return <ActiveIcon size={14} />;
-                  })()}
-                </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>{activeWorkspace}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <div style={{ background: 'var(--primary)', padding: '0.25rem', borderRadius: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {(() => {
+                  const ActiveIcon = workspaces.find(w => w.id === activeWorkspace)?.icon || Briefcase;
+                  return <ActiveIcon size={14} />;
+                })()}
               </div>
-              <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', lineHeight: '1.2' }}>{activeWorkspace}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 500, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.1rem' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Active
+                </span>
+              </div>
             </div>
+            <ChevronDown size={14} style={{ color: '#94a3b8' }} />
           </div>
         ) : (
           <div 
@@ -196,55 +302,60 @@ export default function Sidebar() {
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: isCollapsed ? '1rem 0.5rem' : '1.5rem', flex: 1, overflowY: 'auto' }}>
         
         {activeTab === 'builder' ? (
-          <>
+          <div style={{ padding: '0 0.5rem' }}>
             {!isCollapsed && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0 0.5rem' }}>
+                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   Document Modules
                 </span>
-                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#10b981' }}>92% Complete</span>
               </div>
             )}
             
-            {[
-              { id: 'm-req', label: 'Requirements', icon: CheckSquare, status: '92% Complete', alert: '2 Issues', alertColor: '#f59e0b', pinned: true },
-              { id: 'm-scope', label: 'Scope Management', icon: Target },
-              { id: 'm-stake', label: 'Stakeholders', icon: Users },
-              { id: 'm-work', label: 'Workflows', icon: Activity, alert: '2 Missing Steps', alertColor: '#ef4444' },
-              { id: 'm-risk', label: 'Risks', icon: ShieldCheck, alert: '3 Critical', alertColor: '#ef4444', pinned: true },
-              { id: 'm-appr', label: 'Approvals', icon: CheckSquare, alert: '1 Pending', alertColor: '#f59e0b' },
-            ].map(mod => {
-              const ModIcon = mod.icon;
-              return (
-              <div 
-                key={mod.id}
-                style={{ 
-                  display: 'flex', flexDirection: 'column', padding: isCollapsed ? '0.75rem' : '0.6rem 0.75rem', 
-                  borderRadius: '8px', cursor: 'pointer', transition: 'background 0.2s',
-                  background: 'transparent'
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <ModIcon size={isCollapsed ? 20 : 16} style={{ color: mod.pinned ? '#f59e0b' : 'var(--text-muted)' }} />
-                  {!isCollapsed && <span style={{ fontSize: '0.85rem', fontWeight: 500, flex: 1, color: 'var(--text-main)' }}>{mod.label}</span>}
-                  {isCollapsed && mod.alert && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: mod.alertColor }} />}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              {documentModules.map(mod => {
+                const ModIcon = mod.icon;
+                return (
+                <div 
+                  key={mod.id}
+                  onClick={() => setActiveModule(mod.id as BuilderModule)}
+                  style={{ 
+                    display: 'flex', alignItems: 'center', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', 
+                    borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                    background: mod.pinned ? 'rgba(255,255,255,0.03)' : 'transparent',
+                    border: '1px solid transparent'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = mod.pinned ? 'rgba(255,255,255,0.03)' : 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}
+                >
+                  <ModIcon size={isCollapsed ? 20 : 16} style={{ color: mod.pinned ? '#60a5fa' : '#94a3b8', minWidth: '16px' }} />
+                  
+                  {!isCollapsed && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, marginLeft: '0.75rem' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: mod.pinned ? 600 : 500, color: mod.pinned ? '#ffffff' : '#cbd5e1' }}>{mod.label}</span>
+                      
+                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        {mod.status && <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{mod.status}</span>}
+                        {mod.alert && <span style={{ fontSize: '0.65rem', fontWeight: 600, color: mod.alertColor, background: `${mod.alertColor}20`, padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{mod.alert}</span>}
+                      </div>
+                    </div>
+                  )}
+                  {isCollapsed && mod.alert && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: mod.alertColor, position: 'absolute', right: '12px' }} />}
                 </div>
-                {!isCollapsed && (mod.alert || mod.status) && (
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', marginLeft: '1.75rem' }}>
-                    {mod.alert && <span style={{ fontSize: '0.65rem', color: mod.alertColor }}>{mod.alert}</span>}
-                    {mod.status && !mod.alert && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{mod.status}</span>}
-                  </div>
-                )}
-              </div>
-              );
-            })}
+                );
+              })}
+            </div>
             
-            <button className="btn btn-secondary" style={{ marginTop: '1rem', justifyContent: 'center', fontSize: '0.75rem' }} onClick={() => window.location.href = '/?tab=dashboard'}>
-              ← Exit Builder
+            <button style={{ 
+              marginTop: '1.5rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              background: 'rgba(255,255,255,0.05)', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)', 
+              padding: '0.6rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.2s'
+            }} 
+            onClick={() => window.location.href = '/?tab=dashboard'}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#cbd5e1' }}>
+              <ChevronLeft size={16} /> {!isCollapsed && "Exit Builder"}
             </button>
-          </>
+          </div>
         ) : (
           <>
             {/* PROJECT CONTEXT PANEL */}
@@ -303,22 +414,27 @@ export default function Sidebar() {
                 href={`/?tab=${nav.id}`}
                 className={getTabClass(nav.id)}
                 style={{ 
-                  display: 'flex', alignItems: 'center', gap: '0.75rem', padding: isCollapsed ? '0.75rem' : '0.6rem 0.75rem', 
-                  borderRadius: '8px', textDecoration: 'none', color: activeTab === nav.id ? '#60a5fa' : 'var(--text-muted)',
-                  background: activeTab === nav.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', 
+                  borderRadius: '8px', textDecoration: 'none', color: activeTab === nav.id ? '#ffffff' : '#cbd5e1',
+                  background: activeTab === nav.id ? 'rgba(255,255,255,0.06)' : 'transparent',
                   justifyContent: isCollapsed ? 'center' : 'flex-start',
-                  position: 'relative'
+                  position: 'relative',
+                  border: activeTab === nav.id ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
+                  transition: 'all 0.2s',
+                  boxShadow: activeTab === nav.id ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
                 }}
+                onMouseEnter={e => { if (activeTab !== nav.id) { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.color = '#ffffff'; } }}
+                onMouseLeave={e => { if (activeTab !== nav.id) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; } }}
               >
                 <NavIcon size={isCollapsed ? 20 : 18} />
                 {!isCollapsed && (
-                  <span style={{ fontSize: '0.875rem', fontWeight: 500, flex: 1 }}>{nav.label}</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: activeTab === nav.id ? 600 : 500, flex: 1, letterSpacing: '0.01em' }}>{nav.label}</span>
                 )}
                 {!isCollapsed && nav.badge && (
                   <span style={{ 
                     fontSize: '0.65rem', fontWeight: 700, 
                     background: nav.badgeColor ? `${nav.badgeColor}20` : 'rgba(255,255,255,0.1)', 
-                    color: nav.badgeColor || 'var(--text-main)', 
+                    color: nav.badgeColor || '#ffffff', 
                     padding: '0.1rem 0.4rem', borderRadius: '10px' 
                   }}>
                     {nav.badge}
@@ -389,39 +505,78 @@ export default function Sidebar() {
         )}
       </nav>
 
-      {/* Profile & Logout Section */}
-      {user && (
-        <div style={{ padding: isCollapsed ? '1rem 0.5rem' : '1.5rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-          {!isCollapsed ? (
-            <div style={{ background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', padding: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.02em' }}>Theme</span>
-                <button onClick={toggleTheme} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
-                  {isDark ? <Sun size={14} /> : <Moon size={14} />}
-                </button>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.25rem', background: 'rgba(255, 255, 255, 0.1)', padding: '0.25rem', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {user.avatar}
-                </span>
-                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{user.fullName}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{user.role}</span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-              <button onClick={toggleTheme} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', cursor: 'pointer', padding: '0.5rem', borderRadius: '50%' }}>
-                {isDark ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-              <span style={{ fontSize: '1.5rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Bottom Area: Quick Actions & Profile */}
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: isCollapsed ? '1rem 0.5rem' : '1.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        
+        {/* Quick Actions Icon Row */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {!isCollapsed && <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Quick Actions</span>}
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between', gap: '0.25rem', background: 'rgba(255,255,255,0.02)', padding: '0.25rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <button title="Create Requirement" style={{ background: 'transparent', color: '#cbd5e1', border: 'none', padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'; e.currentTarget.style.color = '#60a5fa'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}>
+              <Edit3 size={16} />
+            </button>
+            <button title="AI Generate" style={{ background: 'transparent', color: '#cbd5e1', border: 'none', padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(168, 85, 247, 0.15)'; e.currentTarget.style.color = '#c084fc'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}>
+              <Bot size={16} />
+            </button>
+            <button title="Open Templates" style={{ background: 'transparent', color: '#cbd5e1', border: 'none', padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}>
+              <Layers size={16} />
+            </button>
+            <button title="Export" style={{ background: 'transparent', color: '#cbd5e1', border: 'none', padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}>
+              <FileText size={16} />
+            </button>
+            <button title="Exit Builder" onClick={() => window.location.href = '/?tab=dashboard'} style={{ background: 'transparent', color: '#cbd5e1', border: 'none', padding: '0.4rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'; e.currentTarget.style.color = '#f87171'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}>
+              <ChevronLeft size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* User Profile Avatar Dock (Hidden in Builder Mode for ultra-minimalism) */}
+        {user && activeTab !== 'builder' && (
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: isCollapsed ? 'center' : 'flex-start' }}
+            >
+              <span style={{ fontSize: '1.2rem', background: 'rgba(255, 255, 255, 0.1)', borderRadius: '50%', width: isCollapsed ? '36px' : '32px', height: isCollapsed ? '36px' : '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
                 {user.avatar}
               </span>
-            </div>
-          )}
-        </div>
-      )}
+              {!isCollapsed && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.8rem', color: '#ffffff' }}>{user.fullName}</span>
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{user.role}</span>
+                </div>
+              )}
+            </button>
+
+            {/* Profile Popup Menu */}
+            {showProfileMenu && (
+              <div className="animate-fade-in" style={{ 
+                position: 'absolute', bottom: '100%', left: isCollapsed ? '100%' : 0, marginLeft: isCollapsed ? '1rem' : 0, marginBottom: '0.5rem', width: '220px',
+                background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '0.5rem', 
+                boxShadow: '0 20px 40px rgba(0,0,0,0.5)', zIndex: 100 
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <button style={{ background: 'transparent', border: 'none', padding: '0.5rem', textAlign: 'left', color: 'var(--text-main)', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <Settings size={14} /> Workspace Settings
+                  </button>
+                  <button onClick={toggleTheme} style={{ background: 'transparent', border: 'none', padding: '0.5rem', textAlign: 'left', color: 'var(--text-main)', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    {isDark ? <Sun size={14} /> : <Moon size={14} />} Toggle Theme
+                  </button>
+                  <button style={{ background: 'transparent', border: 'none', padding: '0.5rem', textAlign: 'left', color: 'var(--text-main)', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <Bell size={14} /> Preferences
+                  </button>
+                  <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.25rem 0' }} />
+                  <button onClick={() => { logoutUser(); window.location.href = '/login'; }} style={{ background: 'transparent', border: 'none', padding: '0.5rem', textAlign: 'left', color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <LifeBuoy size={14} /> Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </aside>
+    </>
   );
 }

@@ -29,10 +29,10 @@ export interface AnalyticsBlock {
 }
 
 export interface TemplateDashboardConfig {
-  sidebarItems: SidebarItem[];
-  kpiWidgets: KpiWidget[];
-  workflowSteps: WorkflowStep[];
-  analyticsBlocks: AnalyticsBlock[];
+  sidebarItems?: SidebarItem[];
+  kpiWidgets?: KpiWidget[];
+  workflowSteps?: WorkflowStep[];
+  analyticsBlocks?: AnalyticsBlock[];
   theme?: {
     primaryColor: string;
     secondaryColor: string;

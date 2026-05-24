@@ -25,7 +25,10 @@ import {
   Clipboard,
   Trash2,
   Upload,
-  Edit3
+  Edit3,
+  Activity,
+  Clock,
+  CheckCircle
 } from 'lucide-react';
 import QuickDraftEditor from '@/components/QuickDraftEditor';
 import CustomDocumentEditor from '@/components/CustomDocumentEditor';
@@ -34,7 +37,7 @@ import TemplateSetup from '@/components/TemplateSetup/TemplateSetup';
 import ProjectsDashboard from '@/components/ProjectsDashboard';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import * as Initializers from '@/lib/templateInitializers';
-
+import BuilderWorkspace from '@/components/builder/BuilderWorkspace';
 
 function MainDashboardContent() {
   const searchParams = useSearchParams();
@@ -645,7 +648,7 @@ function MainDashboardContent() {
 
   switch (tab) {
     case 'builder':
-      return <CustomDocumentEditor />;
+      return <BuilderWorkspace />;
       
     case 'template-setup':
       return <TemplateSetup />;

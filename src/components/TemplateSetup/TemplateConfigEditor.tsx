@@ -42,7 +42,7 @@ export default function TemplateConfigEditor({
   };
 
   const addItem = () => {
-    let newItem = { id: Math.random().toString(36).substr(2, 9) };
+    let newItem: any = { id: Math.random().toString(36).substr(2, 9) };
     if (configType === 'sidebarItems') {
       newItem = { ...newItem, label: 'New Item', icon: '📝' };
     } else if (configType === 'kpiWidgets') {

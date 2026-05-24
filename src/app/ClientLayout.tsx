@@ -24,9 +24,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <Sidebar />
       </Suspense>
       <main className="main-content" style={{ width: '100vw', display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-        {!isLoginPage && <EnterpriseTopNav />}
+        <Suspense fallback={<div style={{height: '60px'}} />}>
+          {!isLoginPage && <EnterpriseTopNav />}
+        </Suspense>
         <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-          {children}
+          <Suspense fallback={<div>Loading...</div>}>
+            {children}
+          </Suspense>
         </div>
       </main>
     </div>

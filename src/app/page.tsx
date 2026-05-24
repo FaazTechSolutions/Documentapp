@@ -32,6 +32,7 @@ import CustomDocumentEditor from '@/components/CustomDocumentEditor';
 import SavedDocumentsList from '@/components/SavedDocumentsList';
 import TemplateSetup from '@/components/TemplateSetup/TemplateSetup';
 import ProjectsDashboard from '@/components/ProjectsDashboard';
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import * as Initializers from '@/lib/templateInitializers';
 
 
@@ -2182,6 +2183,13 @@ function MainDashboardContent() {
         </div>
       );
 
+    case 'analytics':
+      return (
+        <div className="enterprise-workspace animate-fade-in" style={{ padding: '0 2rem' }}>
+          <AnalyticsDashboard />
+        </div>
+      );
+
     case 'dashboard':
     default:
       return (
@@ -2209,30 +2217,34 @@ function MainDashboardContent() {
             </div>
           </div>
 
-          {/* Premium Widgets Grid */}
+          {/* Executive KPI Overview */}
+          <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Executive KPI Overview</h2>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Activity size={14} color="#10b981" /> Live Sync Active</span>
+          </div>
           <div className="stats-grid">
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(2, 132, 199, 0.02) 100%)', border: '1px solid rgba(2, 132, 199, 0.12)' }}>
               <span className="stat-num">{projects.length}</span>
               <span className="stat-label">Active Projects</span>
-              <span className="stat-icon">📁</span>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><TrendingUp size={12} /> +2 this week</div>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 100%)', border: '1px solid rgba(99, 102, 241, 0.12)' }}>
-              <span className="stat-num">12</span>
-              <span className="stat-label">Total Drafts</span>
-              <span className="stat-icon">📄</span>
+              <span className="stat-num">94%</span>
+              <span className="stat-label">Project Health</span>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><TrendingUp size={12} /> Stable</div>
             </div>
 
             <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.02) 100%)', border: '1px solid rgba(245, 158, 11, 0.12)' }}>
               <span className="stat-num">2</span>
-              <span className="stat-label">Pending Signatures</span>
-              <span className="stat-icon">✅</span>
+              <span className="stat-label">Pending Approvals</span>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock size={12} /> Action Required</div>
             </div>
 
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.02) 100%)', border: '1px solid rgba(16, 185, 129, 0.12)' }}>
-              <span className="stat-num">4,250</span>
-              <span className="stat-label">AI Words Made</span>
-              <span className="stat-icon">🤖</span>
+            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.06) 0%, rgba(168, 85, 247, 0.02) 100%)', border: '1px solid rgba(168, 85, 247, 0.12)' }}>
+              <span className="stat-num">88%</span>
+              <span className="stat-label">Requirement Coverage</span>
+              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#a855f7', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><CheckCircle size={12} /> Optimized</div>
             </div>
           </div>
 
@@ -2309,31 +2321,45 @@ function MainDashboardContent() {
               </div>
             </div>
 
-            {/* Sidebar Active Actions summary */}
+            {/* Real-time Activity Stream */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.25rem', display: 'flex', flex: 1, flexDirection: 'column' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <Bot size={16} style={{ color: 'var(--primary)' }} /> AI Copilot Presets
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Activity size={16} color="#3b82f6" /> Live Activity Feed</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.7rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Syncing
+                  </span>
                 </h3>
-                <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                  Quickly query the Saudia Mawarid agent for custom outline suggestions.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <button 
-                    onClick={() => { router.push('/?tab=ai'); }} 
-                    className="btn btn-secondary" 
-                    style={{ fontSize: '0.8rem', justifyContent: 'space-between', padding: '0.6rem 0.75rem' }}
-                  >
-                    <span>🤖 Open AI Chat Portal</span> ➔
-                  </button>
-                  <button 
-                    onClick={() => { router.push('/?tab=teams'); }} 
-                    className="btn btn-secondary" 
-                    style={{ fontSize: '0.8rem', justifyContent: 'space-between', padding: '0.6rem 0.75rem' }}
-                  >
-                    <span>👥 Manage Team Invitees</span> ➔
-                  </button>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📝</div>
+                    <div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem' }}><strong>Siddiq</strong> updated <span style={{ color: '#60a5fa' }}>Sprint Planning Doc</span></p>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>2 minutes ago</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✅</div>
+                    <div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem' }}><strong>Ahmad</strong> approved <span style={{ color: '#60a5fa' }}>Enterprise Architecture TDD</span></p>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>15 minutes ago</span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Bot size={14} /></div>
+                    <div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem' }}><strong>AI Agent</strong> generated <span style={{ color: '#60a5fa' }}>Risk Mitigation Plan</span></p>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>1 hour ago</span>
+                    </div>
+                  </div>
                 </div>
+
+                <button onClick={() => router.push('/?tab=analytics')} className="btn btn-secondary" style={{ marginTop: '1rem', width: '100%', fontSize: '0.8rem', justifyContent: 'center', padding: '0.6rem 0.75rem' }}>
+                  View Full Analytics ➔
+                </button>
               </div>
             </div>
           </div>

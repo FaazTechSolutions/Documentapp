@@ -7,7 +7,7 @@ import {
   FileText, LayoutDashboard, Folder, Layers, Users, CheckSquare, 
   History, Bot, Settings, Edit3, Moon, Sun, Search,
   Briefcase, Activity, Target, ShieldCheck, LifeBuoy,
-  ChevronLeft, ChevronRight, Bell, BookOpen, BarChart2, ChevronDown
+  ChevronLeft, ChevronRight, Bell, BookOpen, BarChart2, ChevronDown, GitMerge
 } from 'lucide-react';
 import { getActiveSession, logoutUser, ApprovedUser } from '@/lib/auth';
 import { useProjectStore } from '@/store/useProjectStore';
@@ -100,13 +100,13 @@ export default function Sidebar() {
   const { workspaces, activeWorkspaceId, setActiveWorkspace } = useWorkspaceStore();
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
-  const mainNav = [
+  const mainNav: { id: string, label: string, icon: any, badge?: string, badgeColor?: string, activeColor?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'projects', label: 'Projects', icon: Folder },
+    { id: 'projects', label: 'Projects', icon: Folder, activeColor: '#3b82f6' },
     { id: 'documents', label: 'Documents', icon: FileText, badge: '12' },
-    { id: 'templates', label: 'Templates', icon: Layers },
+    { id: 'templates', label: 'Templates', icon: Layers, activeColor: '#f97316' },
     { id: 'template-setup', label: 'Template Setup', icon: Settings },
-    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+    { id: 'analytics', label: 'Analytics', icon: BarChart2, activeColor: '#06b6d4' },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'approvals', label: 'Approvals', icon: CheckSquare, badge: `${approvals.filter(a => a.status === 'Pending').length} Pending`, badgeColor: '#f59e0b' },
     { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
@@ -207,7 +207,7 @@ export default function Sidebar() {
           background: 'rgba(15, 23, 42, 0.85)',
           backdropFilter: 'blur(30px)',
           borderRight: '1px solid rgba(255,255,255,0.08)',
-          overflow: 'visible',
+          overflow: 'hidden',
           position: 'fixed',
           top: 0, left: 0, bottom: 0,
           zIndex: 100,
@@ -229,32 +229,52 @@ export default function Sidebar() {
         </button>
 
       {/* SECTION 1: GLOBAL WORKSPACE */}
-      <div style={{ padding: isCollapsed ? '1.5rem 0.5rem' : '1.5rem 1.5rem 1rem', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'relative' }}>
-        {!isCollapsed ? (
-          <div 
-            onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
-            style={{ 
-              background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
-              borderRadius: '8px', padding: '0.6rem 0.75rem', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ background: activeWorkspace?.theme?.color || 'var(--primary)', padding: '0.25rem', borderRadius: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', width: '24px', height: '24px' }}>
-                {activeWorkspace?.theme?.icon || '💼'}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', lineHeight: '1.2' }}>{activeWorkspace?.name || 'Workspace'}</span>
-                <span style={{ fontSize: '0.65rem', fontWeight: 500, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.1rem' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Active
-                </span>
-              </div>
-            </div>
-            <ChevronDown size={14} style={{ color: '#94a3b8' }} />
+      <div style={{ padding: isCollapsed ? '1.5rem 0.5rem' : '1.5rem 1.5rem 1rem', position: 'relative' }}>
+        {!isCollapsed && (
+          <div style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+            Current Workspace
           </div>
+        )}
+        
+        {!isCollapsed ? (
+          activeWorkspace ? (
+            <div 
+              onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
+              style={{ 
+                background: `linear-gradient(135deg, rgba(${activeWorkspace.theme?.color ? parseInt(activeWorkspace.theme.color.slice(1,3), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(3,5), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.15) 0%, rgba(${activeWorkspace.theme?.color ? parseInt(activeWorkspace.theme.color.slice(1,3), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(3,5), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.05) 100%)`, 
+                border: `1px solid ${activeWorkspace.theme?.color || '#3b82f6'}40`,
+                borderRadius: '8px', padding: '0.75rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                transition: 'all 0.2s ease', boxShadow: `0 4px 12px rgba(${activeWorkspace.theme?.color ? parseInt(activeWorkspace.theme.color.slice(1,3), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(3,5), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.1)`
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = activeWorkspace.theme?.color || '#3b82f6'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = `${activeWorkspace.theme?.color || '#3b82f6'}40`; }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ background: activeWorkspace.theme?.color || 'var(--primary)', padding: '0.25rem', borderRadius: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', width: '28px', height: '28px' }}>
+                  {activeWorkspace.theme?.icon || '💼'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', lineHeight: '1.2' }}>{activeWorkspace.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.25rem' }}>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 600, color: activeWorkspace.theme?.color || '#60a5fa' }}>{activeWorkspace.type.toUpperCase()}</span>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> ACTIVE
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <ChevronDown size={14} style={{ color: '#94a3b8' }} />
+            </div>
+          ) : (
+            <div 
+              onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
+              style={{ padding: '0.75rem', border: '1px dashed rgba(255,255,255,0.2)', borderRadius: '8px', cursor: 'pointer', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}
+            >
+              Choose Workspace
+            </div>
+          )
         ) : (
           <div 
             onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
@@ -313,63 +333,82 @@ export default function Sidebar() {
         )}
       </div>
 
+      <div style={{ width: '100%', height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+
       {/* SECTION 2: CONTEXTUAL NAVIGATION */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', padding: isCollapsed ? '1rem 0.5rem' : '1.5rem', flex: 1, overflowY: 'auto' }}>
         
         {activeTab === 'builder' ? (
-          <div style={{ padding: '0 0.5rem' }}>
-            {!isCollapsed && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0 0.5rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* DOCUMENT MODULES */}
+            <div>
+              {!isCollapsed && (
+                <div style={{ padding: '0 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
                   Document Modules
-                </span>
-              </div>
-            )}
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-              {documentModules.map(mod => {
-                const ModIcon = mod.icon;
-                return (
-                <div 
-                  key={mod.id}
-                  onClick={() => setActiveModule(mod.id as BuilderModule)}
-                  style={{ 
-                    display: 'flex', alignItems: 'center', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', 
-                    borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
-                    background: mod.pinned ? 'rgba(255,255,255,0.03)' : 'transparent',
-                    border: '1px solid transparent'
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = mod.pinned ? 'rgba(255,255,255,0.03)' : 'transparent'; e.currentTarget.style.borderColor = 'transparent' }}
-                >
-                  <ModIcon size={isCollapsed ? 20 : 16} style={{ color: mod.pinned ? '#60a5fa' : '#94a3b8', minWidth: '16px' }} />
-                  
-                  {!isCollapsed && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, marginLeft: '0.75rem' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: mod.pinned ? 600 : 500, color: mod.pinned ? '#ffffff' : '#cbd5e1' }}>{mod.label}</span>
-                      
-                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                        {mod.status && <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{mod.status}</span>}
-                        {mod.alert && <span style={{ fontSize: '0.65rem', fontWeight: 600, color: mod.alertColor, background: `${mod.alertColor}20`, padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{mod.alert}</span>}
-                      </div>
-                    </div>
-                  )}
-                  {isCollapsed && mod.alert && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: mod.alertColor, position: 'absolute', right: '12px' }} />}
                 </div>
-                );
-              })}
+              )}
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                {documentModules.length > 0 ? documentModules.map(mod => {
+                  const ModIcon = mod.icon;
+                  const isActive = activeModule === mod.id;
+                  return (
+                  <div 
+                    key={mod.id}
+                    onClick={() => setActiveModule(mod.id as BuilderModule)}
+                    style={{ 
+                      display: 'flex', alignItems: 'center', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', 
+                      borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                      background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                      border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <ModIcon size={isCollapsed ? 20 : 16} style={{ color: isActive ? '#ffffff' : '#94a3b8', minWidth: '16px' }} />
+                    
+                    {!isCollapsed && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1, marginLeft: '0.75rem' }}>
+                        <span style={{ fontSize: '0.85rem', fontWeight: isActive ? 700 : 500, color: isActive ? '#ffffff' : '#cbd5e1' }}>{mod.label}</span>
+                        
+                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                          {mod.status && <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{mod.status}</span>}
+                          {mod.alert && <span style={{ fontSize: '0.65rem', fontWeight: 600, color: mod.alertColor, background: `${mod.alertColor}20`, padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{mod.alert}</span>}
+                        </div>
+                      </div>
+                    )}
+                    {isCollapsed && mod.alert && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: mod.alertColor, position: 'absolute', right: '12px' }} />}
+                  </div>
+                  );
+                }) : (
+                  !isCollapsed && <div style={{ padding: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>No modules enabled</div>
+                )}
+              </div>
             </div>
-            
-            <button style={{ 
-              marginTop: '1.5rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              background: 'rgba(255,255,255,0.05)', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)', 
-              padding: '0.6rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.2s'
-            }} 
-            onClick={() => window.location.href = '/?tab=dashboard'}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#cbd5e1' }}>
-              <ChevronLeft size={16} /> {!isCollapsed && "Exit Builder"}
-            </button>
+
+            {/* BUILDER TOOLS */}
+            <div>
+              {!isCollapsed && (
+                <div style={{ padding: '0 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                  Builder Tools
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                <div onClick={() => window.location.href = '/?tab=templates'} style={{ display: 'flex', alignItems: 'center', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', color: '#f97316' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(249, 115, 22, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Layers size={isCollapsed ? 20 : 16} />
+                  {!isCollapsed && <span style={{ fontSize: '0.85rem', fontWeight: 600, marginLeft: '0.75rem' }}>Templates</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', color: '#a855f7' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <Bot size={isCollapsed ? 20 : 16} />
+                  {!isCollapsed && <span style={{ fontSize: '0.85rem', fontWeight: 600, marginLeft: '0.75rem' }}>AI Generate</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', color: '#38bdf8' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(56, 189, 248, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <FileText size={isCollapsed ? 20 : 16} />
+                  {!isCollapsed && <span style={{ fontSize: '0.85rem', fontWeight: 600, marginLeft: '0.75rem' }}>Export</span>}
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <>
@@ -395,27 +434,6 @@ export default function Sidebar() {
             )}
 
             {!isCollapsed && (
-              <div style={{ marginBottom: '1.5rem', padding: '0 0.5rem' }}>
-                <div 
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  onClick={() => {
-                    const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
-                    document.dispatchEvent(event);
-                  }}
-                >
-                  <Search size={14} style={{ color: 'var(--text-muted)' }} />
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', flex: 1 }}>Search...</span>
-                  <div style={{ display: 'flex', gap: '0.2rem' }}>
-                    <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px', color: 'var(--text-muted)' }}>Ctrl</span>
-                    <span style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px', color: 'var(--text-muted)' }}>K</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!isCollapsed && (
               <div style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
                 Main Navigation
               </div>
@@ -430,11 +448,11 @@ export default function Sidebar() {
                 className={getTabClass(nav.id)}
                 style={{ 
                   display: 'flex', alignItems: 'center', gap: '0.75rem', padding: isCollapsed ? '0.75rem' : '0.5rem 0.75rem', 
-                  borderRadius: '8px', textDecoration: 'none', color: activeTab === nav.id ? '#ffffff' : '#cbd5e1',
-                  background: activeTab === nav.id ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  borderRadius: '8px', textDecoration: 'none', color: activeTab === nav.id ? (nav.activeColor || '#ffffff') : '#cbd5e1',
+                  background: activeTab === nav.id ? (nav.activeColor ? `${nav.activeColor}15` : 'rgba(255,255,255,0.06)') : 'transparent',
                   justifyContent: isCollapsed ? 'center' : 'flex-start',
                   position: 'relative',
-                  border: activeTab === nav.id ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
+                  border: activeTab === nav.id ? `1px solid ${nav.activeColor ? `${nav.activeColor}40` : 'rgba(255,255,255,0.05)'}` : '1px solid transparent',
                   transition: 'all 0.2s',
                   boxShadow: activeTab === nav.id ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
                 }}
@@ -448,74 +466,15 @@ export default function Sidebar() {
                 {!isCollapsed && nav.badge && (
                   <span style={{ 
                     fontSize: '0.65rem', fontWeight: 700, 
-                    background: nav.badgeColor ? `${nav.badgeColor}20` : 'rgba(255,255,255,0.1)', 
-                    color: nav.badgeColor || '#ffffff', 
-                    padding: '0.1rem 0.4rem', borderRadius: '10px' 
+                    background: nav.badgeColor ? `${nav.badgeColor}20` : 'rgba(255,255,255,0.1)',
+                    color: nav.badgeColor || '#fff', padding: '0.1rem 0.4rem', borderRadius: '4px'
                   }}>
                     {nav.badge}
                   </span>
                 )}
-                {isCollapsed && nav.badge && (
-                  <span style={{ 
-                    position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', 
-                    borderRadius: '50%', background: nav.badgeColor || 'var(--primary)' 
-                  }} />
-                )}
               </Link>
               );
             })}
-
-            {!isCollapsed && (
-              <>
-                <div style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '1.5rem 0 0.5rem 0' }}>
-                  Collaboration Hub
-                </div>
-                
-                {/* Realtime Indicators */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0 0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.6rem', borderRadius: '8px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>A</div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-main)' }}><strong style={{ color: '#60a5fa' }}>Ahmed</strong> commented</span>
-                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>2 mins ago</span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.6rem', borderRadius: '8px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <CheckSquare size={12} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-main)' }}>Approval Pending</span>
-                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>5 items</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ padding: '0.25rem 0.5rem', fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '1.5rem 0 0.5rem 0' }}>
-                  Enterprise AI
-                </div>
-
-                {/* AI Widget Panel */}
-                <div style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(124, 58, 237, 0.05))', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '12px', padding: '0.75rem', margin: '0 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Bot size={16} color="#c084fc" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#e9d5ff' }}>Quick Generate</span>
-                  </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
-                    <button style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '6px', padding: '0.4rem', fontSize: '0.65rem', color: '#c084fc', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}>BRD</button>
-                    <button style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '6px', padding: '0.4rem', fontSize: '0.65rem', color: '#c084fc', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}>FRD</button>
-                    <button style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '6px', padding: '0.4rem', fontSize: '0.65rem', color: '#c084fc', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}>Risks</button>
-                    <button style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '6px', padding: '0.4rem', fontSize: '0.65rem', color: '#c084fc', cursor: 'pointer', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}>Tests</button>
-                  </div>
-
-                  <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: '6px', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.65rem', color: '#e9d5ff', lineHeight: '1.4' }}>Missing stakeholder analysis detected. Generate now?</span>
-                    <button style={{ background: '#a855f7', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', fontWeight: 600 }}>Generate</button>
-                  </div>
-                </div>
-              </>
-            )}
           </>
         )}
       </nav>

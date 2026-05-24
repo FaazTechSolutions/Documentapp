@@ -39,6 +39,7 @@ import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import * as Initializers from '@/lib/templateInitializers';
 import BuilderWorkspace from '@/components/builder/BuilderWorkspace';
 import WorkspaceDashboardRouter from '@/components/workspace/WorkspaceDashboardRouter';
+import WorkspaceSettings from '@/components/workspace/WorkspaceSettings';
 
 function MainDashboardContent() {
   const searchParams = useSearchParams();
@@ -2196,145 +2197,7 @@ function MainDashboardContent() {
 
     case 'dashboard':
     default:
-      return (
-        <div className="enterprise-workspace animate-fade-in">
-          {/* Welcome Banner */}
-          <div className="enterprise-header" style={{ marginBottom: '2rem' }}>
-            <div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                SECURED PORTAL SESSION
-              </span>
-              <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', marginTop: '0.25rem' }}>
-                Welcome back, {activeUser?.fullName || 'Siddiq Admin'}!
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                Manage accounting architectures, corporate outlines, and consult your platform AI Agent.
-              </p>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button onClick={() => handleToggleTheme(themeMode === 'light' ? 'dark' : 'light')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '50%', padding: 0 }} title="Toggle Theme">
-                {themeMode === 'light' ? '🌙' : '☀️'}
-              </button>
-              <button onClick={() => useTemplate('New Specification', 'blank')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <Plus size={18} /> Start Canvas
-              </button>
-            </div>
-          </div>
-
-          {/* Executive KPI Overview */}
-          <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Executive KPI Overview</h2>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Activity size={14} color="#10b981" /> Live Sync Active</span>
-          </div>
-          <div className="stats-grid">
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.06) 0%, rgba(2, 132, 199, 0.02) 100%)', border: '1px solid rgba(2, 132, 199, 0.12)' }}>
-              <span className="stat-num">{projects.length}</span>
-              <span className="stat-label">Active Projects</span>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><TrendingUp size={12} /> +2 this week</div>
-            </div>
-
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.02) 100%)', border: '1px solid rgba(99, 102, 241, 0.12)' }}>
-              <span className="stat-num">94%</span>
-              <span className="stat-label">Project Health</span>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><TrendingUp size={12} /> Stable</div>
-            </div>
-
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.02) 100%)', border: '1px solid rgba(245, 158, 11, 0.12)' }}>
-              <span className="stat-num">2</span>
-              <span className="stat-label">Pending Approvals</span>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Clock size={12} /> Action Required</div>
-            </div>
-
-            <div className="stat-card" style={{ background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.06) 0%, rgba(168, 85, 247, 0.02) 100%)', border: '1px solid rgba(168, 85, 247, 0.12)' }}>
-              <span className="stat-num">88%</span>
-              <span className="stat-label">Requirement Coverage</span>
-              <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#a855f7', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><CheckCircle size={12} /> Optimized</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: '1.5rem' }}>
-            {/* Quick Actions Panel */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🚀 Rapid Document Generators
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <div 
-                  onClick={() => useTemplate('Corporate Specification', 'template-brd')}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'rgba(2, 132, 199, 0.01)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.5rem' }}>💼</span>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Corporate BRD Outline</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch our strict 12-section business requirement spec layout.</span>
-                    </div>
-                  </div>
-                  <ArrowRight size={18} style={{ color: 'var(--text-muted)' }} />
-                </div>
-
-                <div 
-                  onClick={() => useTemplate('New Feature Specification', 'template-frd')}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'rgba(2, 132, 199, 0.01)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1.5rem' }}>⚡</span>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Agile FRD Outline</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch our Agile Software Feature Requirement layout with user story mapping.</span>
-                    </div>
-                  </div>
-                  <ArrowRight size={18} style={{ color: 'var(--text-muted)' }} />
-                </div>
-
-                <div 
-                  onClick={() => useTemplate('Enterprise SRS Document', 'template-srs')}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'rgba(2, 132, 199, 0.01)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 800, color: '#4f46e5', minWidth: '1.5rem' }}>SRS</span>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize Enterprise SRS Template</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch the engineering SRS with APIs, architecture, database, DevOps, security, and approvals.</span>
-                    </div>
-                  </div>
-                  <ArrowRight size={18} style={{ color: 'var(--text-muted)' }} />
-                </div>
-
-                <div 
-                  onClick={() => useTemplate('New System Architecture', 'template-tdd')}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'rgba(2, 132, 199, 0.01)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ec4899', minWidth: '1.5rem' }}>📘</span>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Initialize TDD Template</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Launch the Technical Design Document for system architecture.</span>
-                    </div>
-                  </div>
-                  <ArrowRight size={18} style={{ color: 'var(--text-muted)' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Real-time Activity Stream */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.25rem', display: 'flex', flex: 1, flexDirection: 'column' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Activity size={16} color="#3b82f6" /> Live Activity Feed</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.7rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Syncing
-                  </span>
-                </h3>
-      );
+      return <WorkspaceDashboardRouter />;
   }
 }
 

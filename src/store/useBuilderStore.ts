@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type BuilderModule = 'm-req' | 'm-scope' | 'm-stake' | 'm-work' | 'm-risk' | 'm-appr' | null;
+export type BuilderModule = 'm-req' | 'm-scope' | 'm-stake' | 'm-work' | 'm-risk' | 'm-appr' | 'm-testcases' | 'm-bugs' | 'm-suites' | 'm-coverage' | 'm-validation' | 'm-deploy' | 'm-pipelines' | 'm-env' | 'm-logs' | 'm-release' | 'm-portfolio' | 'm-health' | 'm-budget' | 'm-kb' | 'm-sop' | 'm-guides' | 'm-wiki' | 'm-policies' | string | null;
 
 export interface Requirement {
   id: string;

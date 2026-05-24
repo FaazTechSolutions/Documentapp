@@ -2,34 +2,27 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, FileText, Sparkles, LayoutTemplate, X, Zap } from 'lucide-react';
 
-export default function CommandPalette() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function CommandPalette({ onClose }: { onClose?: () => void }) {
   const [search, setSearch] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsOpen(true);
-      }
       if (e.key === 'Escape') {
-        setIsOpen(false);
+        onClose?.();
       }
     };
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [onClose]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  }, []);
 
   const mockCommands = [
     { id: 1, icon: <FileText size={16} />, label: 'Create New Document', action: () => router.push('/?tab=documents') },
@@ -43,7 +36,7 @@ export default function CommandPalette() {
   return (
     <div 
       style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '10vh', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={() => setIsOpen(false)}
+      onClick={() => onClose?.()}
     >
       <div 
         className="animate-fade-in"
@@ -61,7 +54,7 @@ export default function CommandPalette() {
             style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '1.1rem', outline: 'none' }}
           />
           <button 
-            onClick={() => setIsOpen(false)}
+            onClick={() => onClose?.()}
             style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.2rem 0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', cursor: 'pointer' }}
           >
             ESC
@@ -76,7 +69,7 @@ export default function CommandPalette() {
               {filteredCommands.map(cmd => (
                 <button
                   key={cmd.id}
-                  onClick={() => { cmd.action(); setIsOpen(false); }}
+                  onClick={() => { cmd.action(); onClose?.(); }}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', padding: '0.75rem', background: 'transparent', border: 'none', borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer', textAlign: 'left', transition: 'background 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--hover)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}

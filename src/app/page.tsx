@@ -38,6 +38,7 @@ import ProjectsDashboard from '@/components/ProjectsDashboard';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import * as Initializers from '@/lib/templateInitializers';
 import BuilderWorkspace from '@/components/builder/BuilderWorkspace';
+import WorkspaceDashboardRouter from '@/components/workspace/WorkspaceDashboardRouter';
 
 function MainDashboardContent() {
   const searchParams = useSearchParams();
@@ -2333,40 +2334,6 @@ function MainDashboardContent() {
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Syncing
                   </span>
                 </h3>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, overflowY: 'auto' }}>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📝</div>
-                    <div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem' }}><strong>Siddiq</strong> updated <span style={{ color: '#60a5fa' }}>Sprint Planning Doc</span></p>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>2 minutes ago</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✅</div>
-                    <div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem' }}><strong>Ahmad</strong> approved <span style={{ color: '#60a5fa' }}>Enterprise Architecture TDD</span></p>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>15 minutes ago</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Bot size={14} /></div>
-                    <div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem' }}><strong>AI Agent</strong> generated <span style={{ color: '#60a5fa' }}>Risk Mitigation Plan</span></p>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>1 hour ago</span>
-                    </div>
-                  </div>
-                </div>
-
-                <button onClick={() => router.push('/?tab=analytics')} className="btn btn-secondary" style={{ marginTop: '1rem', width: '100%', fontSize: '0.8rem', justifyContent: 'center', padding: '0.6rem 0.75rem' }}>
-                  View Full Analytics ➔
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       );
   }
 }

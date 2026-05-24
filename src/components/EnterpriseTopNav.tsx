@@ -26,6 +26,7 @@ import {
   Play
 } from 'lucide-react';
 import { useBuilderStore } from '@/store/useBuilderStore';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 export default function EnterpriseTopNav() {
   const searchParams = useSearchParams();
@@ -35,10 +36,16 @@ export default function EnterpriseTopNav() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [workspace, setWorkspace] = useState('Business Analysis');
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
 
   const { activeModule } = useBuilderStore();
+  const { workspaces, activeWorkspaceId, setActiveWorkspace, syncFromStorage } = useWorkspaceStore();
+
+  useEffect(() => {
+    syncFromStorage();
+  }, [syncFromStorage]);
+
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
   // Ctrl+K to open search
   useEffect(() => {
@@ -57,8 +64,6 @@ export default function EnterpriseTopNav() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  const workspaces = ['Business Analysis', 'QA & Testing', 'DevOps', 'Product Management', 'Executive'];
 
   const quickActions = [
     { icon: <FileText size={14} />, label: 'New BRD' },
@@ -148,8 +153,10 @@ export default function EnterpriseTopNav() {
                   color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer'
                 }}
               >
-                <Layout size={14} style={{ color: '#60a5fa' }} />
-                {workspace}
+                <span style={{ color: activeWorkspace?.theme?.color || '#60a5fa', fontSize: '14px', display: 'flex' }}>
+                  {activeWorkspace?.theme?.icon || <Layout size={14} />}
+                </span>
+                {activeWorkspace?.name || 'Select Workspace'}
                 <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
               </button>
 
@@ -158,13 +165,19 @@ export default function EnterpriseTopNav() {
                   <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', padding: '0.4rem 0.5rem', letterSpacing: '0.05em' }}>Switch Workspace</div>
                   {workspaces.map(w => (
                     <button 
-                      key={w}
-                      onClick={() => { setWorkspace(w); setShowWorkspaceMenu(false); }}
-                      style={{ width: '100%', textAlign: 'left', padding: '0.5rem', background: w === workspace ? 'rgba(59, 130, 246, 0.1)' : 'transparent', border: 'none', color: w === workspace ? '#60a5fa' : 'var(--text-main)', fontSize: '0.85rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      key={w.id}
+                      onClick={() => { setActiveWorkspace(w.id); setShowWorkspaceMenu(false); }}
+                      style={{ width: '100%', textAlign: 'left', padding: '0.5rem', background: w.id === activeWorkspaceId ? `rgba(${w.theme?.color ? parseInt(w.theme.color.slice(1,3), 16) + ',' + parseInt(w.theme.color.slice(3,5), 16) + ',' + parseInt(w.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.1)` : 'transparent', border: 'none', color: w.id === activeWorkspaceId ? (w.theme?.color || '#60a5fa') : 'var(--text-main)', fontSize: '0.85rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
-                      <Layout size={14} style={{ opacity: w === workspace ? 1 : 0.5 }} /> {w}
+                      <span style={{ fontSize: '14px', display: 'flex', opacity: w.id === activeWorkspaceId ? 1 : 0.5, color: w.theme?.color || '#60a5fa' }}>
+                        {w.theme?.icon || <Layout size={14} />}
+                      </span> {w.name}
                     </button>
                   ))}
+                  <div style={{ margin: '0.5rem 0', height: '1px', background: 'var(--border)' }} />
+                  <button onClick={() => window.location.href = '/?tab=workspace-settings'} style={{ width: '100%', textAlign: 'left', padding: '0.5rem', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '0.85rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Settings size={14} /> Workspace Settings
+                  </button>
                 </div>
               )}
             </div>
@@ -191,7 +204,7 @@ export default function EnterpriseTopNav() {
           onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
         >
           <Search size={16} />
-          <span style={{ fontSize: '0.85rem', flex: 1 }}>Search workspace, requirements, or ask AI...</span>
+          <span style={{ fontSize: '0.85rem', flex: 1 }}>Search {activeWorkspace?.name || 'workspace'}, requirements, or ask AI...</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.4rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 600 }}>
             <Command size={10} /> K
           </div>

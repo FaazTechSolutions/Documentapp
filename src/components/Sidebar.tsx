@@ -12,8 +12,7 @@ import {
 import { getActiveSession, logoutUser, ApprovedUser } from '@/lib/auth';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useBuilderStore, BuilderModule } from '@/store/useBuilderStore';
-
-type WorkspaceMode = 'Executive' | 'Business Analysis' | 'Product Management' | 'QA & Testing' | 'DevOps' | 'Client Workspace' | 'Project Management' | 'Documentation';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 export default function Sidebar() {
   const searchParams = useSearchParams();
@@ -21,7 +20,6 @@ export default function Sidebar() {
   const [user, setUser] = useState<ApprovedUser | null>(null);
   const [isDark, setIsDark] = useState(true);
   const [sidebarMode, setSidebarMode] = useState<'expanded' | 'compact' | 'invisible'>('invisible');
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceMode>('Business Analysis');
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isHoveringSidebar, setIsHoveringSidebar] = useState(false);
@@ -99,13 +97,8 @@ export default function Sidebar() {
       : 'sidebar-nav-item';
   };
 
-  const workspaces: { id: WorkspaceMode, icon: any, desc: string }[] = [
-    { id: 'Business Analysis', icon: Target, desc: 'Requirements, scope, approvals.' },
-    { id: 'QA & Testing', icon: ShieldCheck, desc: 'Test cases, defects, validation.' },
-    { id: 'DevOps', icon: Activity, desc: 'Deployment, environments, CI/CD.' },
-    { id: 'Executive', icon: Briefcase, desc: 'High-level reporting and KPIs.' },
-    { id: 'Documentation', icon: BookOpen, desc: 'Knowledge base and manuals.' },
-  ];
+  const { workspaces, activeWorkspaceId, setActiveWorkspace } = useWorkspaceStore();
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
   const mainNav = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -137,14 +130,43 @@ export default function Sidebar() {
   // Mock workflow missing steps
   const missingWorkflowSteps = 2;
 
-  const documentModules: { id: BuilderModule, label: string, icon: any, status?: string, alert?: string, alertColor?: string, pinned?: boolean }[] = [
+  const allDocumentModules: { id: string, label: string, icon: any, status?: string, alert?: string, alertColor?: string, pinned?: boolean }[] = [
+    // BA Modules
     { id: 'm-req', label: 'Requirements', icon: CheckSquare, status: `${reqProgress}%`, alert: reqIssues > 0 ? `${reqIssues} Issues` : undefined, alertColor: '#f59e0b', pinned: activeModule === 'm-req' },
     { id: 'm-scope', label: 'Scope Management', icon: Target, pinned: activeModule === 'm-scope' },
     { id: 'm-stake', label: 'Stakeholders', icon: Users, pinned: activeModule === 'm-stake' },
     { id: 'm-work', label: 'Workflows', icon: Activity, alert: missingWorkflowSteps > 0 ? `${missingWorkflowSteps} Missing` : undefined, alertColor: '#ef4444', pinned: activeModule === 'm-work' },
     { id: 'm-risk', label: 'Risks', icon: ShieldCheck, alert: riskCritical > 0 ? `${riskCritical} Critical` : undefined, alertColor: '#ef4444', pinned: activeModule === 'm-risk' },
     { id: 'm-appr', label: 'Approvals', icon: CheckSquare, alert: pendingApprovals > 0 ? `${pendingApprovals} Pending` : undefined, alertColor: '#3b82f6', pinned: activeModule === 'm-appr' },
+    
+    // QA Modules
+    { id: 'm-testcases', label: 'Test Cases', icon: CheckSquare, pinned: activeModule === 'm-testcases' },
+    { id: 'm-bugs', label: 'Bug Tracking', icon: Target, pinned: activeModule === 'm-bugs' },
+    { id: 'm-suites', label: 'Test Suites', icon: Layers, pinned: activeModule === 'm-suites' },
+    { id: 'm-coverage', label: 'Coverage Reports', icon: BarChart2, pinned: activeModule === 'm-coverage' },
+    { id: 'm-validation', label: 'Validation', icon: ShieldCheck, pinned: activeModule === 'm-validation' },
+    
+    // DevOps Modules
+    { id: 'm-deploy', label: 'Deployments', icon: Activity, pinned: activeModule === 'm-deploy' },
+    { id: 'm-pipelines', label: 'Pipelines', icon: GitMerge, pinned: activeModule === 'm-pipelines' },
+    { id: 'm-env', label: 'Environments', icon: Layers, pinned: activeModule === 'm-env' },
+    { id: 'm-logs', label: 'Logs', icon: FileText, pinned: activeModule === 'm-logs' },
+    { id: 'm-release', label: 'Release Tracking', icon: Target, pinned: activeModule === 'm-release' },
+
+    // Executive Modules
+    { id: 'm-portfolio', label: 'Portfolio Health', icon: Activity, pinned: activeModule === 'm-portfolio' },
+    { id: 'm-health', label: 'Health Dashboard', icon: Target, pinned: activeModule === 'm-health' },
+    { id: 'm-budget', label: 'Budget', icon: Target, pinned: activeModule === 'm-budget' },
+
+    // Documentation Modules
+    { id: 'm-kb', label: 'Knowledge Base', icon: BookOpen, pinned: activeModule === 'm-kb' },
+    { id: 'm-sop', label: 'SOPs', icon: FileText, pinned: activeModule === 'm-sop' },
+    { id: 'm-guides', label: 'Guides', icon: BookOpen, pinned: activeModule === 'm-guides' },
+    { id: 'm-wiki', label: 'Wiki', icon: Layers, pinned: activeModule === 'm-wiki' },
+    { id: 'm-policies', label: 'Policies', icon: ShieldCheck, pinned: activeModule === 'm-policies' }
   ];
+
+  const documentModules = allDocumentModules.filter(m => activeWorkspace?.enabledModules.includes(m.id));
 
   return (
     <>
@@ -221,14 +243,11 @@ export default function Sidebar() {
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <div style={{ background: 'var(--primary)', padding: '0.25rem', borderRadius: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {(() => {
-                  const ActiveIcon = workspaces.find(w => w.id === activeWorkspace)?.icon || Briefcase;
-                  return <ActiveIcon size={14} />;
-                })()}
+              <div style={{ background: activeWorkspace?.theme?.color || 'var(--primary)', padding: '0.25rem', borderRadius: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', width: '24px', height: '24px' }}>
+                {activeWorkspace?.theme?.icon || '💼'}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', lineHeight: '1.2' }}>{activeWorkspace}</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', lineHeight: '1.2' }}>{activeWorkspace?.name || 'Workspace'}</span>
                 <span style={{ fontSize: '0.65rem', fontWeight: 500, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.1rem' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Active
                 </span>
@@ -245,11 +264,8 @@ export default function Sidebar() {
               display: 'flex', justifyContent: 'center', alignItems: 'center'
             }}
           >
-            <div style={{ background: 'var(--primary)', padding: '0.4rem', borderRadius: '8px', color: 'white' }}>
-              {(() => {
-                const ActiveIcon = workspaces.find(w => w.id === activeWorkspace)?.icon || Briefcase;
-                return <ActiveIcon size={18} />;
-              })()}
+            <div style={{ background: activeWorkspace?.theme?.color || 'var(--primary)', padding: '0.4rem', borderRadius: '8px', color: 'white', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px' }}>
+              {activeWorkspace?.theme?.icon || '💼'}
             </div>
           </div>
         )}
@@ -268,26 +284,25 @@ export default function Sidebar() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {workspaces.map(w => {
-                  const IconComponent = w.icon;
                   return (
                   <button 
                     key={w.id}
                     onClick={() => { setActiveWorkspace(w.id); setShowWorkspaceMenu(false); }}
                     style={{ 
                       width: '100%', textAlign: 'left', padding: '0.6rem', 
-                      background: w.id === activeWorkspace ? 'rgba(59, 130, 246, 0.1)' : 'transparent', 
+                      background: w.id === activeWorkspaceId ? `rgba(${w.theme?.color ? parseInt(w.theme.color.slice(1,3), 16) + ',' + parseInt(w.theme.color.slice(3,5), 16) + ',' + parseInt(w.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.1)` : 'transparent', 
                       border: 'none', borderRadius: '8px', cursor: 'pointer',
                       display: 'flex', gap: '0.75rem', alignItems: 'flex-start'
                     }}
-                    onMouseEnter={e => { if (w.id !== activeWorkspace) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-                    onMouseLeave={e => { if (w.id !== activeWorkspace) e.currentTarget.style.background = 'transparent' }}
+                    onMouseEnter={e => { if (w.id !== activeWorkspaceId) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={e => { if (w.id !== activeWorkspaceId) e.currentTarget.style.background = 'transparent' }}
                   >
-                    <div style={{ color: w.id === activeWorkspace ? '#60a5fa' : 'var(--text-muted)', marginTop: '0.1rem' }}>
-                      <IconComponent size={16} />
+                    <div style={{ color: w.id === activeWorkspaceId ? (w.theme?.color || '#60a5fa') : 'var(--text-muted)', marginTop: '0.1rem', fontSize: '16px' }}>
+                      {w.theme?.icon || '💼'}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: w.id === activeWorkspace ? '#60a5fa' : 'var(--text-main)' }}>{w.id}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{w.desc}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: w.id === activeWorkspaceId ? (w.theme?.color || '#60a5fa') : 'var(--text-main)' }}>{w.name}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{w.description}</span>
                     </div>
                   </button>
                   );

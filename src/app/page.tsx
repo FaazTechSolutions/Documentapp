@@ -533,8 +533,6 @@ function MainDashboardContent() {
 
   // Helper to initialize custom document from templates
   const useTemplate = (title: string, templateIdOrType: string, isBuilder?: boolean) => {
-    const id = Math.random().toString(36).substring(2, 11);
-    
     // Always try to fetch the blocks from useTemplateStore first
     let initialBlocks = [];
     try {
@@ -565,21 +563,18 @@ function MainDashboardContent() {
       } catch(e) {}
     }
 
-    localStorage.setItem(`doc_root_${id}`, JSON.stringify(initialBlocks));
-    // Save metadata
-    const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
-    metaList.unshift({
-      id,
-      title: `${title}`,
-      lastSaved: new Date().toLocaleString(),
-      type: templateIdOrType === 'blank' ? 'custom' : templateIdOrType.replace('template-', ''),
-      projectId: searchParams.get('projectId') || undefined,
-      isTemplate: !!isBuilder,
-      isTemplateBuilder: !!isBuilder
+    // Import lazily to avoid circular dependencies if any
+    import('@/store/useDocumentStore').then(({ useDocumentStore }) => {
+      const docType = templateIdOrType === 'blank' ? 'custom' : templateIdOrType.replace('template-', '');
+      const newDoc = useDocumentStore.getState().createDocument({
+        title: title,
+        docType: docType,
+        workspaceId: searchParams.get('projectId') || undefined,
+        data: initialBlocks,
+        owner: activeUser?.name || 'Siddiq Admin'
+      });
+      router.push(`/?tab=builder&id=${newDoc.id}`);
     });
-    localStorage.setItem('docforge_docs_meta', JSON.stringify(metaList));
-
-    router.push(`/?tab=builder&id=${id}`);
   };
 
   // Call Mawarid AI Agent API Proxy

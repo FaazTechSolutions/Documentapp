@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Plus, LayoutTemplate, Settings, Server, FileText, CheckCircle, Bug, HelpCircle, ChevronRight, MoreVertical, Edit2, Copy, Trash2, Share2, Upload, Download } from 'lucide-react';
 import { useTemplateStore } from '@/store/useTemplateStore';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 const CATEGORIES = [
   { id: 'business', label: 'Business Templates', icon: <FileText size={16} />, color: 'var(--primary)' },
@@ -16,8 +17,29 @@ const CATEGORIES = [
 export default function TemplateSetup() {
   const router = useRouter();
   const { templates, duplicateTemplate, deleteTemplate, syncFromStorage } = useTemplateStore();
+  const { workspaces, activeWorkspaceId } = useWorkspaceStore();
   
-  const [activeCategory, setActiveCategory] = useState('business');
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
+  
+  const defaultCategory = React.useMemo(() => {
+    if (!activeWorkspace) return 'business';
+    switch (activeWorkspace.type) {
+      case 'qa': return 'qa';
+      case 'devops': return 'devops';
+      case 'documentation': return 'support';
+      case 'business_analysis':
+      case 'executive':
+      default: return 'business';
+    }
+  }, [activeWorkspace]);
+
+  const [activeCategory, setActiveCategory] = useState(defaultCategory);
+  
+  // Auto-switch if workspace changes
+  useEffect(() => {
+    setActiveCategory(defaultCategory);
+  }, [defaultCategory]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovering, setIsHovering] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);

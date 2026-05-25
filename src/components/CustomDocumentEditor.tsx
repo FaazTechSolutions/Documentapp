@@ -6,6 +6,8 @@ import rehypeRaw from 'rehype-raw';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Download, FileText, File, Upload, Plus, Trash2, Save, ArrowUp, ArrowDown, Settings, AlignLeft, Sparkles, Sliders, Undo, Redo, GripVertical, MessageSquare, ChevronDown, Check, Share2, Search, ArrowRight, LayoutDashboard, Database, RefreshCw, Layers } from 'lucide-react';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
+import { WorkspaceRegistry } from '@/lib/workspaceRegistry';
 import { saveDocument, getSavedDocument, generateDocumentId } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import GithubModal from './GithubModal';
@@ -64,6 +66,8 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
   const loadedId = searchParams.get('id');
 
   const { activeView, setActiveView } = useBuilderStore();
+  const { workspaces, activeWorkspaceId } = useWorkspaceStore();
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
   const viewMode = forceView || (activeView === 'dashboard' ? 'dashboard' : 'canvas');
 
   const [documentId, setDocumentId] = useState<string>(loadedId || generateDocumentId());
@@ -122,6 +126,11 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     if (!inputText) setCopilotInput('');
     setAiLoading(true);
 
+    const allowedDocs = activeWorkspace ? WorkspaceRegistry[activeWorkspace.type]?.allowedDocuments?.join(', ') : 'any';
+    const systemContext = activeWorkspace 
+      ? `[WORKSPACE CONTEXT: You are operating in the "${activeWorkspace.name}" workspace. Workspace Type: ${activeWorkspace.type}. You MUST generate content appropriate for this workspace. ALLOWED DOCUMENT TYPES: ${allowedDocs}. DO NOT generate BRD or Business Analysis content unless explicitly in the business_analysis workspace. Focus your responses and generation specifically on this domain. ${activeWorkspace.description}]\n\n`
+      : '';
+
     try {
       const response = await fetch('/api/agent', {
         method: 'POST',
@@ -129,7 +138,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          input: queryText,
+          input: systemContext + queryText,
           options: {
             temperature: 0.8,
             maxOutputTokens: 400
@@ -4899,6 +4908,42 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     );
   };
 
+  // -------------------------------------------------------------------------------- //
+  // STRICT WORKSPACE VALIDATION
+  // -------------------------------------------------------------------------------- //
+  const activeWorkspaceType = activeWorkspace?.type || 'custom';
+  const allowedDocTypes = WorkspaceRegistry[activeWorkspaceType]?.allowedDocuments || [];
+  
+  // List of all global template types that can be opened anywhere without blocking
+  const globalTemplateTypes = [
+    'sprint', 'backlog', 'taskbreak', 'estimation', 'risk', 'cr', 'release', 'status',
+    'testplan', 'testcases', 'buglog', 'uat', 'tdd',
+    'devops-deploy', 'devops-server', 'devops-backup', 'devops-pipeline', 'devops-env', 'devops-monitor',
+    'support-usermanual', 'support-adminmanual', 'support-training', 'support-faq', 'support-troubleshoot', 'support-releasenotes'
+  ];
+
+  const isDocTypeAllowed = allowedDocTypes.includes(docType) || docType === 'custom' || isTemplateBuilder || globalTemplateTypes.includes(docType);
+
+  if (!isDocTypeAllowed && isLoaded) {
+    return (
+      <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--background)' }}>
+        <div style={{ background: 'var(--surface)', padding: '3rem', borderRadius: '16px', border: '1px solid var(--border)', textAlign: 'center', maxWidth: '600px' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚠️</div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '1rem' }}>Workspace Mismatch</h2>
+          <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '2rem' }}>
+            The document type <strong>"{docType}"</strong> is not permitted within the <strong>{activeWorkspace?.name}</strong> workspace. 
+            This workspace only allows: {allowedDocTypes.join(', ')}.
+          </p>
+          <button 
+            onClick={() => router.push('/?tab=dashboard')}
+            style={{ padding: '0.75rem 1.5rem', background: 'var(--primary)', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', overflow: 'hidden' }} className="animate-fade-in">
@@ -5030,8 +5075,12 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
            MIDDLE COLUMN: DOCUMENT EDITOR A4 CANVAS
            ============================================== */}
         <div className="editor-canvas-workspace" style={{ flex: 1, overflowY: 'auto', padding: viewMode === 'dashboard' ? '0' : '2rem 1.5rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', background: 'var(--background)' }}>
-          {viewMode === 'dashboard' && (docType === 'brd' || docType === 'frd' || docType === 'srs' || docType === 'tdd' || docType === 'sprint' || documentTitle.toLowerCase().includes('brd') || documentTitle.toLowerCase().includes('frd') || documentTitle.toLowerCase().includes('srs') || documentTitle.toLowerCase().includes('tdd') || documentTitle.toLowerCase().includes('sprint') || documentTitle.toLowerCase().includes('business requirement') || documentTitle.toLowerCase().includes('feature requirement') || documentTitle.toLowerCase().includes('software requirement') || documentTitle.toLowerCase().includes('technical design')) ? (
-            (docType === 'sprint' || documentTitle.toLowerCase().includes('sprint')) ? renderSprintDashboard() : (docType === 'tdd' || documentTitle.toLowerCase().includes('tdd') || documentTitle.toLowerCase().includes('technical design')) ? renderTddDashboard() : (docType === 'srs' || documentTitle.toLowerCase().includes('srs') || documentTitle.toLowerCase().includes('software requirement')) ? renderSrsDashboard() : (docType === 'frd' || documentTitle.toLowerCase().includes('frd') || documentTitle.toLowerCase().includes('feature requirement')) ? renderFrdDashboard() : renderBrdDashboard()
+          {viewMode === 'dashboard' && allowedDocTypes.includes(docType) && ['brd', 'frd', 'srs', 'tdd', 'sprint'].includes(docType) ? (
+            (docType === 'sprint') ? renderSprintDashboard() : 
+            (docType === 'tdd') ? renderTddDashboard() : 
+            (docType === 'srs') ? renderSrsDashboard() : 
+            (docType === 'frd') ? renderFrdDashboard() : 
+            renderBrdDashboard()
           ) : (
             <div className="paper-canvas" id="doc-preview-content" style={{ margin: 0, width: '100%', maxWidth: '820px', minHeight: '842px', boxShadow: 'var(--shadow-lg)' }}>
               {isManualEdit ? (

@@ -30,6 +30,7 @@ export interface Workspace {
   enabledModules: string[];
   members: WorkspaceMember[];
   activities: WorkspaceActivity[];
+  isPinned?: boolean;
 }
 
 interface WorkspaceState {
@@ -44,6 +45,9 @@ interface WorkspaceState {
   removeMember: (workspaceId: string, memberId: string) => void;
   logActivity: (workspaceId: string, action: string, user: string, details?: string) => void;
   syncFromStorage: () => void;
+  togglePinWorkspace: (id: string) => void;
+  exportWorkspace: (id: string) => string;
+  importWorkspace: (jsonData: string) => void;
 }
 
 const defaultWorkspaces: Workspace[] = [
@@ -115,6 +119,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (typeof window !== 'undefined') {
       localStorage.setItem('docforge_active_workspace', id);
     }
+    get().logActivity(id, 'Workspace switched', 'Current User', `Switched to workspace`);
   },
 
   createWorkspace: (workspaceData) => {
@@ -122,7 +127,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       ...workspaceData,
       id: `ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       members: [{ id: 'm_owner', name: 'Current User', email: 'user@docforge.com', role: 'Owner', status: 'Active' }],
-      activities: [{ id: `act_${Date.now()}`, action: 'Workspace created', user: 'Current User', timestamp: new Date().toISOString() }]
+      activities: [{ id: `act_${Date.now()}`, action: 'Workspace created', user: 'Current User', timestamp: new Date().toISOString() }],
+      isPinned: false
     };
 
     set((state) => {
@@ -130,8 +136,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       if (typeof window !== 'undefined') {
         localStorage.setItem('docforge_workspaces', JSON.stringify(updated));
       }
-      return { workspaces: updated };
+      return { workspaces: updated, activeWorkspaceId: newWs.id }; // Auto-switch on create
     });
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('docforge_active_workspace', newWs.id);
+    }
   },
 
   updateWorkspace: (id, updates) => {
@@ -142,6 +152,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       }
       return { workspaces: updated };
     });
+    get().logActivity(id, 'Workspace updated', 'Current User');
   },
 
   deleteWorkspace: (id) => {
@@ -222,6 +233,40 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       if (typeof window !== 'undefined') localStorage.setItem('docforge_workspaces', JSON.stringify(updated));
       return { workspaces: updated };
     });
+  },
+
+  togglePinWorkspace: (id) => {
+    set((state) => {
+      const updated = state.workspaces.map(ws => ws.id === id ? { ...ws, isPinned: !ws.isPinned } : ws);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('docforge_workspaces', JSON.stringify(updated));
+      }
+      return { workspaces: updated };
+    });
+  },
+
+  exportWorkspace: (id) => {
+    const state = get();
+    const ws = state.workspaces.find(w => w.id === id);
+    if (!ws) return '';
+    return JSON.stringify(ws);
+  },
+
+  importWorkspace: (jsonData) => {
+    try {
+      const data = JSON.parse(jsonData);
+      if (data && data.name && data.type) {
+        get().createWorkspace({
+          name: data.name + ' (Imported)',
+          description: data.description || '',
+          type: data.type,
+          theme: data.theme || { color: '#3b82f6', icon: '💼' },
+          enabledModules: data.enabledModules || [],
+        });
+      }
+    } catch (e) {
+      console.error('Failed to import workspace');
+    }
   },
 
   syncFromStorage: () => {

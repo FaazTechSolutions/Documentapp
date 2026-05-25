@@ -57,6 +57,14 @@ export const useDocumentStore = create<DocumentStore>()(
       documents: [],
       createDocument: (docParams) => {
         const id = docParams.id || generateId();
+        
+        // Ensure new documents map to the active workspace automatically
+        let resolvedWorkspaceId = docParams.workspaceId;
+        if (!resolvedWorkspaceId && typeof window !== 'undefined') {
+          // Dynamic import or direct localStorage fallback to prevent cycle issues initially
+          resolvedWorkspaceId = localStorage.getItem('docforge_active_workspace') || undefined;
+        }
+
           const newActivity: DocumentActivity = {
             id: generateId(),
             action: 'Created',
@@ -68,7 +76,7 @@ export const useDocumentStore = create<DocumentStore>()(
             id,
             title: docParams.title || 'Untitled Document',
             docType: docParams.docType || 'custom',
-            workspaceId: docParams.workspaceId,
+            workspaceId: resolvedWorkspaceId,
             moduleId: docParams.moduleId,
             status: docParams.status || 'Draft',
             createdAt: new Date().toISOString(),

@@ -12,6 +12,7 @@ import {
   Eye, BarChart2, Users, Bot, Settings, Tag, Info, AlertTriangle, CheckCircle, ChevronRight, X
 } from 'lucide-react';
 import { useTemplateStore } from '@/store/useTemplateStore';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
 import ReactMarkdown from 'react-markdown';
@@ -171,6 +172,7 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   const projectIdFilter = searchParams.get('projectId');
   
   const { documents, syncFromLegacyStorage, deleteDocument, archiveDocument } = useDocumentStore();
+  const { activeWorkspaceId, workspaces } = useWorkspaceStore();
   
   // New States
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -190,6 +192,10 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   }, [syncFromLegacyStorage]);
 
   const getProjectName = () => {
+    if (activeWorkspaceId) {
+      const found = workspaces.find(w => w.id === activeWorkspaceId);
+      if (found) return found.name;
+    }
     if (!projectIdFilter) return 'All Documents Workspace';
     try {
       const projects = JSON.parse(localStorage.getItem('docforge_projects') || '[]');
@@ -203,8 +209,11 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   // Filter & Sort
   let filteredDocs = documents.filter(d => !d.isDeleted);
   
-  if (projectIdFilter) {
-    filteredDocs = filteredDocs.filter(d => String(d.workspaceId) === String(projectIdFilter));
+  // Prefer activeWorkspaceId over projectIdFilter if we are implementing Workspace functionality
+  const effectiveWorkspaceId = activeWorkspaceId || projectIdFilter;
+
+  if (effectiveWorkspaceId) {
+    filteredDocs = filteredDocs.filter(d => String(d.workspaceId) === String(effectiveWorkspaceId));
   }
 
   if (filterStatus !== 'all') {

@@ -1,20 +1,24 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   FileText, LayoutDashboard, Folder, Layers, Users, CheckSquare, 
   History, Bot, Settings, Edit3, Moon, Sun, Search,
   Briefcase, Activity, Target, ShieldCheck, LifeBuoy,
-  ChevronLeft, ChevronRight, Bell, BookOpen, BarChart2, ChevronDown, GitMerge
+  ChevronLeft, ChevronRight, Bell, BookOpen, BarChart2, ChevronDown, GitMerge, Database
 } from 'lucide-react';
 import { getActiveSession, logoutUser, ApprovedUser } from '@/lib/auth';
 import { useProjectStore } from '@/store/useProjectStore';
 import { useBuilderStore, BuilderModule } from '@/store/useBuilderStore';
+import { useTemplateStore } from '@/store/useTemplateStore';
+import { useDocumentStore } from '@/store/useDocumentStore';
+import { WorkspaceRegistry } from '@/lib/workspaceRegistry';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 
 export default function Sidebar() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
   const [user, setUser] = useState<ApprovedUser | null>(null);
@@ -24,9 +28,28 @@ export default function Sidebar() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isHoveringSidebar, setIsHoveringSidebar] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [workspaceSearchQuery, setWorkspaceSearchQuery] = useState('');
 
-  const { activeModule, setActiveModule, requirements, risks, approvals, workflows } = useBuilderStore();
-  
+  const { activeModule, setActiveModule, setActiveView, requirements, risks, approvals, workflows } = useBuilderStore();
+  const { workspaces, activeWorkspaceId, setActiveWorkspace } = useWorkspaceStore();
+
+  const handleWorkspaceSwitch = (wsId: string) => {
+    setActiveWorkspace(wsId);
+    setShowWorkspaceMenu(false);
+
+    // Full context switch engine
+    const newWs = workspaces.find(w => w.id === wsId);
+    if (newWs) {
+      const reg = WorkspaceRegistry[newWs.type || 'custom'];
+      if (reg && reg.defaultModule) {
+        setActiveModule(reg.defaultModule as BuilderModule);
+      }
+      setActiveView('dashboard');
+      // Drop any active document context from the URL instantly, navigating back to main view
+      router.push('/?tab=dashboard');
+    }
+  };
+
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { projects, syncFromStorage } = useProjectStore();
@@ -97,7 +120,6 @@ export default function Sidebar() {
       : 'sidebar-nav-item';
   };
 
-  const { workspaces, activeWorkspaceId, setActiveWorkspace } = useWorkspaceStore();
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
   const mainNav: { id: string, label: string, icon: any, badge?: string, badgeColor?: string, activeColor?: string }[] = [
@@ -147,16 +169,16 @@ export default function Sidebar() {
     { id: 'm-validation', label: 'Validation', icon: ShieldCheck, pinned: activeModule === 'm-validation' },
     
     // DevOps Modules
-    { id: 'm-deploy', label: 'Deployments', icon: Activity, pinned: activeModule === 'm-deploy' },
-    { id: 'm-pipelines', label: 'Pipelines', icon: GitMerge, pinned: activeModule === 'm-pipelines' },
-    { id: 'm-env', label: 'Environments', icon: Layers, pinned: activeModule === 'm-env' },
-    { id: 'm-logs', label: 'Logs', icon: FileText, pinned: activeModule === 'm-logs' },
-    { id: 'm-release', label: 'Release Tracking', icon: Target, pinned: activeModule === 'm-release' },
+    { id: 'm-deploy', label: 'Deployments', icon: Layers, pinned: activeModule === 'm-deploy' },
+    { id: 'm-cicd', label: 'CI/CD Pipelines', icon: Activity, pinned: activeModule === 'm-cicd' },
+    { id: 'm-infra', label: 'Infrastructure', icon: Database, pinned: activeModule === 'm-infra' },
+    { id: 'm-monitor', label: 'Monitoring', icon: BarChart2, pinned: activeModule === 'm-monitor' },
+    { id: 'm-release', label: 'Release Notes', icon: FileText, pinned: activeModule === 'm-release' },
 
-    // Executive Modules
-    { id: 'm-portfolio', label: 'Portfolio Health', icon: Activity, pinned: activeModule === 'm-portfolio' },
-    { id: 'm-health', label: 'Health Dashboard', icon: Target, pinned: activeModule === 'm-health' },
-    { id: 'm-budget', label: 'Budget', icon: Target, pinned: activeModule === 'm-budget' },
+    // Exec Modules
+    { id: 'm-portfolio', label: 'Portfolio Overview', icon: Briefcase, pinned: activeModule === 'm-portfolio' },
+    { id: 'm-roi', label: 'ROI Analytics', icon: BarChart2, pinned: activeModule === 'm-roi' },
+    { id: 'm-okr', label: 'OKR Tracking', icon: Target, pinned: activeModule === 'm-okr' },
 
     // Documentation Modules
     { id: 'm-kb', label: 'Knowledge Base', icon: BookOpen, pinned: activeModule === 'm-kb' },
@@ -166,7 +188,13 @@ export default function Sidebar() {
     { id: 'm-policies', label: 'Policies', icon: ShieldCheck, pinned: activeModule === 'm-policies' }
   ];
 
-  const documentModules = allDocumentModules.filter(m => activeWorkspace?.enabledModules.includes(m.id));
+  const activeWorkspaceType = activeWorkspace?.type || 'custom';
+  const allowedModules = WorkspaceRegistry[activeWorkspaceType]?.modules || [];
+  
+  // Use intersection of enabledModules and WorkspaceRegistry to strictly enforce allowed modules
+  const documentModules = allDocumentModules.filter(m => 
+    activeWorkspace?.enabledModules.includes(m.id) && allowedModules.includes(m.id)
+  );
 
   return (
     <>
@@ -290,24 +318,32 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* Workspace Dropdown */}
-        {showWorkspaceMenu && (
+        {/* WORKSPACE DROPDOWN */}
+        {showWorkspaceMenu && !isCollapsed && (
           <div className="animate-fade-in" style={{ 
-            position: 'absolute', top: '100%', left: isCollapsed ? '100%' : '1.5rem', right: isCollapsed ? 'auto' : '1.5rem', marginLeft: isCollapsed ? '1rem' : 0, width: isCollapsed ? '280px' : 'auto',
+            position: 'absolute', top: '100%', left: '1.5rem', right: '1.5rem', width: 'auto',
             background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', padding: '0.5rem', 
-            boxShadow: '0 20px 40px rgba(0,0,0,0.5)', zIndex: 100 
+            boxShadow: '0 20px 40px rgba(0,0,0,0.5)', zIndex: 110 
           }}>
             <div style={{ padding: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.4rem 0.75rem', borderRadius: '6px', marginBottom: '0.75rem' }}>
                 <Search size={14} style={{ color: 'var(--text-muted)' }} />
-                <input type="text" placeholder="Quick find workspace..." style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.8rem', outline: 'none', width: '100%' }} />
+                <input 
+                  type="text" 
+                  placeholder="Quick find workspace..." 
+                  value={workspaceSearchQuery}
+                  onChange={(e) => setWorkspaceSearchQuery(e.target.value)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', fontSize: '0.8rem', outline: 'none', width: '100%' }} 
+                />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                {workspaces.map(w => {
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: '300px', overflowY: 'auto' }}>
+                {workspaces
+                  .filter(w => w.name.toLowerCase().includes(workspaceSearchQuery.toLowerCase()) || w.type.toLowerCase().includes(workspaceSearchQuery.toLowerCase()))
+                  .map(w => {
                   return (
                   <button 
                     key={w.id}
-                    onClick={() => { setActiveWorkspace(w.id); setShowWorkspaceMenu(false); }}
+                    onClick={() => handleWorkspaceSwitch(w.id)}
                     style={{ 
                       width: '100%', textAlign: 'left', padding: '0.6rem', 
                       background: w.id === activeWorkspaceId ? `rgba(${w.theme?.color ? parseInt(w.theme.color.slice(1,3), 16) + ',' + parseInt(w.theme.color.slice(3,5), 16) + ',' + parseInt(w.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.1)` : 'transparent', 

@@ -85,15 +85,7 @@ export default function EnterpriseTopNav() {
       
       {/* LEFT: Top Level Navigation */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', background: activeWorkspace?.theme?.color || 'var(--primary)', color: 'white', borderRadius: '4px', fontSize: '12px' }}>
-            {activeWorkspace?.theme?.icon || <Layout size={12} />}
-          </div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginLeft: '0.25rem' }}>{activeWorkspace?.name || 'Workspace'}</span>
-          <ChevronDown size={14} color="var(--text-muted)" style={{ marginLeft: '0.25rem' }} />
-        </div>
-        
-        <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
+
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>

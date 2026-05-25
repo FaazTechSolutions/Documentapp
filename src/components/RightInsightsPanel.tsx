@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { AlertCircle, FileText, CheckSquare, Zap, Target, Activity } from 'lucide-react';
 
 export default function RightInsightsPanel() {
   const pathname = usePathname();
-  // We can conditionally hide this on certain pages if needed
-  // For now, let's show it on builder and dashboard
+  const searchParams = useSearchParams();
+  const tab = searchParams?.get('tab');
+  
+  if (tab === 'documents') return null;
   
   return (
     <aside style={{ 

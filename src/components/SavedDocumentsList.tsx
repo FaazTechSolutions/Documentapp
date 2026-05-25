@@ -9,7 +9,7 @@ import EditDocumentMetadataModal from './EditDocumentMetadataModal';
 import { 
   FileText, Trash2, Clock, Plus, LayoutTemplate, Download, Edit2, 
   MoreVertical, Copy, Archive, Share2, Search, Filter, LayoutGrid, List,
-  Eye, BarChart2, Users, Bot, Settings, Tag, Info, AlertTriangle, CheckCircle, ChevronRight, X
+  Eye, BarChart2, Users, Bot, Settings, Tag, Info, AlertTriangle, CheckCircle, ChevronRight, X, Zap, Activity
 } from 'lucide-react';
 import { useTemplateStore } from '@/store/useTemplateStore';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
@@ -285,6 +285,23 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', overflow: 'hidden' }}>
+      
+      {/* Left Copilot Chat Panel */}
+      <div style={{ width: '280px', borderRight: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Bot size={20} color="var(--primary)" />
+          <h2 style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>AI Copilot</h2>
+        </div>
+        <div style={{ flex: 1, padding: '1.25rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ background: 'var(--background)', padding: '0.85rem', borderRadius: '8px', borderBottomLeftRadius: '0', fontSize: '0.85rem', color: 'var(--text-main)', border: '1px solid var(--border)' }}>
+            Hi! I'm your workspace Copilot. I can help you find documents, summarize projects, or draft new requirements. What can I do for you today?
+          </div>
+        </div>
+        <div style={{ padding: '1rem', borderTop: '1px solid var(--border)', background: 'var(--background)' }}>
+          <input type="text" placeholder="Ask Copilot..." style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none' }} />
+        </div>
+      </div>
+
       {/* Main Workspace Area */}
       <div style={{ flex: 1, padding: '3rem', overflowY: 'auto', background: 'var(--background)' }} className="animate-fade-in">
         
@@ -550,80 +567,101 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
         {useTemplate && <TemplateMarketplace onUseTemplate={useTemplate} projectIdFilter={projectIdFilter} />}
       </div>
 
-      {/* Right Side Document Preview Panel */}
-      {selectedPreviewDoc && (
-        <div className="animate-fade-in" style={{ width: '380px', background: 'var(--surface)', borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', boxShadow: '-10px 0 30px rgba(0,0,0,0.1)' }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--background)' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Eye size={18} color="var(--primary)" /> Document Preview</h3>
-            <button onClick={() => setSelectedPreviewDoc(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}><X size={18} /></button>
-          </div>
-          
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem' }}>{selectedPreviewDoc.title}</h2>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: getStatusColor(selectedPreviewDoc.status).bg, color: getStatusColor(selectedPreviewDoc.status).color, textTransform: 'uppercase' }}>
-                  {selectedPreviewDoc.status}
-                </span>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                  {selectedPreviewDoc.docType}
-                </span>
-              </div>
-            </div>
-
-            {/* AI Insights Panel */}
-            <div style={{ background: 'rgba(168, 85, 247, 0.05)', border: '1px solid rgba(168, 85, 247, 0.2)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#a855f7', fontWeight: 700, fontSize: '0.85rem' }}>
-                <Bot size={16} /> AI Document Insights
-              </div>
-              <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {selectedPreviewDoc.isAiGenerated ? (
-                  <li>This document was drafted using AI assistance.</li>
-                ) : (
-                  <li>Drafted manually. AI analysis available.</li>
+      {/* Right Side Dynamic AI Insights Panel */}
+      <div style={{ width: '300px', borderLeft: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', flexDirection: 'column', flexShrink: 0, padding: '1.5rem', gap: '2rem', overflowY: 'auto' }}>
+        
+        {/* AI Insights */}
+        <div>
+          <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <Zap size={14} /> AI Insights
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {selectedPreviewDoc ? (
+              <>
+                <div style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', borderLeft: '3px solid #3b82f6', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  Selected <strong>{selectedPreviewDoc.title}</strong>
+                </div>
+                {selectedPreviewDoc.docType === 'brd' && (
+                  <div style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', borderLeft: '3px solid #f59e0b', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                    Consider generating Test Cases next.
+                  </div>
                 )}
-                {selectedPreviewDoc.wordCount < 200 && <li style={{ color: '#f59e0b' }}>Document appears too short. Consider expanding.</li>}
-                <li>Readability score: <strong>Enterprise Grade</strong></li>
-              </ul>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Created At</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{new Date(selectedPreviewDoc.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Word Count</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>~{selectedPreviewDoc.wordCount} words</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Owner</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{selectedPreviewDoc.owner}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Versions</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{selectedPreviewDoc.versionHistory?.length || 1}</span>
-              </div>
-            </div>
-
-            <div style={{ height: '200px', background: 'var(--background)', border: '1px dashed var(--border)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', padding: '1rem', opacity: 0.5 }}>
-                 {/* Visual mockup of doc content */}
-                 <div style={{ width: '60%', height: '8px', background: 'var(--border)', borderRadius: '4px', marginBottom: '1rem' }} />
-                 <div style={{ width: '100%', height: '4px', background: 'var(--border)', borderRadius: '2px', marginBottom: '0.5rem' }} />
-                 <div style={{ width: '100%', height: '4px', background: 'var(--border)', borderRadius: '2px', marginBottom: '0.5rem' }} />
-                 <div style={{ width: '80%', height: '4px', background: 'var(--border)', borderRadius: '2px', marginBottom: '1rem' }} />
-                 <div style={{ width: '40%', height: '8px', background: 'var(--border)', borderRadius: '4px', marginBottom: '1rem' }} />
-              </div>
-              <span style={{ zIndex: 1, background: 'var(--surface)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border)', fontWeight: 600 }}>Mini Preview</span>
-            </div>
-          </div>
-          
-          <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <Link href={`/?tab=builder&id=${selectedPreviewDoc.id}`} className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0.75rem' }}>Open Editor</Link>
+                <div style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', borderLeft: '3px solid #10b981', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  Readability score: Enterprise Grade
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', borderLeft: '3px solid #ef4444', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  Missing workflows detected in 3 modules
+                </div>
+                <div style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', borderLeft: '3px solid #f59e0b', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  Duplicate requirements found (REQ-003, REQ-012)
+                </div>
+                <div style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', borderLeft: '3px solid #3b82f6', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  Approval delay: 2 stakeholders pending
+                </div>
+              </>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Generate Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {selectedPreviewDoc ? (
+            <>
+              {selectedPreviewDoc.docType === 'brd' ? (
+                <>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Generate FRD</button>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Generate Test Cases</button>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Generate SRS</button>
+                </>
+              ) : selectedPreviewDoc.docType === 'frd' ? (
+                <>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Generate Architecture</button>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Generate API Spec</button>
+                </>
+              ) : (
+                <>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>AI Summary</button>
+                  <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Review & Analyze</button>
+                </>
+              )}
+              <Link href={`/?tab=builder&id=${selectedPreviewDoc.id}`} className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0.5rem', fontSize: '0.85rem', marginTop: '0.5rem' }}>Open Editor</Link>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Generate Dashboard</button>
+              <button className="btn btn-secondary" style={{ width: '100%', padding: '0.5rem', fontSize: '0.85rem' }}>Workspace Report</button>
+            </>
+          )}
+        </div>
+
+        {/* Recent Activity */}
+        <div>
+          <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <Activity size={14} /> Recent Activity
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '3px', top: '5px', bottom: '5px', width: '2px', background: 'var(--border)' }} />
+            <div style={{ display: 'flex', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
+              <div style={{ marginTop: '0.25rem', width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6', flexShrink: 0, outline: '3px solid var(--background)' }}></div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>BRD updated by Ahmed</p>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>2m ago</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', position: 'relative', zIndex: 1 }}>
+              <div style={{ marginTop: '0.25rem', width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', flexShrink: 0, outline: '3px solid var(--background)' }}></div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>Payroll scope modified</p>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>1h ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
       
       <EditDocumentMetadataModal 
         isOpen={!!editingDoc} 

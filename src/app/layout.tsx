@@ -14,12 +14,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="dark-theme" suppressHydrationWarning>
+      <body className="" suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{
           __html: `
             try {
-              if (localStorage.getItem('docforge_theme') === 'light') {
-                document.body.classList.remove('dark-theme');
+              if (localStorage.getItem('docforge_theme') === 'dark') {
+                document.body.classList.add('dark-theme');
               }
             } catch(e) {}
           `

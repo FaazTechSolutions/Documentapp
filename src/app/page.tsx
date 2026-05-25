@@ -571,7 +571,7 @@ function MainDashboardContent() {
         docType: docType,
         workspaceId: searchParams.get('projectId') || undefined,
         data: initialBlocks,
-        owner: activeUser?.name || 'Siddiq Admin'
+        owner: 'Siddiq Admin'
       });
       router.push(`/?tab=builder&id=${newDoc.id}`);
     });

@@ -4,11 +4,10 @@ import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import EnterpriseTopNav from '@/components/EnterpriseTopNav';
 import { Suspense, useState } from 'react';
+import RightInsightsPanel from '@/components/RightInsightsPanel';
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   if (isLoginPage) {
     return (
@@ -19,20 +18,26 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="app-container" style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <Suspense fallback={<div />}>
-        <Sidebar />
+    <div className="app-container" style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      <Suspense fallback={<div style={{height: '64px'}} />}>
+        {!isLoginPage && <EnterpriseTopNav />}
       </Suspense>
-      <main className="main-content" style={{ width: '100vw', display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-        <Suspense fallback={<div style={{height: '60px'}} />}>
-          {!isLoginPage && <EnterpriseTopNav />}
+      
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <Suspense fallback={<div />}>
+          <Sidebar />
         </Suspense>
-        <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
+        
+        <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', position: 'relative', background: 'var(--background)' }}>
           <Suspense fallback={<div>Loading...</div>}>
             {children}
           </Suspense>
-        </div>
-      </main>
+        </main>
+        
+        <Suspense fallback={<div />}>
+          {!isLoginPage && <RightInsightsPanel />}
+        </Suspense>
+      </div>
     </div>
   );
 }

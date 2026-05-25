@@ -57,30 +57,32 @@ export const useDocumentStore = create<DocumentStore>()(
       documents: [],
       createDocument: (docParams) => {
         const id = docParams.id || generateId();
-        const newDoc: UnifiedDocument = {
-          id,
-          title: docParams.title || 'Untitled Document',
-          docType: docParams.docType || 'custom',
-          workspaceId: docParams.workspaceId,
-          moduleId: docParams.moduleId,
-          status: docParams.status || 'Draft',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          owner: docParams.owner || 'Siddiq Admin',
-          isArchived: false,
-          isDeleted: false,
-          isAiGenerated: !!docParams.isAiGenerated,
-          wordCount: docParams.wordCount || 0,
-          completionPercentage: docParams.completionPercentage || 0,
-          data: docParams.data || [],
-          versionHistory: [],
-          activityFeed: [{
+          const newActivity: DocumentActivity = {
             id: generateId(),
             action: 'Created',
             timestamp: new Date().toISOString(),
             user: docParams.owner || 'Siddiq Admin'
-          }]
-        };
+          };
+
+          const newDoc: UnifiedDocument = {
+            id,
+            title: docParams.title || 'Untitled Document',
+            docType: docParams.docType || 'custom',
+            workspaceId: docParams.workspaceId,
+            moduleId: docParams.moduleId,
+            status: docParams.status || 'Draft',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            owner: docParams.owner || 'Siddiq Admin',
+            isArchived: false,
+            isDeleted: false,
+            isAiGenerated: !!docParams.isAiGenerated,
+            wordCount: docParams.wordCount || 0,
+            completionPercentage: docParams.completionPercentage || 0,
+            data: docParams.data || [],
+            versionHistory: [],
+            activityFeed: [newActivity]
+          };
 
         set((state) => ({ documents: [newDoc, ...state.documents] }));
         return newDoc;
@@ -105,13 +107,14 @@ export const useDocumentStore = create<DocumentStore>()(
             updatedDoc.versionHistory = [version, ...doc.versionHistory].slice(0, 10); // Keep last 10 versions
           }
 
-          updatedDoc.activityFeed = [{
+          const newActivity: DocumentActivity = {
             id: generateId(),
             action: 'Updated',
             timestamp: new Date().toISOString(),
             user: updatedDoc.owner,
             details: commitMessage
-          }, ...doc.activityFeed].slice(0, 50);
+          };
+          updatedDoc.activityFeed = [newActivity, ...doc.activityFeed].slice(0, 50);
 
           const newDocs = [...state.documents];
           newDocs[docIndex] = updatedDoc;
@@ -132,7 +135,7 @@ export const useDocumentStore = create<DocumentStore>()(
                     updatedAt: new Date().toISOString(),
                     activityFeed: [{
                       id: generateId(),
-                      action: 'Deleted',
+                      action: 'Deleted' as const,
                       timestamp: new Date().toISOString(),
                       user: d.owner
                     }, ...d.activityFeed]
@@ -159,7 +162,7 @@ export const useDocumentStore = create<DocumentStore>()(
           versionHistory: [],
           activityFeed: [{
             id: generateId(),
-            action: 'Duplicated',
+            action: 'Duplicated' as const,
             timestamp: new Date().toISOString(),
             user: doc.owner,
             details: `Cloned from ${doc.title}`
@@ -179,7 +182,7 @@ export const useDocumentStore = create<DocumentStore>()(
                   updatedAt: new Date().toISOString(),
                   activityFeed: [{
                     id: generateId(),
-                    action: 'Archived',
+                    action: 'Archived' as const,
                     timestamp: new Date().toISOString(),
                     user: d.owner
                   }, ...d.activityFeed]
@@ -199,7 +202,7 @@ export const useDocumentStore = create<DocumentStore>()(
                   updatedAt: new Date().toISOString(),
                   activityFeed: [{
                     id: generateId(),
-                    action: 'Restored',
+                    action: 'Restored' as const,
                     timestamp: new Date().toISOString(),
                     user: d.owner
                   }, ...d.activityFeed]
@@ -252,7 +255,7 @@ export const useDocumentStore = create<DocumentStore>()(
               versionHistory: sd.versionHistory || [],
               activityFeed: [{
                 id: generateId(),
-                action: 'Created',
+                action: 'Created' as const,
                 timestamp: sd.updatedAt || new Date().toISOString(),
                 user: 'Siddiq Admin',
                 details: 'Migrated from legacy storage'
@@ -289,7 +292,7 @@ export const useDocumentStore = create<DocumentStore>()(
                 versionHistory: [],
                 activityFeed: [{
                   id: generateId(),
-                  action: 'Created',
+                  action: 'Created' as const,
                   timestamp: new Date().toISOString(),
                   user: 'Siddiq Admin',
                   details: 'Migrated from meta storage'

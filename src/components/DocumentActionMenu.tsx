@@ -5,7 +5,7 @@ import { MoreVertical, Copy, Archive, Trash2, Edit3, Share2, Clock } from 'lucid
 import { useDocumentStore } from '@/store/useDocumentStore';
 import { useRouter } from 'next/navigation';
 
-export default function DocumentActionMenu({ document, onEdit }: { document: any, onEdit?: () => void }) {
+export default function DocumentActionMenu({ doc, onEdit }: { doc: any, onEdit?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -23,24 +23,24 @@ export default function DocumentActionMenu({ document, onEdit }: { document: any
 
   const handleDuplicate = (e: React.MouseEvent) => {
     e.stopPropagation();
-    duplicateDocument(document.id);
+    duplicateDocument(doc.id);
     setIsOpen(false);
   };
 
   const handleArchiveToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (document.isArchived) {
-      restoreDocument(document.id);
+    if (doc.isArchived) {
+      restoreDocument(doc.id);
     } else {
-      archiveDocument(document.id);
+      archiveDocument(doc.id);
     }
     setIsOpen(false);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm(`Are you sure you want to delete "${document.title}"?`)) {
-      deleteDocument(document.id);
+    if (window.confirm(`Are you sure you want to delete "${doc.title}"?`)) {
+      deleteDocument(doc.id);
     }
     setIsOpen(false);
   };
@@ -70,7 +70,7 @@ export default function DocumentActionMenu({ document, onEdit }: { document: any
           <button onClick={handleEdit} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--text-main)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <Edit3 size={14} /> Edit Metadata
           </button>
-          <button onClick={(e) => { e.stopPropagation(); router.push(`/?tab=builder&id=${document.id}`); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--text-main)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <button onClick={(e) => { e.stopPropagation(); router.push(`/?tab=builder&id=${doc.id}`); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--text-main)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <Share2 size={14} /> Open in Builder
           </button>
           <button onClick={handleDuplicate} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--text-main)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -80,7 +80,7 @@ export default function DocumentActionMenu({ document, onEdit }: { document: any
           <div style={{ height: '1px', background: 'var(--border)', margin: '0.2rem 0' }} />
           
           <button onClick={handleArchiveToggle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--text-main)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-            <Archive size={14} /> {document.isArchived ? 'Restore' : 'Archive'}
+            <Archive size={14} /> {doc.isArchived ? 'Restore' : 'Archive'}
           </button>
           <button onClick={handleDelete} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--danger, #ef4444)' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <Trash2 size={14} /> Delete

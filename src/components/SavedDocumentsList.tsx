@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getSavedDocuments, deleteDocument, SavedDocument } from '@/lib/storage';
+import { useDocumentStore, UnifiedDocument } from '@/store/useDocumentStore';
+import DocumentActionMenu from './DocumentActionMenu';
+import EditDocumentMetadataModal from './EditDocumentMetadataModal';
 import { 
   FileText, Trash2, Clock, Plus, LayoutTemplate, Download, Edit2, 
   MoreVertical, Copy, Archive, Share2, Search, Filter, LayoutGrid, List,
@@ -14,7 +16,6 @@ import { generateCustomMarkdown } from '@/lib/markdown';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
-
 
 const categories = [
   { id: 'business', label: 'Business Documents', icon: '💼', items: ['BRD', 'FRD', 'SRS', 'TDD'] },
@@ -48,18 +49,10 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
 
   return (
     <div className="animate-fade-in transition-colors duration-300 ease-in-out" style={{
-      display: 'flex',
-      flexDirection: 'column',
-      width: '100%',
-      minHeight: '80vh',
-      background: 'var(--mkt-bg)',
-      color: 'var(--mkt-text)',
-      borderRadius: '16px',
-      border: '1px solid var(--mkt-border)',
-      overflow: 'hidden',
-      fontFamily: "'Inter', sans-serif",
-      boxShadow: 'var(--mkt-shadow)',
-      marginTop: '3rem'
+      display: 'flex', flexDirection: 'column', width: '100%', minHeight: '80vh',
+      background: 'var(--mkt-bg)', color: 'var(--mkt-text)', borderRadius: '16px',
+      border: '1px solid var(--mkt-border)', overflow: 'hidden', fontFamily: "'Inter', sans-serif",
+      boxShadow: 'var(--mkt-shadow)', marginTop: '3rem'
     }}>
       <div style={{ padding: '1.5rem 2rem', background: 'var(--mkt-glass)', borderBottom: '1px solid var(--mkt-border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -69,8 +62,7 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--mkt-search-icon)' }}>🔍</span>
             <input 
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search templates..." 
               style={{ width: '350px', padding: '0.6rem 1rem 0.6rem 2.5rem', background: 'var(--mkt-input)', border: '1px solid var(--mkt-border-light)', borderRadius: '8px', color: 'var(--mkt-text)', fontSize: '0.85rem', outline: 'none' }}
             />
@@ -83,19 +75,12 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
           <div style={{ padding: '1.5rem 1.25rem' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--mkt-search-icon)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Template Categories</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div 
-                onClick={() => setActiveCategory('all')}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.85rem', borderRadius: '8px', cursor: 'pointer', background: activeCategory === 'all' ? 'var(--mkt-accent-bg)' : 'transparent', borderLeft: `3px solid ${activeCategory === 'all' ? 'var(--mkt-accent)' : 'transparent'}`, color: activeCategory === 'all' ? 'var(--mkt-accent)' : 'var(--mkt-text)', fontWeight: activeCategory === 'all' ? 700 : 500, transition: 'all 0.2s' }}
-              >
+              <div onClick={() => setActiveCategory('all')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.85rem', borderRadius: '8px', cursor: 'pointer', background: activeCategory === 'all' ? 'var(--mkt-accent-bg)' : 'transparent', borderLeft: `3px solid ${activeCategory === 'all' ? 'var(--mkt-accent)' : 'transparent'}`, color: activeCategory === 'all' ? 'var(--mkt-accent)' : 'var(--mkt-text)', fontWeight: activeCategory === 'all' ? 700 : 500, transition: 'all 0.2s' }}>
                 <span>🌍</span> <span style={{ fontSize: '0.85rem' }}>All Templates</span>
               </div>
-              
               {categories.map(cat => (
                 <div key={cat.id}>
-                  <div 
-                    onClick={() => setActiveCategory(cat.id)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.85rem', borderRadius: '8px', cursor: 'pointer', background: activeCategory === cat.id ? 'var(--mkt-accent-bg)' : 'transparent', borderLeft: `3px solid ${activeCategory === cat.id ? 'var(--mkt-accent)' : 'transparent'}`, color: activeCategory === cat.id ? 'var(--mkt-accent)' : 'var(--mkt-text)', fontWeight: activeCategory === cat.id ? 700 : 500, transition: 'all 0.2s' }}
-                  >
+                  <div onClick={() => setActiveCategory(cat.id)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0.85rem', borderRadius: '8px', cursor: 'pointer', background: activeCategory === cat.id ? 'var(--mkt-accent-bg)' : 'transparent', borderLeft: `3px solid ${activeCategory === cat.id ? 'var(--mkt-accent)' : 'transparent'}`, color: activeCategory === cat.id ? 'var(--mkt-accent)' : 'var(--mkt-text)', fontWeight: activeCategory === cat.id ? 700 : 500, transition: 'all 0.2s' }}>
                     <span>{cat.icon}</span> <span style={{ fontSize: '0.85rem' }}>{cat.label}</span>
                   </div>
                 </div>
@@ -114,37 +99,26 @@ const TemplateMarketplace = ({ onUseTemplate, projectIdFilter }: { onUseTemplate
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
             {filteredTemplates.map(tmpl => (
-              <div 
-                key={tmpl.id}
-                onMouseEnter={() => setIsHovering(tmpl.id)}
-                onMouseLeave={() => setIsHovering(null)}
-                onClick={() => setSelectedTemplate(tmpl)}
+              <div key={tmpl.id} onMouseEnter={() => setIsHovering(tmpl.id)} onMouseLeave={() => setIsHovering(null)} onClick={() => setSelectedTemplate(tmpl)}
                 style={{ 
                   background: selectedTemplate?.id === tmpl.id ? 'var(--mkt-hover-strong)' : 'var(--mkt-card)', 
-                  backdropFilter: 'blur(12px)',
-                  borderRadius: '12px', 
+                  backdropFilter: 'blur(12px)', borderRadius: '12px', 
                   border: `1px solid ${selectedTemplate?.id === tmpl.id ? 'var(--mkt-accent)' : isHovering === tmpl.id ? 'var(--mkt-border-hover)' : 'var(--mkt-border-light)'}`, 
-                  padding: '1.25rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  padding: '1.25rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   transform: isHovering === tmpl.id && selectedTemplate?.id !== tmpl.id ? 'translateY(-4px)' : 'translateY(0)',
                   boxShadow: selectedTemplate?.id === tmpl.id ? `0 0 0 1px var(--mkt-accent), 0 10px 25px -5px var(--mkt-glow)` : isHovering === tmpl.id ? 'var(--mkt-shadow-hover)' : 'var(--mkt-shadow)',
-                  position: 'relative',
-                  overflow: 'hidden'
+                  position: 'relative', overflow: 'hidden'
                 }}
               >
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: selectedTemplate?.id === tmpl.id ? 'var(--mkt-accent)' : 'transparent' }} />
-                
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <div style={{ fontSize: '1.75rem', background: 'var(--mkt-hover)', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '10px' }}>{tmpl.icon}</div>
                   <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '999px', background: tmpl.difficulty === 'Enterprise' ? 'rgba(139, 92, 246, 0.15)' : tmpl.difficulty === 'Advanced' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)', color: tmpl.difficulty === 'Enterprise' ? '#c4b5fd' : tmpl.difficulty === 'Advanced' ? '#fcd34d' : '#6ee7b7' }}>
                     {tmpl.difficulty}
                   </span>
                 </div>
-                
                 <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.5rem', color: selectedTemplate?.id === tmpl.id ? 'var(--mkt-accent)' : 'var(--mkt-text)' }}>{tmpl.name}</h4>
                 <p style={{ fontSize: '0.75rem', color: 'var(--mkt-search-icon)', lineHeight: 1.4, marginBottom: '1.25rem', height: '34px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{tmpl.desc}</p>
-                
                 {isHovering === tmpl.id && selectedTemplate?.id !== tmpl.id && (
                   <div style={{ position: 'absolute', inset: 0, background: 'var(--mkt-glass)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 1, animation: 'fadeIn 0.2s ease-out' }}>
                     <button style={{ padding: '0.5rem 1rem', background: 'var(--mkt-accent)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 12px var(--mkt-glow)' }}>
@@ -196,58 +170,24 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   const format = searchParams.get('format');
   const projectIdFilter = searchParams.get('projectId');
   
-  const [documents, setDocuments] = useState<any[]>([]);
-  const [isExporting, setIsExporting] = useState<string | null>(null);
+  const { documents, syncFromLegacyStorage, deleteDocument, archiveDocument } = useDocumentStore();
   
   // New States
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
-  const [selectedPreviewDoc, setSelectedPreviewDoc] = useState<any>(null);
+  const [selectedPreviewDoc, setSelectedPreviewDoc] = useState<UnifiedDocument | null>(null);
+  
+  // Modals
+  const [editingDoc, setEditingDoc] = useState<UnifiedDocument | null>(null);
+  
+  // Bulk Actions
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
 
   useEffect(() => {
-    // Load documents and mock missing metadata for enterprise feel
-    let docs = getSavedDocuments().sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    if (projectIdFilter) {
-      docs = docs.filter(d => String(d.projectId) === String(projectIdFilter));
-    }
-    
-    // Enrich docs with mocked status and tags
-    const enrichedDocs = docs.map((doc, idx) => {
-      // Create deterministic mock status based on id length or index
-      const statuses = ['Published', 'Draft', 'In Review', 'Needs Approval'];
-      const status = statuses[idx % statuses.length];
-      const isAiGenerated = idx % 3 === 0;
-      const wordCount = Math.floor(doc.data.length / 5) + 120;
-      
-      // Try getting real metadata type
-      let docType = 'Custom';
-      try {
-        const metaList = JSON.parse(localStorage.getItem('docforge_docs_meta') || '[]');
-        const meta = metaList.find((m: any) => String(m.id) === String(doc.id));
-        if (meta && meta.type) docType = meta.type.toUpperCase();
-      } catch(e) {}
-
-      return {
-        ...doc,
-        status,
-        isAiGenerated,
-        wordCount,
-        docType
-      };
-    });
-
-    setDocuments(enrichedDocs);
-  }, [projectIdFilter]);
-
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this document?')) {
-      deleteDocument(id);
-      setDocuments(docs => docs.filter(d => d.id !== id));
-      if (selectedPreviewDoc?.id === id) setSelectedPreviewDoc(null);
-    }
-  };
+    syncFromLegacyStorage();
+  }, [syncFromLegacyStorage]);
 
   const getProjectName = () => {
     if (!projectIdFilter) return 'All Documents Workspace';
@@ -260,17 +200,27 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
     }
   };
 
-  // Analytics
-  const totalDocs = documents.length;
-  const draftDocs = documents.filter(d => d.status === 'Draft').length;
-  const aiDocs = documents.filter(d => d.isAiGenerated).length;
-
   // Filter & Sort
-  let filteredDocs = documents.filter(d => {
-    if (filterStatus !== 'all' && d.status.toLowerCase() !== filterStatus.toLowerCase()) return false;
-    if (searchQuery && !d.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  let filteredDocs = documents.filter(d => !d.isDeleted);
+  
+  if (projectIdFilter) {
+    filteredDocs = filteredDocs.filter(d => String(d.workspaceId) === String(projectIdFilter));
+  }
+
+  if (filterStatus !== 'all') {
+    if (filterStatus === 'archived') {
+      filteredDocs = filteredDocs.filter(d => d.isArchived);
+    } else {
+      filteredDocs = filteredDocs.filter(d => !d.isArchived && d.status.toLowerCase() === filterStatus.toLowerCase());
+    }
+  } else {
+    // Hide archived by default if all
+    filteredDocs = filteredDocs.filter(d => !d.isArchived);
+  }
+
+  if (searchQuery) {
+    filteredDocs = filteredDocs.filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }
 
   if (sortBy === 'name') {
     filteredDocs.sort((a, b) => a.title.localeCompare(b.title));
@@ -279,6 +229,40 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   } else {
     filteredDocs.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
+
+  // Analytics
+  const totalDocs = documents.filter(d => !d.isDeleted && !d.isArchived).length;
+  const draftDocs = documents.filter(d => !d.isDeleted && !d.isArchived && d.status === 'Draft').length;
+  const aiDocs = documents.filter(d => !d.isDeleted && !d.isArchived && d.isAiGenerated).length;
+  const pendingDocs = documents.filter(d => !d.isDeleted && !d.isArchived && d.status === 'Needs Approval').length;
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedDocIds.length} documents?`)) {
+      selectedDocIds.forEach(id => deleteDocument(id));
+      setSelectedDocIds([]);
+    }
+  };
+
+  const handleBulkArchive = () => {
+    selectedDocIds.forEach(id => archiveDocument(id));
+    setSelectedDocIds([]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedDocIds.length === filteredDocs.length) {
+      setSelectedDocIds([]);
+    } else {
+      setSelectedDocIds(filteredDocs.map(d => d.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    if (selectedDocIds.includes(id)) {
+      setSelectedDocIds(selectedDocIds.filter(i => i !== id));
+    } else {
+      setSelectedDocIds([...selectedDocIds, id]);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -306,10 +290,10 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h1 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                {projectIdFilter ? `📂 ${getProjectName()}` : 'My Documents'}
+                {projectIdFilter ? `📂 ${getProjectName()}` : 'Document Dashboard'}
               </h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>
-                Enterprise document hub. Prioritize saved documents and recent drafts.
+                Centralized view for managing all enterprise documents, templates, and analytics.
               </p>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -318,7 +302,7 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
                 className="btn btn-primary"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
               >
-                <Plus size={18} /> New Document
+                <Plus size={18} /> Create Document
               </button>
             </div>
           </div>
@@ -326,25 +310,32 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
           {/* Quick Analytics Row */}
           {documents.length > 0 && (
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-              <div style={{ padding: '1rem 1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ padding: '0.75rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '10px' }}><FileText size={20} /></div>
+              <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ padding: '0.85rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '12px' }}><FileText size={24} /></div>
                 <div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{totalDocs}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Total Documents</div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1.1 }}>{totalDocs}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginTop: '0.2rem' }}>Total Documents</div>
                 </div>
               </div>
-              <div style={{ padding: '1rem 1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ padding: '0.75rem', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '10px' }}><Edit2 size={20} /></div>
+              <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ padding: '0.85rem', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '12px' }}><Edit2 size={24} /></div>
                 <div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{draftDocs}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Active Drafts</div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1.1 }}>{draftDocs}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginTop: '0.2rem' }}>Active Drafts</div>
                 </div>
               </div>
-              <div style={{ padding: '1rem 1.5rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ padding: '0.75rem', background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', borderRadius: '10px' }}><Bot size={20} /></div>
+              <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ padding: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '12px' }}><AlertTriangle size={24} /></div>
                 <div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{aiDocs}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>AI Generated</div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1.1 }}>{pendingDocs}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginTop: '0.2rem' }}>Pending Approval</div>
+                </div>
+              </div>
+              <div style={{ padding: '1.25rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: 'var(--shadow-sm)' }}>
+                <div style={{ padding: '0.85rem', background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', borderRadius: '12px' }}><Bot size={24} /></div>
+                <div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, lineHeight: 1.1 }}>{aiDocs}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', marginTop: '0.2rem' }}>AI Quality Score</div>
                 </div>
               </div>
             </div>
@@ -356,16 +347,13 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
             <div style={{ display: 'inline-flex', padding: '1.5rem', background: 'var(--background)', borderRadius: '50%', color: 'var(--text-muted)', marginBottom: '1rem' }}>
               <FileText size={48} />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-main)' }}>No documents created yet</h2>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-main)' }}>No documents available</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', maxWidth: '400px', margin: '0 auto 2rem auto' }}>
-              Start your workspace by creating a blank document, using AI to generate one, or selecting from the Template Marketplace below.
+              Start your workspace by creating a blank document or selecting from the Template Marketplace below.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-              <Link href="/?tab=builder" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button onClick={() => useTemplate && useTemplate('Blank Document', 'blank')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <FileText size={16} /> Blank Document
-              </Link>
-              <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} onClick={() => alert('AI Generation modal would open here.')}>
-                <Bot size={16} /> AI Generate
               </button>
             </div>
           </div>
@@ -373,36 +361,52 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
           <div style={{ marginBottom: '4rem' }}>
             {/* Top Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', background: 'var(--surface)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', gap: '1rem', flex: 1 }}>
-                <div style={{ position: 'relative', width: '300px' }}>
-                  <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input 
-                    type="text" 
-                    placeholder="Search saved documents..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    style={{ width: '100%', padding: '0.5rem 1rem 0.5rem 2.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '0.85rem' }}
-                  />
-                </div>
-                <select 
-                  value={filterStatus}
-                  onChange={e => setFilterStatus(e.target.value)}
-                  style={{ padding: '0.5rem 1rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                  <option value="in review">In Review</option>
-                </select>
-                <select 
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                  style={{ padding: '0.5rem 1rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  <option value="recent">Recently Updated</option>
-                  <option value="oldest">Oldest</option>
-                  <option value="name">Name (A-Z)</option>
-                </select>
+              <div style={{ display: 'flex', gap: '1rem', flex: 1, alignItems: 'center' }}>
+                
+                {selectedDocIds.length > 0 ? (
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'rgba(59, 130, 246, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '8px', color: '#3b82f6', fontWeight: 600 }}>
+                    <span style={{ marginRight: '0.5rem' }}>{selectedDocIds.length} selected</span>
+                    <button onClick={handleBulkArchive} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'flex', gap: '0.3rem', alignItems: 'center', background: 'var(--background)' }}>
+                      <Archive size={14} /> Archive
+                    </button>
+                    <button onClick={handleBulkDelete} className="btn btn-secondary" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'flex', gap: '0.3rem', alignItems: 'center', background: 'var(--background)', color: '#ef4444', borderColor: '#ef4444' }}>
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ position: 'relative', width: '300px' }}>
+                      <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                      <input 
+                        type="text" 
+                        placeholder="Search documents..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        style={{ width: '100%', padding: '0.5rem 1rem 0.5rem 2.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <select 
+                      value={filterStatus}
+                      onChange={e => setFilterStatus(e.target.value)}
+                      style={{ padding: '0.5rem 1rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer' }}
+                    >
+                      <option value="all">Active Documents</option>
+                      <option value="published">Published</option>
+                      <option value="draft">Draft</option>
+                      <option value="in review">In Review</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                    <select 
+                      value={sortBy}
+                      onChange={e => setSortBy(e.target.value)}
+                      style={{ padding: '0.5rem 1rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer' }}
+                    >
+                      <option value="recent">Recently Updated</option>
+                      <option value="oldest">Oldest</option>
+                      <option value="name">Name (A-Z)</option>
+                    </select>
+                  </>
+                )}
               </div>
               <div style={{ display: 'flex', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', overflow: 'hidden' }}>
                 <button onClick={() => setViewMode('grid')} style={{ padding: '0.5rem', background: viewMode === 'grid' ? 'var(--surface)' : 'transparent', border: 'none', color: viewMode === 'grid' ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer' }}><LayoutGrid size={16} /></button>
@@ -412,31 +416,38 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
 
             {/* Document List/Grid Views */}
             {viewMode === 'grid' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 {filteredDocs.map(doc => {
                   const sColor = getStatusColor(doc.status);
+                  const isChecked = selectedDocIds.includes(doc.id);
                   return (
-                    <div key={doc.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '16px', overflow: 'hidden', transition: 'all 0.2s', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: 'var(--background)' }}>
+                    <div key={doc.id} style={{ background: 'var(--surface)', border: `1px solid ${isChecked ? 'var(--primary)' : 'var(--border)'}`, borderRadius: '16px', overflow: 'hidden', transition: 'all 0.2s', boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', background: isChecked ? 'rgba(59, 130, 246, 0.05)' : 'var(--background)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input type="checkbox" checked={isChecked} onChange={() => toggleSelect(doc.id)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
                             <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: sColor.bg, color: sColor.color, textTransform: 'uppercase' }}>
                               {doc.status}
                             </span>
+                            {doc.isArchived && <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', textTransform: 'uppercase' }}>Archived</span>}
                             {doc.isAiGenerated && (
                               <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(168, 85, 247, 0.1)', color: '#a855f7', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                                 <Bot size={10} /> AI
                               </span>
                             )}
                           </div>
-                          <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem' }}><MoreVertical size={16} /></button>
+                          <DocumentActionMenu doc={doc} onEdit={() => setEditingDoc(doc)} />
                         </div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.25rem' }}>{doc.title}</h3>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Template: {doc.docType}</div>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.25rem', cursor: 'pointer' }} onClick={() => router.push(`/?tab=builder&id=${doc.id}`)}>{doc.title}</h3>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                          <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.4rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-muted)' }}>{doc.docType}</span>
+                          {doc.versionHistory?.length > 0 && <span style={{ fontSize: '0.75rem', padding: '0.15rem 0.4rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-muted)' }}>v{doc.versionHistory.length}</span>}
+                        </div>
                       </div>
                       <div style={{ padding: '1rem 1.25rem', flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                          <Clock size={12} /> Last edited {new Date(doc.updatedAt).toLocaleDateString()}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Clock size={12} /> {new Date(doc.updatedAt).toLocaleDateString()}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Users size={12} /> {doc.owner}</div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           <BarChart2 size={12} /> {doc.wordCount} words
@@ -451,41 +462,60 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
                 })}
               </div>
             ) : (
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead style={{ background: 'var(--background)', borderBottom: '1px solid var(--border)' }}>
+                  <thead style={{ borderBottom: '1px solid var(--border)' }}>
                     <tr>
-                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Name</th>
-                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
-                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Template</th>
-                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Last Updated</th>
-                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                      <th style={{ padding: '1rem', width: '40px' }}><input type="checkbox" checked={selectedDocIds.length === filteredDocs.length && filteredDocs.length > 0} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} /></th>
+                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Name</th>
+                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Type</th>
+                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Owner</th>
+                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Last Updated</th>
+                      <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredDocs.map(doc => {
                       const sColor = getStatusColor(doc.status);
+                      const isChecked = selectedDocIds.includes(doc.id);
                       return (
-                        <tr key={doc.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
+                        <tr key={doc.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s', background: isChecked ? 'rgba(59, 130, 246, 0.05)' : 'transparent' }} onMouseEnter={e => !isChecked && (e.currentTarget.style.background = 'rgba(0,0,0,0.02)')} onMouseLeave={e => !isChecked && (e.currentTarget.style.background = 'transparent')}>
+                          <td style={{ padding: '1rem' }}><input type="checkbox" checked={isChecked} onChange={() => toggleSelect(doc.id)} style={{ cursor: 'pointer' }} /></td>
                           <td style={{ padding: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => router.push(`/?tab=builder&id=${doc.id}`)}>
                               <FileText size={18} color="var(--primary)" />
-                              <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{doc.title}</span>
-                              {doc.isAiGenerated && <span title="AI Generated" style={{ display: 'flex' }}><Bot size={12} color="#a855f7" /></span>}
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{doc.title}</span>
+                                {doc.versionHistory?.length > 0 && <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>v{doc.versionHistory.length}</span>}
+                              </div>
+                              {doc.isAiGenerated && <span title="AI Generated"><Bot size={14} color="#a855f7" /></span>}
                             </div>
                           </td>
                           <td style={{ padding: '1rem' }}>
-                            <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: sColor.bg, color: sColor.color, textTransform: 'uppercase' }}>
-                              {doc.status}
+                            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: sColor.bg, color: sColor.color, textTransform: 'uppercase' }}>
+                                {doc.status}
+                              </span>
+                              {doc.isArchived && <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', textTransform: 'uppercase' }}>Archived</span>}
+                            </div>
+                          </td>
+                          <td style={{ padding: '1rem' }}>
+                            <span style={{ fontSize: '0.8rem', padding: '0.25rem 0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '4px', color: 'var(--text-muted)' }}>
+                              {doc.docType}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{doc.docType}</td>
+                          <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 500 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 'bold' }}>{doc.owner.charAt(0)}</div>
+                              {doc.owner}
+                            </div>
+                          </td>
                           <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>{new Date(doc.updatedAt).toLocaleDateString()}</td>
                           <td style={{ padding: '1rem', textAlign: 'right' }}>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
                               <button onClick={() => setSelectedPreviewDoc(doc)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Preview"><Eye size={14} /></button>
-                              <Link href={`/?tab=builder&id=${doc.id}`} className="btn btn-primary" style={{ padding: '0.4rem', borderRadius: '6px' }} title="Edit"><Edit2 size={14} /></Link>
-                              <button onClick={() => handleDelete(doc.id)} className="btn btn-secondary" style={{ padding: '0.4rem', borderRadius: '6px', color: '#ef4444' }} title="Delete"><Trash2 size={14} /></button>
+                              <DocumentActionMenu doc={doc} onEdit={() => setEditingDoc(doc)} />
                             </div>
                           </td>
                         </tr>
@@ -551,15 +581,19 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Created At</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{new Date(selectedPreviewDoc.updatedAt).toLocaleDateString()}</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{new Date(selectedPreviewDoc.createdAt).toLocaleDateString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Word Count</span>
                 <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>~{selectedPreviewDoc.wordCount} words</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Collaborators</span>
-                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>1 (You)</span>
+                <span style={{ color: 'var(--text-muted)' }}>Owner</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{selectedPreviewDoc.owner}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--text-muted)' }}>Versions</span>
+                <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{selectedPreviewDoc.versionHistory?.length || 1}</span>
               </div>
             </div>
 
@@ -578,10 +612,18 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
           
           <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <Link href={`/?tab=builder&id=${selectedPreviewDoc.id}`} className="btn btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0.75rem' }}>Open Editor</Link>
-            <button className="btn btn-secondary" style={{ width: '100%', display: 'flex', justifyContent: 'center', padding: '0.75rem' }}>Export PDF</button>
           </div>
         </div>
       )}
+      
+      <EditDocumentMetadataModal 
+        isOpen={!!editingDoc} 
+        document={editingDoc} 
+        onSave={(id, updates) => {
+          useDocumentStore.getState().updateDocument(id, updates, 'Metadata updated');
+        }} 
+        onClose={() => setEditingDoc(null)} 
+      />
 
     </div>
   );

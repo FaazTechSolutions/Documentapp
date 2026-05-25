@@ -84,22 +84,22 @@ export default function EnterpriseWorkspaceToolbar({
       {/* Floating Container */}
       <div style={{
         position: 'fixed',
-        top: '12px',
-        right: '24px',
+        top: '80px', /* Below the 64px TopNav */
+        left: '50%',
+        transform: 'translateX(-50%)',
         zIndex: 100,
         width: 'fit-content',
-        background: 'rgba(15, 23, 42, 0.65)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '12px',
+        background: 'rgba(30, 41, 59, 0.95)', /* Dark pill */
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '24px', /* Pill shape */
         padding: '0.35rem 0.75rem',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: '1rem',
-        boxShadow: '0 8px 30px -10px rgba(0,0,0,0.3)',
-        transition: 'all 0.3s ease',
+        gap: '0.75rem',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
       }}>
 
         {/* CENTER SECTION: Segmented View Switcher */}

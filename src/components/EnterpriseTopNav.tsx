@@ -83,118 +83,61 @@ export default function EnterpriseTopNav() {
       height: '64px',
     }}>
       
-      {/* LEFT: Builder Identity Bar (Breadcrumbs) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-        {/* Workspace Identity */}
-        {activeWorkspace ? (
-          <div 
-            onClick={() => router.push('/?tab=dashboard')}
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', 
-              background: `rgba(${activeWorkspace.theme?.color ? parseInt(activeWorkspace.theme.color.slice(1,3), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(3,5), 16) + ',' + parseInt(activeWorkspace.theme.color.slice(5,7), 16) : '59, 130, 246'}, 0.1)`, 
-              padding: '0.4rem 0.75rem', borderRadius: '8px', border: `1px solid ${activeWorkspace.theme?.color || '#3b82f6'}40`,
-              cursor: 'pointer'
-            }}
-          >
-            <span style={{ color: activeWorkspace.theme?.color || '#60a5fa', fontSize: '14px', display: 'flex' }}>
-              {activeWorkspace.theme?.icon || <Layout size={14} />}
-            </span>
-            <span style={{ color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
-              {activeWorkspace.name}
-            </span>
-          </div>
-        ) : (
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600, padding: '0.4rem 0.75rem', border: '1px dashed var(--border)', borderRadius: '8px' }}>
-            No Workspace Selected
-          </div>
-        )}
-
-        {/* Builder Mode Breadcrumb */}
-        {activeTab === 'builder' && (
-          <>
-            <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-            <div style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', 
-              background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)', 
-              padding: '0.4rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(79, 70, 229, 0.3)',
-              boxShadow: '0 0 10px rgba(79, 70, 229, 0.15)'
-            }}>
-              <PenTool size={14} color="#4f46e5" />
-              <span style={{ color: '#4f46e5', fontSize: '0.85rem', fontWeight: 800, letterSpacing: '0.02em' }}>BUILDER MODE</span>
-            </div>
-
-            {/* Module Breadcrumb */}
-            <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, background: 'var(--background)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
-              <Hash size={14} color="var(--text-muted)" />
-              {activeModule ? getModuleLabel() : 'Document Context'}
-            </div>
-
-            {/* View Mode Breadcrumb */}
-            <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 600, background: 'var(--background)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
-              <Layout size={14} color="var(--text-muted)" />
-              {getViewLabel()}
-            </div>
-
-            {/* Document Breadcrumb */}
-            <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
-              <FileText size={14} color="#3b82f6" />
-              Active Document
-            </div>
-          </>
-        )}
+      {/* LEFT: Top Level Navigation */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', padding: '0.4rem 0.5rem', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <Layout size={16} color="var(--primary)" />
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginLeft: '0.25rem' }}>Executive</span>
+          <ChevronDown size={14} color="var(--text-muted)" style={{ marginLeft: '0.25rem' }} />
+        </div>
+        
+        <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <Star size={16} />
+          </button>
+          <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+            <Clock size={16} />
+          </button>
+        </div>
       </div>
 
       {/* CENTER: Smart Global Search */}
-      <div style={{ flex: 1, maxWidth: '400px', margin: '0 2rem', position: 'relative' }}>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
         <div 
           onClick={() => setShowSearch(true)}
           style={{ 
-            display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', 
-            border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 1rem', borderRadius: '8px',
-            color: 'var(--text-muted)', cursor: 'text', transition: 'border-color 0.2s ease',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)'
+            display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--background)', 
+            border: '1px solid var(--border)', padding: '0.4rem 1rem', borderRadius: '8px',
+            color: 'var(--text-muted)', cursor: 'text', transition: 'all 0.2s ease',
+            width: '100%', maxWidth: '450px'
           }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
         >
           <Search size={14} />
-          <span style={{ fontSize: '0.85rem', flex: 1 }}>Search workspace...</span>
-          <div style={{ display: 'flex', gap: '0.2rem' }}>
-            <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.7rem', fontFamily: 'monospace' }}>Ctrl</kbd>
-            <kbd style={{ background: 'rgba(255,255,255,0.1)', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.7rem', fontFamily: 'monospace' }}>K</kbd>
+          <span style={{ fontSize: '0.85rem', flex: 1 }}>Search workspace, requirements, or ask AI...</span>
+          <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+            <Command size={12} />
+            <kbd style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>K</kbd>
           </div>
         </div>
       </div>
 
       {/* RIGHT: Status Panel & Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, justifyContent: 'flex-end' }}>
-        
-        {/* Builder Status Panel (Small Card) */}
-        {activeTab === 'builder' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', background: 'var(--background)', padding: '0.3rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)', marginRight: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Builder Status</span>
-            <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Saved 2m ago
-            </span>
-          </div>
-        )}
-
-        <button onClick={() => setShowQuickActions(!showQuickActions)} style={{ position: 'relative', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', color: '#3b82f6', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <Plus size={16} />
+        <button className="btn btn-primary" style={{ padding: '0.4rem 1rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600 }}>
+          <Plus size={16} /> Create
         </button>
 
-        <button onClick={() => setShowNotifications(!showNotifications)} style={{ position: 'relative', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-main)', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <Bell size={16} />
-          <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: 'white', fontSize: '0.6rem', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--surface)' }}>3</span>
+        <button onClick={() => setShowNotifications(!showNotifications)} style={{ position: 'relative', background: 'transparent', border: 'none', color: 'var(--text-main)', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <Bell size={18} />
+          <span style={{ position: 'absolute', top: '2px', right: '4px', background: '#ef4444', color: 'white', fontSize: '0.6rem', fontWeight: 'bold', width: '10px', height: '10px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}></span>
         </button>
 
-        <div style={{ width: '1px', height: '24px', background: 'var(--border)', margin: '0 0.25rem' }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.25rem', borderRadius: '8px', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.9rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
             SA
           </div>
         </div>

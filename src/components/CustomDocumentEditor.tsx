@@ -68,7 +68,11 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
   const { activeView, setActiveView } = useBuilderStore();
   const { workspaces, activeWorkspaceId } = useWorkspaceStore();
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
-  const viewMode = forceView || (activeView === 'dashboard' ? 'dashboard' : 'canvas');
+
+  // localViewMode lets the left nav panel switch to dashboard view without changing
+  // the global activeView (which would cause BuilderWorkspace to navigate away)
+  const [localViewMode, setLocalViewMode] = useState<'dashboard' | 'canvas' | null>(null);
+  const viewMode = forceView || localViewMode || (activeView === 'dashboard' ? 'dashboard' : 'canvas');
 
   const [documentId, setDocumentId] = useState<string>(loadedId || generateDocumentId());
   const [documentTitle, setDocumentTitle] = useState('My Custom Document');
@@ -5045,7 +5049,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
                   key={item.id}
                   onClick={() => {
                     setActiveBrdTab(item.id);
-                    setViewMode('dashboard');
+                    setLocalViewMode('dashboard');
                   }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',

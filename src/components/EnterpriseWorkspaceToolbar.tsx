@@ -119,16 +119,7 @@ export default function EnterpriseWorkspaceToolbar({
           border: '1px solid rgba(255, 255, 255, 0.05)',
           gap: '0.15rem'
         }}>
-          <button
-            title="Dashboard View"
-            onClick={() => setActiveView('dashboard')}
-            style={getSegmentStyles(activeView === 'dashboard')}
-            onMouseEnter={e => { if (activeView !== 'dashboard') { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
-            onMouseLeave={e => { if (activeView !== 'dashboard') { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
-          >
-            <LayoutDashboard size={14} style={{ color: activeView === 'dashboard' ? '#ffffff' : 'currentColor' }} />
-            Dashboard
-          </button>
+
 
           <button
             title="Canvas View"

@@ -74,6 +74,10 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
   const [localViewMode, setLocalViewMode] = useState<'dashboard' | 'canvas' | null>(null);
   const viewMode = forceView || localViewMode || (activeView === 'dashboard' ? 'dashboard' : 'canvas');
 
+  useEffect(() => {
+    setLocalViewMode(null);
+  }, [activeView]);
+
   const [documentId, setDocumentId] = useState<string>(loadedId || generateDocumentId());
   const [documentTitle, setDocumentTitle] = useState('My Custom Document');
   const [blocks, setBlocks] = useState<CustomBlock[]>([]);
@@ -4806,106 +4810,8 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '842px', background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', color: 'var(--text-main)', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        {/* ══════ TOP ENTERPRISE NAVIGATION ══════ */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', background: 'var(--background)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.06em' }}>UNITRACON BRD MANAGEMENT SYSTEM</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.1rem' }}>{documentTitle || 'Enterprise BRD'}</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <input style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-main)', width: '200px', outline: 'none' }} placeholder="🔍 Search requirements..." />
-            {['Dashboard', 'Projects', 'Templates', 'Analytics'].map(tab => (
-              <button key={tab} style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', fontWeight: 600, borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>{tab}</button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.75rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Client: <strong style={{ color: 'var(--text-main)' }}>ABC Industries</strong></span>
-            <span style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, background: 'rgba(22,163,74,0.1)', color: '#16A34A' }}>🟢 Active Sprint</span>
-          </div>
-        </div>
-
-        {/* ══════ 3-COLUMN BODY ══════ */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* ── LEFT SIDEBAR ── */}
-          <div style={{ width: '210px', borderRight: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', position: 'relative' }}>
-              {isTemplateBuilder && (
-                <button onClick={() => setConfigEditorOpen('sidebarItems')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.7rem', padding: '0.4rem', cursor: 'pointer', marginBottom: '0.5rem', fontWeight: 600 }}>
-                  ✏️ Edit Sidebar
-                </button>
-              )}
-              {sidebarItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveBrdTab(item.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',
-                    fontSize: '0.78rem', fontWeight: activeBrdTab === item.id ? 700 : 500,
-                    color: activeBrdTab === item.id ? '#2563EB' : 'var(--text-main)',
-                    background: activeBrdTab === item.id ? 'rgba(37,99,235,0.08)' : 'transparent',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s',
-                    borderLeft: activeBrdTab === item.id ? '3px solid #2563EB' : '3px solid transparent',
-                  }}
-                >
-                  <span style={{ fontSize: '0.9rem' }}>{item.icon}</span> {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ── CENTER WORKSPACE ── */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-            {renderCenterContent()}
-          </div>
-
-          {/* ── RIGHT AI & ACTIVITY PANEL ── */}
-          <div style={{ width: '230px', borderLeft: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, padding: '1rem', gap: '1rem', overflowY: 'auto' }}>
-            {/* AI Insights */}
-            <div>
-              <h4 style={{ fontSize: '0.7rem', fontWeight: 800, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>✨ AI Insights</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {[
-                  { msg: 'Missing workflows detected in 3 modules', color: '#F59E0B' },
-                  { msg: 'Duplicate requirements found (REQ-003, REQ-012)', color: '#DC2626' },
-                  { msg: 'Approval delay: 2 stakeholders pending > 5 days', color: '#F59E0B' },
-                  { msg: 'Payroll module risk score: High', color: '#DC2626' },
-                ].map((insight, i) => (
-                  <div key={i} style={{ padding: '0.5rem', borderRadius: '6px', background: `${insight.color}08`, borderLeft: `3px solid ${insight.color}`, fontSize: '0.72rem', lineHeight: 1.35, color: 'var(--text-main)' }}>{insight.msg}</div>
-                ))}
-              </div>
-            </div>
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {['Generate FRD', 'Generate Test Cases', 'Generate SRS', 'AI Summary'].map(btn => (
-                <button key={btn} style={{ width: '100%', padding: '0.45rem', fontSize: '0.72rem', fontWeight: 700, borderRadius: '6px', border: '1px solid #2563EB30', background: 'rgba(37,99,235,0.06)', color: '#2563EB', cursor: 'pointer', textAlign: 'center' }}>{btn}</button>
-              ))}
-            </div>
-            {/* Recent Activity */}
-            <div>
-              <h4 style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>🕐 Recent Activity</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {[
-                  { msg: 'BRD updated by Ahmed', time: '2m ago', color: '#2563EB' },
-                  { msg: 'Payroll scope modified', time: '1h ago', color: '#F59E0B' },
-                  { msg: 'New approval requested', time: '3h ago', color: '#7C3AED' },
-                  { msg: 'Requirement duplicated', time: 'Yesterday', color: '#16A34A' },
-                  { msg: 'Risk RSK-001 flagged', time: 'Yesterday', color: '#DC2626' },
-                ].map((act, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.color, flexShrink: 0, marginTop: '0.4rem' }} />
-                    <div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 600, lineHeight: 1.3 }}>{act.msg}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{act.time}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="paper-canvas animate-fade-in" style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '820px', minHeight: '842px', background: 'var(--surface)', padding: '2.5rem 2rem', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', color: 'var(--text-main)', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'auto' }}>
+        {renderCenterContent()}
       </div>
     );
   };
@@ -5049,55 +4955,10 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
                   key={item.id}
                   onClick={() => {
                     setActiveBrdTab(item.id);
-                    const targetBlockId = (() => {
-                      if (docType === 'brd') {
-                        switch (item.id) {
-                          case 'executive': return 'brd-s1';
-                          case 'templates': return 'brd-h1b';
-                          case 'requirements': return 'brd-s6';
-                          case 'scope': return 'brd-s4';
-                          case 'stakeholders': return 'brd-s5';
-                          case 'workflows': return 'brd-s9';
-                          case 'approvals': return 'brd-s14';
-                          case 'risks': return 'brd-s12';
-                          case 'integrations': return 'brd-s11';
-                          case 'timeline': return 'brd-s13';
-                          case 'attachments': return 'brd-s15';
-                        }
-                      } else if (docType === 'frd') {
-                        switch (item.id) {
-                          case 'functional': return 'frd-3';
-                          case 'user-stories': return 'frd-7';
-                          case 'system-actors': return 'frd-5';
-                          case 'data-model': return 'frd-15';
-                          case 'api-specs': return 'frd-10';
-                          case 'ui-wireframes': return 'frd-11';
-                          case 'business-rules': return 'frd-15';
-                        }
-                      } else if (docType === 'srs') {
-                        switch (item.id) {
-                          case 'architecture': return 'srs-009';
-                          case 'non-functional': return 'srs-030';
-                          case 'security': return 'srs-022';
-                          case 'database': return 'srs-017';
-                          case 'deployment': return 'srs-024';
-                        }
-                      }
-                      return null;
-                    })();
-
-                    if (targetBlockId) {
-                      const element = document.getElementById(`block-editable-${targetBlockId}`);
-                      if (element) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        element.style.transition = 'background-color 0.5s ease';
-                        element.style.backgroundColor = 'rgba(59, 130, 246, 0.15)';
-                        setTimeout(() => {
-                          element.style.backgroundColor = 'transparent';
-                        }, 2000);
-                        element.focus();
-                      }
-                    }
+                    setActiveFrdTab(item.id);
+                    setActiveSrsTab(item.id);
+                    setActiveTddTab(item.id);
+                    setLocalViewMode('dashboard');
                   }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',

@@ -5049,7 +5049,55 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
                   key={item.id}
                   onClick={() => {
                     setActiveBrdTab(item.id);
-                    setLocalViewMode('dashboard');
+                    const targetBlockId = (() => {
+                      if (docType === 'brd') {
+                        switch (item.id) {
+                          case 'executive': return 'brd-s1';
+                          case 'templates': return 'brd-h1b';
+                          case 'requirements': return 'brd-s6';
+                          case 'scope': return 'brd-s4';
+                          case 'stakeholders': return 'brd-s5';
+                          case 'workflows': return 'brd-s9';
+                          case 'approvals': return 'brd-s14';
+                          case 'risks': return 'brd-s12';
+                          case 'integrations': return 'brd-s11';
+                          case 'timeline': return 'brd-s13';
+                          case 'attachments': return 'brd-s15';
+                        }
+                      } else if (docType === 'frd') {
+                        switch (item.id) {
+                          case 'functional': return 'frd-3';
+                          case 'user-stories': return 'frd-7';
+                          case 'system-actors': return 'frd-5';
+                          case 'data-model': return 'frd-15';
+                          case 'api-specs': return 'frd-10';
+                          case 'ui-wireframes': return 'frd-11';
+                          case 'business-rules': return 'frd-15';
+                        }
+                      } else if (docType === 'srs') {
+                        switch (item.id) {
+                          case 'architecture': return 'srs-009';
+                          case 'non-functional': return 'srs-030';
+                          case 'security': return 'srs-022';
+                          case 'database': return 'srs-017';
+                          case 'deployment': return 'srs-024';
+                        }
+                      }
+                      return null;
+                    })();
+
+                    if (targetBlockId) {
+                      const element = document.getElementById(`block-editable-${targetBlockId}`);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        element.style.transition = 'background-color 0.5s ease';
+                        element.style.backgroundColor = 'rgba(59, 130, 246, 0.15)';
+                        setTimeout(() => {
+                          element.style.backgroundColor = 'transparent';
+                        }, 2000);
+                        element.focus();
+                      }
+                    }
                   }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',

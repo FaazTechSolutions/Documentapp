@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useSectorStore } from './useSectorStore';
 
 export interface Project {
   id: string | number;
@@ -11,6 +12,7 @@ export interface Project {
   createdAt?: string;
   isFavorite?: boolean;
   isArchived?: boolean;
+  workspaceId?: string;
 }
 
 interface ProjectState {
@@ -30,7 +32,12 @@ export const useProjectStore = create<ProjectState>((set) => ({
     set({ projects });
   },
   addProject: (project) => set((state) => {
-    const updated = [...state.projects, project];
+    const activeSector = useSectorStore.getState().activeSector;
+    const projectWithWorkspace = {
+      ...project,
+      workspaceId: project.workspaceId || activeSector
+    };
+    const updated = [...state.projects, projectWithWorkspace];
     localStorage.setItem('docforge_projects', JSON.stringify(updated));
     return { projects: updated };
   }),
@@ -81,9 +88,10 @@ export const useProjectStore = create<ProjectState>((set) => ({
       } else {
         // Initialize default if empty
         const defaultProjects = [
-          { id: '1', name: 'Mawarid ERP Suite Integration', status: 'active', color: '#0284c7', category: 'HR & ERP', icon: '💼', createdAt: new Date().toISOString() },
-          { id: '3', name: 'Charitable Trust Grant Proposal', status: 'draft', color: '#f59e0b', category: 'NGO Sector', icon: '📊', createdAt: new Date().toISOString() },
-          { id: '4', name: 'Business Requirement Document (BRD)', status: 'active', color: '#10b981', category: 'Development', icon: '🚀', createdAt: new Date().toISOString() }
+          { id: '1', name: 'Mawarid ERP Suite Integration', status: 'active', color: '#0284c7', category: 'HR & ERP', icon: '💼', createdAt: new Date().toISOString(), workspaceId: 'operations' },
+          { id: '3', name: 'Charitable Trust Grant Proposal', status: 'draft', color: '#f59e0b', category: 'NGO Sector', icon: '📊', createdAt: new Date().toISOString(), workspaceId: 'reviews' },
+          { id: '4', name: 'Business Requirement Document (BRD)', status: 'active', color: '#10b981', category: 'Development', icon: '🚀', createdAt: new Date().toISOString(), workspaceId: 'operations' },
+          { id: '5', name: 'Global Enterprise Governance Audit', status: 'active', color: '#8b5cf6', category: 'Compliance', icon: '🛡️', createdAt: new Date().toISOString(), workspaceId: 'governance' }
         ];
         localStorage.setItem('docforge_projects', JSON.stringify(defaultProjects));
         set({ projects: defaultProjects });

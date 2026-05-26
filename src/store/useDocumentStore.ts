@@ -23,6 +23,7 @@ export interface UnifiedDocument {
   title: string;
   docType: string;          // e.g., 'brd', 'custom', 'srs'
   workspaceId?: string;     // maps to projectId
+  workspaceSector?: string; // operations, reviews, governance
   moduleId?: string;        // mapped feature module
   status: string;           // 'Draft', 'In Review', 'Published', 'Needs Approval'
   createdAt: string;
@@ -46,7 +47,7 @@ interface DocumentStore {
   duplicateDocument: (id: string) => UnifiedDocument | undefined;
   archiveDocument: (id: string) => void;
   restoreDocument: (id: string) => void;
-  syncFromLegacyStorage: () => void;
+  syncFromStorage: () => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
@@ -65,6 +66,8 @@ export const useDocumentStore = create<DocumentStore>()(
           resolvedWorkspaceId = localStorage.getItem('docforge_active_workspace') || undefined;
         }
 
+        const activeSector = typeof window !== 'undefined' ? localStorage.getItem('docforge_active_sector') || 'operations' : 'operations';
+
           const newActivity: DocumentActivity = {
             id: generateId(),
             action: 'Created',
@@ -77,6 +80,7 @@ export const useDocumentStore = create<DocumentStore>()(
             title: docParams.title || 'Untitled Document',
             docType: docParams.docType || 'custom',
             workspaceId: resolvedWorkspaceId,
+            workspaceSector: docParams.workspaceSector || activeSector,
             moduleId: docParams.moduleId,
             status: docParams.status || 'Draft',
             createdAt: new Date().toISOString(),
@@ -244,13 +248,16 @@ export const useDocumentStore = create<DocumentStore>()(
           savedDocs.forEach(sd => {
             const docId = sd.id;
             const existingMeta = metaList.find(m => m.id === docId);
+            const statusVal = sd.status || 'Draft';
+            const workspaceSector = sd.workspaceSector || (statusVal === 'Approved' || statusVal === 'Published' || statusVal === 'Needs Approval' || statusVal === 'In Review' ? 'reviews' : 'operations');
             
             migratedDocs.push({
               id: docId,
               title: sd.title || existingMeta?.title || 'Untitled',
               docType: sd.templateId || existingMeta?.type || 'custom',
               workspaceId: sd.projectId || existingMeta?.projectId,
-              status: sd.status || 'Draft',
+              workspaceSector: workspaceSector,
+              status: statusVal,
               createdAt: existingMeta?.lastSaved ? new Date(existingMeta.lastSaved).toISOString() : new Date().toISOString(),
               updatedAt: sd.updatedAt || new Date().toISOString(),
               owner: 'Siddiq Admin',
@@ -287,6 +294,7 @@ export const useDocumentStore = create<DocumentStore>()(
                 title: m.title || 'Untitled',
                 docType: m.type || 'custom',
                 workspaceId: m.projectId,
+                workspaceSector: m.workspaceSector || 'operations',
                 status: 'Draft',
                 createdAt: m.lastSaved ? new Date(m.lastSaved).toISOString() : new Date().toISOString(),
                 updatedAt: new Date().toISOString(),

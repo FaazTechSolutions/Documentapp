@@ -25,7 +25,7 @@ export default function CommandPalette({ onClose }: { onClose?: () => void }) {
   }, []);
 
   const mockCommands = [
-    { id: 1, icon: <FileText size={16} />, label: 'Create New Document', action: () => router.push('/?tab=documents') },
+    { id: 1, icon: <FileText size={16} />, label: 'Create New Document', action: () => router.push('/?tab=templates') },
     { id: 2, icon: <LayoutTemplate size={16} />, label: 'Browse Templates', action: () => router.push('/?tab=templates') },
     { id: 3, icon: <Sparkles size={16} color="#a855f7" />, label: 'AI Generate Document', action: () => alert('AI Generation triggered!') },
     { id: 4, icon: <Zap size={16} color="#f59e0b" />, label: 'View Dashboard Metrics', action: () => router.push('/?tab=dashboard') }

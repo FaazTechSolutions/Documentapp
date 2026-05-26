@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { AlertCircle, FileText, CheckSquare, Zap, Target, Activity } from 'lucide-react';
+import { AlertCircle, FileText, CheckSquare, Zap, Target, Activity, BarChart3 } from 'lucide-react';
 
 export default function RightInsightsPanel() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams?.get('tab');
-  
-  if (tab === 'documents') return null;
   
   return (
     <aside style={{ 
@@ -22,6 +20,28 @@ export default function RightInsightsPanel() {
       gap: '2rem',
       overflowY: 'auto'
     }}>
+
+      {/* Enterprise Health Metrics */}
+      <div>
+        <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <BarChart3 size={14} /> Enterprise Health Metrics
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+          {[
+            { label: 'Approval Delay', value: '2.4 Days', color: '#ef4444' },
+            { label: 'Completeness', value: '92.6%', color: '#10b981' },
+            { label: 'AI Confidence', value: '96.2%', color: '#8b5cf6' },
+            { label: 'Risk Score', value: 'Low', color: '#10b981' },
+            { label: 'Missing Workflows', value: '0 Detected', color: '#10b981' },
+            { label: 'Duplicate Req.', value: '2 Found', color: '#f59e0b' }
+          ].map((metric, idx) => (
+            <div key={idx} style={{ padding: '0.75rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>{metric.label}</span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 800, color: metric.color }}>{metric.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
       
       {/* AI Insights */}
       <div>

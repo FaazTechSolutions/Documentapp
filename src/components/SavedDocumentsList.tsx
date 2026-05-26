@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useTemplateStore } from '@/store/useTemplateStore';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
+import { useSectorStore } from '@/store/useSectorStore';
 import { generateCustomMarkdown } from '@/lib/markdown';
 import { exportToMarkdown, exportToText, exportToPdf, exportToDocx } from '@/lib/export';
 import ReactMarkdown from 'react-markdown';
@@ -210,7 +211,18 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   };
 
   // Filter & Sort
-  let filteredDocs = documents.filter(d => !d.isDeleted);
+  const { activeSector, activeRoleId } = useSectorStore();
+  const isSuperAdmin = activeRoleId === 'super_admin' || activeRoleId === 'admin' || activeRoleId === 'gov_admin';
+
+  let filteredDocs = documents.filter(d => {
+    if (d.isDeleted) return false;
+    
+    // Workspace Sector Isolation: non-admins only see documents matching the active workspace sector
+    const docSector = d.workspaceSector || 'operations';
+    if (!isSuperAdmin && docSector !== activeSector) return false;
+    
+    return true;
+  });
   
   // Prefer projectIdFilter over activeWorkspaceId so projects opened from the hub display correctly
   const effectiveWorkspaceId = projectIdFilter || activeWorkspaceId;
@@ -243,10 +255,14 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   }
 
   // Analytics
-  const totalDocs = documents.filter(d => !d.isDeleted && !d.isArchived).length;
-  const draftDocs = documents.filter(d => !d.isDeleted && !d.isArchived && d.status === 'Draft').length;
-  const aiDocs = documents.filter(d => !d.isDeleted && !d.isArchived && d.isAiGenerated).length;
-  const pendingDocs = documents.filter(d => !d.isDeleted && !d.isArchived && d.status === 'Needs Approval').length;
+  const projectDocsForAnalytics = effectiveWorkspaceId
+    ? documents.filter(d => !d.isDeleted && !d.isArchived && String(d.workspaceId) === String(effectiveWorkspaceId))
+    : documents.filter(d => !d.isDeleted && !d.isArchived);
+
+  const totalDocs = projectDocsForAnalytics.length;
+  const draftDocs = projectDocsForAnalytics.filter(d => d.status === 'Draft').length;
+  const aiDocs = projectDocsForAnalytics.filter(d => d.isAiGenerated).length;
+  const pendingDocs = projectDocsForAnalytics.filter(d => d.status === 'Needs Approval' || d.status === 'Pending Approval' || d.status === 'Pending').length;
 
   const handleBulkDelete = () => {
     if (window.confirm(`Are you sure you want to delete ${selectedDocIds.length} documents?`)) {

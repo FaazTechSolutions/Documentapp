@@ -68,7 +68,7 @@ export default function ProjectActionMenu({ project, docCount }: ProjectActionMe
   const handleAction = (action: string) => {
     switch (action) {
       case 'open':
-        router.push(`/?tab=documents&projectId=${project.id}`);
+        router.push(`/?tab=templates&projectId=${project.id}`);
         break;
       case 'rename':
         const newName = prompt('Enter new project name:', project.name);
@@ -185,7 +185,7 @@ export default function ProjectActionMenu({ project, docCount }: ProjectActionMe
             {/* Documents */}
             <div style={{ marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', padding: '0 0.5rem', marginBottom: '0.25rem', display: 'block' }}>Documents</span>
-              <MenuItem icon={<FileText size={14} />} label="Create Document" onClick={() => router.push('/?tab=documents')} />
+              <MenuItem icon={<FileText size={14} />} label="Create Document" onClick={() => router.push('/?tab=templates')} />
               <MenuItem icon={<UploadCloud size={14} />} label="Import Documents" onClick={() => handleAction('Import Documents')} />
               <MenuItem icon={<DownloadCloud size={14} />} label="Export Project" onClick={() => handleAction('Export Project')} />
               <MenuItem icon={<Sparkles size={14} color="#a855f7" />} label="Generate Docs with AI" onClick={() => handleAction('Generate Docs with AI')} />

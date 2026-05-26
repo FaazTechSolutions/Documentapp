@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProjectStore } from '@/store/useProjectStore';
+import { useSectorStore } from '@/store/useSectorStore';
 import { 
   Plus, 
   Search, 
@@ -85,7 +86,14 @@ export default function ProjectsDashboard() {
   };
 
   // Filtering
+  const { activeSector, activeRoleId } = useSectorStore();
+  const isSuperAdmin = activeRoleId === 'super_admin' || activeRoleId === 'admin' || activeRoleId === 'gov_admin';
+
   let filteredProjects = projects.filter(p => {
+    // Workspace Sector Isolation: non-admins only see projects in their active workspace sector
+    const projectSector = p.workspaceId || 'operations';
+    if (!isSuperAdmin && projectSector !== activeSector) return false;
+    
     if (filterActive === 'favorites') return p.isFavorite;
     if (filterActive === 'archived') return p.isArchived;
     return !p.isArchived; // default view hides archived
@@ -231,7 +239,7 @@ export default function ProjectsDashboard() {
             {filteredProjects.map(proj => (
               <div 
                 key={proj.id} 
-                onClick={() => router.push(`/?tab=documents&projectId=${proj.id}`)}
+                onClick={() => router.push(`/?tab=templates&projectId=${proj.id}`)}
                 style={{ 
                   background: 'var(--surface)', 
                   border: '1px solid var(--border)', 
@@ -313,7 +321,7 @@ export default function ProjectsDashboard() {
                 {filteredProjects.map(proj => (
                   <tr 
                     key={proj.id} 
-                    onClick={() => router.push(`/?tab=documents&projectId=${proj.id}`)}
+                    onClick={() => router.push(`/?tab=templates&projectId=${proj.id}`)}
                     style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.02)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}

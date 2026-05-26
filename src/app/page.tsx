@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useProjectStore } from '@/store/useProjectStore';
+import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { isAuthenticated, getActiveSession } from '@/lib/auth';
 import { 
@@ -82,9 +83,25 @@ function MainDashboardContent() {
   const [supportNavSection, setSupportNavSection] = useState('user-guides');
   const [supportSearchQuery, setSupportSearchQuery] = useState('');
 
+  const { workspaces, activeWorkspaceId } = useWorkspaceStore();
+  const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
+
   useEffect(() => {
-    setActiveTemplateModule('all');
-  }, [tab]);
+    if (tab === 'templates') {
+      const type = activeWorkspace?.type;
+      if (type === 'qa') {
+        setActiveTemplateModule('qa');
+      } else if (type === 'devops') {
+        setActiveTemplateModule('devops');
+      } else if (type === 'documentation') {
+        setActiveTemplateModule('support');
+      } else {
+        setActiveTemplateModule('all');
+      }
+    } else {
+      setActiveTemplateModule('all');
+    }
+  }, [tab, activeWorkspaceId, activeWorkspace?.type]);
 
   // Global Mock States
   const { projects, deleteProject, syncFromStorage } = useProjectStore();
@@ -650,7 +667,6 @@ function MainDashboardContent() {
     case 'template-setup':
       return <TemplateSetup />;
 
-    case 'documents':
     case 'saved':
       return <SavedDocumentsList useTemplate={useTemplate} />;
 
@@ -658,6 +674,7 @@ function MainDashboardContent() {
       return <ProjectsDashboard />;
 
     case 'templates': {
+      const workspaceType = activeWorkspace?.type || 'all';
       let customTemplates: any[] = [];
       try {
         if (typeof window !== 'undefined') {
@@ -743,24 +760,26 @@ function MainDashboardContent() {
         return (
           <div className="enterprise-workspace animate-fade-in">
             <div className="enterprise-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
-              <button 
-                onClick={() => setActiveTemplateModule('all')}
-                className="btn btn-secondary"
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem', 
-                  padding: '0.5rem 1rem', 
-                  fontWeight: 600,
-                  borderRadius: '10px',
-                  boxShadow: 'var(--shadow-sm)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-              >
-                ← Back to Templates
-              </button>
+              {workspaceType === 'all' && (
+                <button 
+                  onClick={() => setActiveTemplateModule('all')}
+                  className="btn btn-secondary"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    padding: '0.5rem 1rem', 
+                    fontWeight: 600,
+                    borderRadius: '10px',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
+                  ← Back to Templates
+                </button>
+              )}
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)' }}>Testing & QA Documents</h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Manage testing plans, QA strategies, functional test case specifications, bug logs, and UAT checklists.</p>
@@ -807,27 +826,29 @@ function MainDashboardContent() {
           <div className="enterprise-workspace animate-fade-in" style={{ background: '#0F172A', color: '#E2E8F0', padding: '1.5rem', borderRadius: '16px', border: '1px solid #1E293B', fontFamily: 'system-ui, sans-serif' }}>
             {/* Header */}
             <div className="enterprise-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start', borderBottom: '1px solid #1E293B', paddingBottom: '1.25rem' }}>
-              <button 
-                onClick={() => setActiveTemplateModule('all')}
-                className="btn btn-secondary"
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem', 
-                  padding: '0.5rem 1rem', 
-                  fontWeight: 600,
-                  borderRadius: '10px',
-                  boxShadow: 'var(--shadow-sm)',
-                  transition: 'all 0.2s',
-                  background: '#1E293B',
-                  color: '#F8FAFC',
-                  border: '1px solid #334155'
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = '#3B82F6'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = '#334155'; }}
-              >
-                ← Back to Templates
-              </button>
+              {workspaceType === 'all' && (
+                <button 
+                  onClick={() => setActiveTemplateModule('all')}
+                  className="btn btn-secondary"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    padding: '0.5rem 1rem', 
+                    fontWeight: 600,
+                    borderRadius: '10px',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all 0.2s',
+                    background: '#1E293B',
+                    color: '#F8FAFC',
+                    border: '1px solid #334155'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateX(-3px)'; e.currentTarget.style.borderColor = '#3B82F6'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = '#334155'; }}
+                >
+                  ← Back to Templates
+                </button>
+              )}
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#F8FAFC' }}>🛠 DevOps Command Center</h1>
                 <p style={{ color: '#94A3B8', fontSize: '0.9rem', marginTop: '0.25rem' }}>Manage live environment clusters, active pipelines, telemetry analytics, and operational compliance templates.</p>
@@ -1091,13 +1112,15 @@ function MainDashboardContent() {
         return (
           <div className="enterprise-workspace animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--background)' }}>
             <div className="enterprise-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
-              <button 
-                onClick={() => setActiveTemplateModule('all')}
-                className="btn btn-secondary"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 600, background: 'var(--surface)' }}
-              >
-                ← Back to Templates
-              </button>
+              {workspaceType === 'all' && (
+                <button 
+                  onClick={() => setActiveTemplateModule('all')}
+                  className="btn btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', fontSize: '0.85rem', fontWeight: 600, background: 'var(--surface)' }}
+                >
+                  ← Back to Templates
+                </button>
+              )}
               <div>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ color: '#2563EB' }}>Help & Support Center</span>

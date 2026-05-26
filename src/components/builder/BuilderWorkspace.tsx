@@ -57,15 +57,15 @@ export default function BuilderWorkspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Render toolbar directly here for all views EXCEPT canvas (since canvas renders its own fully-connected toolbar) */}
+      {(activeView !== 'canvas' && activeView !== 'dashboard') && (
+        <EnterpriseWorkspaceToolbar position="top" />
+      )}
+
       {/* Module Content Area */}
       <div style={{ flex: 1, overflow: 'auto', background: 'var(--background)' }}>
         {renderActiveView()}
       </div>
-
-      {/* Render toolbar directly here for all views EXCEPT canvas (since canvas renders its own fully-connected toolbar) */}
-      {(activeView !== 'canvas' && activeView !== 'dashboard') && (
-        <EnterpriseWorkspaceToolbar position="bottom" />
-      )}
     </div>
   );
 }

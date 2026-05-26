@@ -41,7 +41,12 @@ export type BlockType =
   | 'equation'
   | 'synced-block'
   | 'table'
-  | 'date-time';
+  | 'date-time'
+  | 'divider'
+  | 'toc'
+  | 'image'
+  | 'video'
+  | 'bookmark';
 
 export interface CustomBlock {
   id: string;
@@ -899,7 +904,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
               borderBottom: '2px solid var(--border)', 
               paddingBottom: '0.75rem',
               outline: 'none',
-              color: 'var(--text-main)'
+              color: 'inherit'
             }}
           >
             {navigationStack[navigationStack.length - 1]?.title || 'Untitled Subpage'}
@@ -916,7 +921,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
               borderBottom: '2px solid var(--border)', 
               paddingBottom: '0.75rem',
               outline: 'none',
-              color: 'var(--text-main)'
+              color: 'inherit'
             }}
           >
             {documentTitle || 'Untitled Custom Document'}
@@ -2091,6 +2096,246 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
             );
           }
 
+          else if (block.type === 'divider') {
+            blockEl = (
+              <div style={{ ...styles, margin: '1.5rem 0' }}>
+                <hr style={{ border: 'none', borderTop: '2px solid var(--border)', width: '100%' }} />
+              </div>
+            );
+          }
+
+          else if (block.type === 'toc') {
+            const headingBlocks = blocks.filter(b => b.type === 'header');
+            blockEl = (
+              <div style={{ ...styles, margin: '1rem 0', padding: '1rem', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Table of Contents</div>
+                {headingBlocks.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    {headingBlocks.map((h, hi) => {
+                      const level = Number(h.headingLevel) || 2;
+                      return (
+                        <div 
+                          key={hi} 
+                          style={{ paddingLeft: `${(level - 1) * 1}rem`, fontSize: '0.85rem', color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }} 
+                          onClick={() => {
+                            const el = document.getElementById(`block-editable-${h.id}`);
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          }}
+                        >
+                          {h.value || 'Untitled Section'}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No headings found in document.</span>
+                )}
+              </div>
+            );
+          }
+
+          else if (block.type === 'image') {
+            blockEl = (
+              <div style={{ ...styles, margin: '1rem 0' }}>
+                {block.fileDataUrl ? (
+                  <div style={{ position: 'relative', display: 'inline-block', width: '100%', textAlign: (block.align as any) || 'center' }}>
+                    <img src={block.fileDataUrl} alt={block.fileName || 'Uploaded image'} style={{ maxWidth: '100%', maxHeight: '450px', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }} />
+                    <button 
+                      onClick={() => setBlocks(blocks.map(b => b.id === block.id ? { ...b, fileName: undefined, fileDataUrl: undefined, fileSize: undefined, fileType: undefined } : b))}
+                      style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '4px', padding: '0.25rem 0.5rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{
+                    border: '2px dashed var(--border)',
+                    borderRadius: '8px',
+                    padding: '1.5rem',
+                    textAlign: 'center',
+                    background: 'rgba(0,0,0,0.02)',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    minHeight: '100px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      style={{
+                        position: 'absolute',
+                        top: 0, left: 0, right: 0, bottom: 0,
+                        opacity: 0,
+                        cursor: 'pointer',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+                          setBlocks(blocks.map(b => b.id === block.id ? {
+                            ...b,
+                            fileName: file.name,
+                            fileType: file.type,
+                            fileSize: sizeStr,
+                            fileDataUrl: reader.result as string,
+                            value: file.name
+                          } : b));
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                      <span style={{ fontSize: '1.5rem' }}>🖼️</span>
+                      <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>Upload Image</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>PNG, JPG, GIF, WebP (Max 2.5MB)</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          else if (block.type === 'video') {
+            const isEmbed = block.value && (block.value.includes('youtube.com') || block.value.includes('youtu.be') || block.value.includes('vimeo.com'));
+            blockEl = (
+              <div style={{ ...styles, margin: '1rem 0' }}>
+                {block.value ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                    {isEmbed ? (
+                      <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <iframe 
+                          src={block.value.includes('youtube.com') || block.value.includes('youtu.be') 
+                            ? `https://www.youtube.com/embed/${block.value.split('v=')[1] || block.value.split('/').pop()}`
+                            : block.value
+                          }
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                          allowFullScreen
+                          title="Video Embed"
+                        />
+                      </div>
+                    ) : (
+                      <video src={block.value} controls style={{ width: '100%', maxHeight: '350px', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                    )}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="text" 
+                        value={block.value} 
+                        onChange={e => updateBlock(block.id, 'value', e.target.value)} 
+                        style={{ flex: 1, padding: '0.35rem 0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--text-main)' }} 
+                      />
+                      <button 
+                        onClick={() => updateBlock(block.id, 'value', '')}
+                        style={{ padding: '0.35rem 0.75rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.8rem', cursor: 'pointer' }}
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: '1.25rem', border: '1px dashed var(--border)', borderRadius: '8px', background: 'rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                      <span>🎬</span>
+                      <span>Embed Video Link</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Paste YouTube, Vimeo or raw MP4 URL here..." 
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            updateBlock(block.id, 'value', e.currentTarget.value);
+                          }
+                        }}
+                        style={{ flex: 1, padding: '0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--text-main)', outline: 'none' }} 
+                      />
+                      <button 
+                        onClick={e => {
+                          const input = (e.currentTarget.previousSibling as HTMLInputElement);
+                          updateBlock(block.id, 'value', input.value);
+                        }}
+                        className="btn btn-primary"
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                      >
+                        Embed
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          else if (block.type === 'bookmark') {
+            blockEl = (
+              <div style={{ ...styles, margin: '1rem 0' }}>
+                {block.value ? (
+                  <a 
+                    href={block.value.startsWith('http') ? block.value : `https://${block.value}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      padding: '1rem', 
+                      border: '1px solid var(--border)', 
+                      borderRadius: '8px', 
+                      background: 'rgba(0,0,0,0.01)',
+                      textDecoration: 'none',
+                      color: 'inherit',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--primary)', textDecoration: 'underline' }}>{block.label || block.value}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{block.value}</span>
+                    </div>
+                    <span style={{ fontSize: '1.25rem', marginLeft: '1rem' }}>🔖</span>
+                  </a>
+                ) : (
+                  <div style={{ padding: '1.25rem', border: '1px dashed var(--border)', borderRadius: '8px', background: 'rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 600 }}>
+                      <span>🔖</span>
+                      <span>Web Bookmark</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Type bookmark label..." 
+                        id={`bookmark-label-${block.id}`}
+                        style={{ flex: 1, padding: '0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--text-main)', outline: 'none' }} 
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Paste website URL here..." 
+                        id={`bookmark-url-${block.id}`}
+                        style={{ flex: 2, padding: '0.5rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--text-main)', outline: 'none' }} 
+                      />
+                      <button 
+                        onClick={() => {
+                          const labelInput = (document.getElementById(`bookmark-label-${block.id}`) as HTMLInputElement);
+                          const urlInput = (document.getElementById(`bookmark-url-${block.id}`) as HTMLInputElement);
+                          pushStateToHistory(blocks, documentTitle);
+                          setBlocks(blocks.map(b => b.id === block.id ? { ...b, label: labelInput.value || urlInput.value, value: urlInput.value } : b));
+                        }}
+                        className="btn btn-primary"
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                      >
+                        Create
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+
           if (!blockEl) return null;
 
           const isInsertOpen = activeInsertBlockId === block.id;
@@ -2135,30 +2380,42 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
 
                 {/* Inline Block Insertion Dropdown */}
                 {isInsertOpen && (
-                  <div className="notion-dropdown">
-                    <div className="notion-dropdown-header">Insert Block Below</div>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'textarea')}><span style={{fontSize:'1rem'}}>📝</span> Paragraph</button>
+                  <div className="notion-dropdown" style={{ width: '280px', maxHeight: '420px', overflowY: 'auto' }}>
+                    <div className="notion-dropdown-header">Basic Blocks</div>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'textarea')}><span style={{fontSize:'1rem'}}>📝</span> Text Paragraph</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'header', '1')}><span style={{fontSize:'1rem'}}>h1</span> Heading 1</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'header', '2')}><span style={{fontSize:'1rem'}}>h2</span> Heading 2</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'header', '3')}><span style={{fontSize:'1rem'}}>h3</span> Heading 3</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'header', '4')}><span style={{fontSize:'1rem'}}>h4</span> Heading 4</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'page')}><span style={{fontSize:'1rem'}}>📄</span> Page</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '1')}><span style={{fontSize:'1rem'}}>▶h1</span> Toggle Heading 1</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '2')}><span style={{fontSize:'1rem'}}>▶h2</span> Toggle Heading 2</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '3')}><span style={{fontSize:'1rem'}}>▶h3</span> Toggle Heading 3</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '4')}><span style={{fontSize:'1rem'}}>▶h4</span> Toggle Heading 4</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'page')}><span style={{fontSize:'1rem'}}>📄</span> Page Link</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'divider')}><span style={{fontSize:'1rem'}}>➖</span> Divider Line</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toc')}><span style={{fontSize:'1rem'}}>📜</span> Table of Contents</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'bulleted-list')}><span style={{fontSize:'1rem'}}>•</span> Bulleted List</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'numbered-list')}><span style={{fontSize:'1rem'}}>1.</span> Numbered List</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'todo-list')}><span style={{fontSize:'1rem'}}>☑</span> To-do List</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-list')}><span style={{fontSize:'1rem'}}>▶</span> Toggle List</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'quote')}><span style={{fontSize:'1rem'}}>“</span> Quote</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'quote')}><span style={{fontSize:'1rem'}}>“</span> Block Quote</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'callout')}><span style={{fontSize:'1rem'}}>💡</span> Callout Box</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'code')}><span style={{fontSize:'1rem'}}>💻</span> Code Block</button>
+
+                    <div className="notion-dropdown-header" style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>Toggle Headings</div>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '1')}><span style={{fontSize:'1rem'}}>▶h1</span> Toggle Heading 1</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '2')}><span style={{fontSize:'1rem'}}>▶h2</span> Toggle Heading 2</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '3')}><span style={{fontSize:'1rem'}}>▶h3</span> Toggle Heading 3</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'toggle-header', '4')}><span style={{fontSize:'1rem'}}>▶h4</span> Toggle Heading 4</button>
+
+                    <div className="notion-dropdown-header" style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>Media Blocks</div>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'image')}><span style={{fontSize:'1rem'}}>🖼️</span> Image Container</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'video')}><span style={{fontSize:'1rem'}}>🎬</span> Embedded Video</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'bookmark')}><span style={{fontSize:'1rem'}}>🔖</span> Web Bookmark</button>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'file')}><span style={{fontSize:'1rem'}}>📎</span> File Attachment</button>
+
+                    <div className="notion-dropdown-header" style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>Advanced Blocks</div>
+                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'code')}><span style={{fontSize:'1rem'}}>💻</span> Code Sandbox</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'equation')}><span style={{fontSize:'1rem'}}>∑</span> Block Equation</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'synced-block')}><span style={{fontSize:'1rem'}}>🔄</span> Synced Block</button>
-                    <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'file')}><span style={{fontSize:'1rem'}}>📎</span> File Attachment</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'table')}><span style={{fontSize:'1rem'}}>🧮</span> Table Grid</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'date-time')}><span style={{fontSize:'1rem'}}>📅</span> Date & Time</button>
+
                     <div className="notion-dropdown-header" style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem' }}>Project Management UIs</div>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'metric-cards')}><span style={{fontSize:'1rem'}}>📊</span> Metric Dashboard</button>
                     <button className="notion-dropdown-item" onClick={() => insertBlockAfter(block.id, 'kanban-board')}><span style={{fontSize:'1rem'}}>📋</span> Kanban Board</button>
@@ -4683,7 +4940,10 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
   const globalTemplateTypes = [
     'sprint', 'backlog', 'taskbreak', 'estimation', 'risk', 'cr', 'release', 'status',
     'testplan', 'testcases', 'buglog', 'uat', 'tdd',
+    'brd', 'frd', 'srs',
+    'deploy', 'server', 'pipeline', 'backup', 'env', 'monitor',
     'devops-deploy', 'devops-server', 'devops-backup', 'devops-pipeline', 'devops-env', 'devops-monitor',
+    'usermanual', 'adminmanual', 'faq', 'troubleshoot', 'releasenotes',
     'support-usermanual', 'support-adminmanual', 'support-training', 'support-faq', 'support-troubleshoot', 'support-releasenotes'
   ];
 

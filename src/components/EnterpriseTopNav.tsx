@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useBuilderStore } from '@/store/useBuilderStore';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
+import { useSectorStore, SECTOR_ROLES, SectorType } from '@/store/useSectorStore';
 import CommandPalette from './CommandPalette';
 
 export default function EnterpriseTopNav() {
@@ -21,8 +22,12 @@ export default function EnterpriseTopNav() {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
+  const [showSectorDropdown, setShowSectorDropdown] = useState(false);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+
   const { activeModule, activeView } = useBuilderStore();
   const { workspaces, activeWorkspaceId, syncFromStorage } = useWorkspaceStore();
+  const { activeSector, activeRoleId, setSector, setRole, getActiveRoleLabel } = useSectorStore();
 
   useEffect(() => {
     syncFromStorage();
@@ -41,6 +46,8 @@ export default function EnterpriseTopNav() {
         setShowSearch(false);
         setShowQuickActions(false);
         setShowNotifications(false);
+        setShowSectorDropdown(false);
+        setShowRoleDropdown(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -83,11 +90,120 @@ export default function EnterpriseTopNav() {
       height: '64px',
     }}>
       
-      {/* LEFT: Top Level Navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+      {/* LEFT: Top Level Navigation & Workspace switcher */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flex: 1 }}>
 
+        {/* Workspace Switcher Selector */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Workspace:
+          </span>
+          <button
+            onClick={() => setShowSectorDropdown(!showSectorDropdown)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: 'rgba(30, 41, 59, 0.5)', border: '1px solid var(--border)',
+              borderRadius: '6px', padding: '0.4rem 0.8rem', color: 'var(--text-main)',
+              fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+          >
+            {activeSector === 'operations' ? 'Document Operations' : activeSector === 'reviews' ? 'Review & Approval' : 'Governance Admin'}
+            <ChevronDown size={14} />
+          </button>
+
+          {showSectorDropdown && (
+            <div
+              style={{
+                position: 'absolute', top: '100%', left: 0, marginTop: '0.5rem',
+                background: 'var(--mkt-card, var(--surface))', border: '1px solid var(--border)',
+                borderRadius: '8px', boxShadow: 'var(--shadow-lg)', zIndex: 100,
+                width: '200px', padding: '0.25rem'
+              }}
+            >
+              {[
+                { id: 'operations', label: 'Document Operations' },
+                { id: 'reviews', label: 'Review & Approval' },
+                { id: 'governance', label: 'Governance Admin' }
+              ].map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    setSector(s.id as SectorType);
+                    setShowSectorDropdown(false);
+                  }}
+                  style={{
+                    display: 'flex', width: '100%', padding: '0.5rem 0.75rem',
+                    background: activeSector === s.id ? 'var(--primary)' : 'transparent',
+                    color: activeSector === s.id ? 'white' : 'var(--text-main)',
+                    border: 'none', borderRadius: '6px', fontSize: '0.85rem',
+                    fontWeight: activeSector === s.id ? 700 : 500, cursor: 'pointer',
+                    textAlign: 'left', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { if (activeSector !== s.id) e.currentTarget.style.background = 'var(--hover)'; }}
+                  onMouseLeave={e => { if (activeSector !== s.id) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Role Switcher Selector */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Role:
+          </span>
+          <button
+            onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: 'transparent', border: 'none',
+              borderRadius: '6px', padding: '0.4rem 0.5rem', color: 'var(--primary)',
+              fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+            }}
+          >
+            {getActiveRoleLabel()}
+            <ChevronDown size={14} />
+          </button>
+
+          {showRoleDropdown && (
+            <div
+              style={{
+                position: 'absolute', top: '100%', left: 0, marginTop: '0.5rem',
+                background: 'var(--mkt-card, var(--surface))', border: '1px solid var(--border)',
+                borderRadius: '8px', boxShadow: 'var(--shadow-lg)', zIndex: 100,
+                width: '180px', padding: '0.25rem', maxHeight: '200px', overflowY: 'auto'
+              }}
+            >
+              {SECTOR_ROLES[activeSector].map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => {
+                    setRole(r.id);
+                    setShowRoleDropdown(false);
+                  }}
+                  style={{
+                    display: 'flex', width: '100%', padding: '0.5rem 0.75rem',
+                    background: activeRoleId === r.id ? 'var(--primary)' : 'transparent',
+                    color: activeRoleId === r.id ? 'white' : 'var(--text-main)',
+                    border: 'none', borderRadius: '6px', fontSize: '0.85rem',
+                    fontWeight: activeRoleId === r.id ? 700 : 500, cursor: 'pointer',
+                    textAlign: 'left', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => { if (activeRoleId !== r.id) e.currentTarget.style.background = 'var(--hover)'; }}
+                  onMouseLeave={e => { if (activeRoleId !== r.id) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: '3.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: '1rem' }}>
           <button 
             onClick={() => window.history.back()} 
             title="Go Back"

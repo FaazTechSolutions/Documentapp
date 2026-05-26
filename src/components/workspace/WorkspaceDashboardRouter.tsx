@@ -5,7 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { useDocumentStore } from '@/store/useDocumentStore';
 import { useTemplateStore } from '@/store/useTemplateStore';
-import { Activity, Target, ShieldCheck, FileText, CheckSquare, BarChart2, LayoutDashboard, Target as ScopeIcon, Users, GitBranch, Settings, AlertTriangle, PlayCircle, Zap, Shield, BookOpen, Layers } from 'lucide-react';
+import { useSectorStore } from '@/store/useSectorStore';
+import StakeholderGrid from '@/components/builder/StakeholderGrid';
+import { 
+  Activity, Target, ShieldCheck, FileText, CheckSquare, BarChart2, 
+  LayoutDashboard, Target as ScopeIcon, Users, GitBranch, Settings, 
+  AlertTriangle, PlayCircle, Zap, Shield, BookOpen, Layers, 
+  LayoutGrid, List as ListIcon, Search, ChevronDown 
+} from 'lucide-react';
 
 export default function WorkspaceDashboardRouter() {
   const router = useRouter();
@@ -14,6 +21,12 @@ export default function WorkspaceDashboardRouter() {
   const { templates, syncFromStorage } = useTemplateStore();
   
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Documents list local states (from marked fields of the first image)
+  const [docSearch, setDocSearch] = useState('');
+  const [docStatusFilter, setDocStatusFilter] = useState('all'); // 'all', 'Draft', 'Needs Approval', 'Published'
+  const [docSortBy, setDocSortBy] = useState('updated'); // 'updated', 'alphabetical', 'completion'
+  const [docLayout, setDocLayout] = useState<'list' | 'grid'>('list');
 
   useEffect(() => {
     syncFromStorage();
@@ -30,11 +43,39 @@ export default function WorkspaceDashboardRouter() {
     return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No workspace selected.</div>;
   }
 
-  const workspaceDocs = documents.filter(d => !d.isDeleted && String(d.workspaceId) === String(activeWorkspaceId));
-  const totalDocsCount = workspaceDocs.length;
-  const draftDocsCount = workspaceDocs.filter(d => d.status === 'Draft').length;
-  const pendingDocsCount = workspaceDocs.filter(d => d.status === 'Needs Approval').length;
-  const publishedDocsCount = workspaceDocs.filter(d => d.status === 'Published').length;
+  // Filter active (non-deleted, non-archived) documents for the current workspace, strictly filtered by workspace type relevance
+  const { activeSector, activeRoleId } = useSectorStore();
+  const isSuperAdmin = activeRoleId === 'super_admin' || activeRoleId === 'admin' || activeRoleId === 'gov_admin';
+
+  const workspaceDocs = documents.filter(d => {
+    if (d.isDeleted || d.isArchived || String(d.workspaceId) !== String(activeWorkspaceId)) {
+      return false;
+    }
+    
+    // Workspace Sector Isolation: non-admins only see documents matching the active workspace sector
+    const docSector = d.workspaceSector || 'operations';
+    if (!isSuperAdmin && docSector !== activeSector) return false;
+    const docType = (d.docType || '').toLowerCase();
+    switch (activeWorkspace.type) {
+      case 'business_analysis':
+        return ['brd', 'frd', 'srs', 'tdd', 'custom'].includes(docType);
+      case 'qa':
+        return ['testplan', 'testcases', 'buglog', 'uat', 'custom'].includes(docType);
+      case 'devops':
+        return ['devops-deploy', 'devops-server', 'devops-backup', 'devops-pipeline', 'devops-env', 'devops-monitor', 'release', 'custom', 'sprint'].includes(docType);
+      case 'executive':
+        return ['portfolio', 'financials', 'okrs', 'custom'].includes(docType);
+      case 'documentation':
+        return ['kb', 'api_docs', 'release_notes', 'custom'].includes(docType);
+      default:
+        return true;
+    }
+  });
+
+  // Shared top-level workspace document metrics (averages)
+  const avgCompletion = workspaceDocs.length > 0
+    ? Math.round(workspaceDocs.reduce((sum, d) => sum + (d.completionPercentage || 0), 0) / workspaceDocs.length)
+    : 0;
 
   // Shared Design Tokens (mimicking CustomDocumentEditor)
   const ds = {
@@ -105,6 +146,7 @@ export default function WorkspaceDashboardRouter() {
       default:
         return [
           { id: 'dashboard', label: 'Executive Summary', icon: <LayoutDashboard size={16} /> },
+          { id: 'all_documents', label: 'All Documents', icon: <BookOpen size={16} /> },
           { id: 'requirements', label: 'Requirement Modules', icon: <FileText size={16} /> },
           { id: 'scope', label: 'Scope Management', icon: <ScopeIcon size={16} /> },
           { id: 'stakeholders', label: 'Stakeholders', icon: <Users size={16} /> },
@@ -149,59 +191,345 @@ export default function WorkspaceDashboardRouter() {
     </div>
   );
 
+  const renderRequirementsTab = () => {
+    // Filter and sort the workspace documents dynamically based on active search & status filter
+    const filteredDocs = workspaceDocs
+      .filter(d => {
+        const matchesSearch = d.title.toLowerCase().includes(docSearch.toLowerCase()) || 
+                              (d.owner && d.owner.toLowerCase().includes(docSearch.toLowerCase()));
+        const matchesStatus = docStatusFilter === 'all' || d.status === docStatusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        if (docSortBy === 'alphabetical') {
+          return a.title.localeCompare(b.title);
+        }
+        if (docSortBy === 'completion') {
+          return (b.completionPercentage || 0) - (a.completionPercentage || 0);
+        }
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
+
+    // Make metrics cards strictly reflect the dynamic filtered collection
+    const currentTotalCount = filteredDocs.length;
+    const currentDraftCount = filteredDocs.filter(d => d.status === 'Draft').length;
+    const currentPendingCount = filteredDocs.filter(d => d.status === 'Needs Approval' || d.status === 'In Review').length;
+    const currentAvgCompletion = filteredDocs.length > 0
+      ? Math.round(filteredDocs.reduce((sum, d) => sum + (d.completionPercentage || 0), 0) / filteredDocs.length)
+      : 0;
+
+    const getDocTypeBadge = (type: string) => {
+      const t = type.toLowerCase();
+      if (t === 'brd') return { text: 'BRD', bg: '#2563eb', color: '#ffffff' };
+      if (t === 'frd') return { text: 'FRD', bg: '#16a34a', color: '#ffffff' };
+      if (t === 'srs') return { text: 'SRS', bg: '#8b5cf6', color: '#ffffff' };
+      if (t === 'tdd') return { text: 'TDD', bg: '#d97706', color: '#ffffff' };
+      return { text: type.toUpperCase() || 'CUSTOM', bg: '#4b5563', color: '#ffffff' };
+    };
+
+    const getStatusBadge = (status: string) => {
+      const s = status.toLowerCase();
+      if (s === 'draft') return { bg: 'rgba(75, 85, 99, 0.1)', color: '#9ca3af' };
+      if (s === 'in review' || s === 'needs approval') return { bg: 'rgba(217, 119, 6, 0.1)', color: '#fbbf24' };
+      if (s === 'published') return { bg: 'rgba(22, 163, 74, 0.1)', color: '#4ade80' };
+      return { bg: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa' };
+    };
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-fade-in">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>📋 Workspace Requirement Modules & Documents</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+              Access all project documents (BRD, FRD, SRS, TDD) within the workspace. Click a document to navigate to its primary editor.
+            </p>
+          </div>
+        </div>
+
+        {/* ── METRICS GRID (Dynamically updated to strictly represent displayed documents) ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          {/* Card 1: Total Documents */}
+          <div style={{ ...ds.card, display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--surface)' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileText size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>{currentTotalCount}</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>Total Documents</div>
+            </div>
+          </div>
+
+          {/* Card 2: Active Drafts */}
+          <div style={{ ...ds.card, display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--surface)' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>{currentDraftCount}</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>Active Drafts</div>
+            </div>
+          </div>
+
+          {/* Card 3: Pending Approval */}
+          <div style={{ ...ds.card, display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--surface)' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>{currentPendingCount}</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>Pending Approval</div>
+            </div>
+          </div>
+
+          {/* Card 4: AI Quality Score */}
+          <div style={{ ...ds.card, display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--surface)' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Shield size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.1 }}>{currentAvgCompletion}%</div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>Avg Completion</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── SEARCH, FILTERS & LAYOUT CONTROLS ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.75rem 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+            {/* Search documents */}
+            <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
+              <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                <Search size={16} />
+              </span>
+              <input 
+                type="text" 
+                placeholder="Search documents..." 
+                value={docSearch}
+                onChange={(e) => setDocSearch(e.target.value)}
+                style={{ width: '100%', padding: '0.45rem 1rem 0.45rem 2.25rem', fontSize: '0.85rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-main)', outline: 'none' }}
+              />
+            </div>
+
+            {/* Dropdown 1: Active/Status filter */}
+            <div style={{ position: 'relative' }}>
+              <select
+                value={docStatusFilter}
+                onChange={(e) => setDocStatusFilter(e.target.value)}
+                style={{ appearance: 'none', background: 'var(--background)', border: '1px solid var(--border)', padding: '0.45rem 2rem 0.45rem 0.75rem', borderRadius: '6px', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="all">Active Documents</option>
+                <option value="Draft">Drafts</option>
+                <option value="Needs Approval">Needs Approval</option>
+                <option value="Published">Published</option>
+              </select>
+              <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+                <ChevronDown size={14} />
+              </span>
+            </div>
+
+            {/* Dropdown 2: Sorting option */}
+            <div style={{ position: 'relative' }}>
+              <select
+                value={docSortBy}
+                onChange={(e) => setDocSortBy(e.target.value)}
+                style={{ appearance: 'none', background: 'var(--background)', border: '1px solid var(--border)', padding: '0.45rem 2rem 0.45rem 0.75rem', borderRadius: '6px', color: 'var(--text-main)', fontSize: '0.85rem', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="updated">Recently Updated</option>
+                <option value="alphabetical">Alphabetical (A-Z)</option>
+                <option value="completion">Completion Rate</option>
+              </select>
+              <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+                <ChevronDown size={14} />
+              </span>
+            </div>
+          </div>
+
+          {/* Layout Controls (Grid vs List toggling) */}
+          <div style={{ display: 'flex', gap: '0.25rem', border: '1px solid var(--border)', padding: '0.2rem', borderRadius: '6px', background: 'var(--background)' }}>
+            <button 
+              onClick={() => setDocLayout('grid')}
+              style={{ background: docLayout === 'grid' ? 'var(--surface)' : 'transparent', border: 'none', color: docLayout === 'grid' ? 'var(--primary)' : 'var(--text-muted)', padding: '0.3rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              title="Grid Layout"
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button 
+              onClick={() => setDocLayout('list')}
+              style={{ background: docLayout === 'list' ? 'var(--surface)' : 'transparent', border: 'none', color: docLayout === 'list' ? 'var(--primary)' : 'var(--text-muted)', padding: '0.3rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              title="List Layout"
+            >
+              <ListIcon size={16} />
+            </button>
+          </div>
+        </div>
+
+
+
+        {/* ── MAIN DOCUMENTS CONTENT ── */}
+        {filteredDocs.length === 0 ? (
+          <div style={{ ...ds.card, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem', textAlign: 'center', gap: '1rem' }}>
+            <div style={{ fontSize: '3rem' }}>📁</div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>No Documents Found</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', maxWidth: '400px', margin: 0 }}>
+              No project documents matched the current search filters in this workspace.
+            </p>
+          </div>
+        ) : docLayout === 'grid' ? (
+          /* Grid View Layout */
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            {filteredDocs.map((doc, index) => {
+              const typeBadge = getDocTypeBadge(doc.docType);
+              const statusBadge = getStatusBadge(doc.status);
+              return (
+                <div 
+                  key={`${doc.id}-${index}`}
+                  onClick={() => router.push(`/?tab=builder&id=${doc.id}`)}
+                  style={{ ...ds.card, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.75rem', position: 'relative', transition: 'all 0.15s ease' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.5rem' }}>📄</span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '4px', background: typeBadge.bg, color: typeBadge.color }}>
+                      {typeBadge.text}
+                    </span>
+                  </div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, lineBreak: 'anywhere' }}>{doc.title || 'Untitled'}</h4>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Owner: {doc.owner || 'Unknown'}</span>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${doc.completionPercentage || 0}%`, height: '100%', background: 'var(--primary)', borderRadius: '3px' }} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{doc.completionPercentage || 0}%</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem', borderTop: '1px solid var(--border)', paddingTop: '0.5rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                    <span style={{ fontWeight: 700, color: statusBadge.color }}>{doc.status}</span>
+                    <span>{new Date(doc.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* List View Layout */
+          <div style={{ ...ds.card, padding: 0, overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ background: 'rgba(0,0,0,0.15)', borderBottom: '1px solid var(--border)' }}>
+                <tr>
+                  <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', width: '40%' }}>Document Title</th>
+                  <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Type</th>
+                  <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Status</th>
+                  <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Completion</th>
+                  <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Last Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDocs.map((doc, index) => {
+                  try {
+                    const typeBadge = getDocTypeBadge(doc?.docType || 'custom');
+                    const statusBadge = getStatusBadge(doc?.status || 'Draft');
+                    
+                    let formattedDate = 'Unknown';
+                    try {
+                      if (doc?.updatedAt) {
+                        const parsedDate = new Date(doc.updatedAt);
+                        if (!isNaN(parsedDate.getTime())) {
+                          formattedDate = parsedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                        }
+                      }
+                    } catch (dateErr) {
+                      console.error('Error formatting date', dateErr);
+                    }
+
+                    return (
+                      <tr 
+                        key={`${doc?.id || index}-${index}`}
+                        onClick={() => router.push(`/?tab=builder&id=${doc?.id}`)}
+                        style={{ 
+                          borderBottom: '1px solid var(--border)', 
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--hover)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={{ padding: '1rem 1.25rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <FileText size={18} color="var(--primary)" />
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span>{doc?.title || 'Untitled Document'}</span>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400 }}>Owner: {doc?.owner || 'Unknown'}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem' }}>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            fontWeight: 700, 
+                            padding: '0.2rem 0.5rem', 
+                            borderRadius: '4px', 
+                            background: typeBadge.bg, 
+                            color: typeBadge.color 
+                          }}>
+                            {typeBadge.text}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem' }}>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            fontWeight: 700, 
+                            padding: '0.2rem 0.5rem', 
+                            borderRadius: '4px', 
+                            background: statusBadge.bg, 
+                            color: statusBadge.color 
+                          }}>
+                            {doc?.status || 'Draft'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '100px' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-main)', width: '30px' }}>{doc?.completionPercentage || 0}%</span>
+                            <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${doc?.completionPercentage || 0}%`, height: '100%', background: 'var(--primary)', borderRadius: '3px' }} />
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                          {formattedDate}
+                        </td>
+                      </tr>
+                    );
+                  } catch (rowErr: any) {
+                    console.error('Error rendering row', rowErr);
+                    return (
+                      <tr key={`err-${index}`} style={{ borderBottom: '1px solid var(--border)', background: 'rgba(239, 68, 68, 0.1)' }}>
+                        <td colSpan={5} style={{ padding: '1rem', color: 'var(--danger)', fontSize: '0.85rem' }}>
+                          Error rendering row: {rowErr?.message || 'Unknown error'}
+                        </td>
+                      </tr>
+                    );
+                  }
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderCenterContent = () => {
     if (activeTab === 'team') return renderTeamTab();
+    if (activeTab === 'all_documents') return renderRequirementsTab();
+    if (activeTab === 'stakeholders') return <StakeholderGrid />;
 
     switch (activeWorkspace.type) {
       case 'qa':
-        if (activeTab === 'dashboard') {
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="animate-fade-in">
-              <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>QA Dashboard</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Test Coverage • Defect Density • Automation Status</p>
-              </div>
-              {renderMetricGrid([
-                { title: 'Test Cases', value: totalDocsCount, color: '#10b981', icon: '📝' },
-                { title: 'Active Defects', value: '23', color: '#ef4444', icon: '🐛' },
-                { title: 'Automation Coverage', value: '68%', color: '#3b82f6', icon: '🤖' },
-                { title: 'Pass Rate', value: '94%', color: '#f59e0b', icon: '✅' },
-              ])}
-              <div style={ds.card}>
-                <h3 style={ds.title}>Recent Test Runs</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {['Smoke Test - Production', 'Regression - Staging', 'API Contract Tests', 'E2E User Flows'].map((run, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', borderBottom: '1px solid var(--border)' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{run}</span>
-                      <span style={ds.badge(i === 1 ? '#f59e0b' : '#10b981')}>{i === 1 ? 'Failed (2)' : 'Passed'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        }
         return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>QA Mock Module: {activeTab}</div>;
-
       case 'devops':
-        if (activeTab === 'dashboard') {
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="animate-fade-in">
-              <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>DevOps Operations</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Infrastructure Health • CI/CD Velocity</p>
-              </div>
-              {renderMetricGrid([
-                { title: 'Deployments', value: '48', color: '#3b82f6', icon: '🚀' },
-                { title: 'Open Incidents', value: '2', color: '#ef4444', icon: '🔥' },
-                { title: 'System Uptime', value: '99.9%', color: '#10b981', icon: '⚡' },
-                { title: 'Avg Build Time', value: '3.2m', color: '#8b5cf6', icon: '⏱️' },
-              ])}
-            </div>
-          );
-        }
         return <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>DevOps Mock Module: {activeTab}</div>;
-
       case 'business_analysis':
       default:
         if (activeTab === 'dashboard') {
@@ -212,16 +540,16 @@ export default function WorkspaceDashboardRouter() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>Business Visibility • Real-time Intelligence</p>
               </div>
               {renderMetricGrid([
-                { title: 'Total Requirements', value: totalDocsCount > 0 ? totalDocsCount : '124', color: '#2563EB', icon: '📋' },
-                { title: 'Approved', value: publishedDocsCount > 0 ? publishedDocsCount : '89', color: '#16A34A', icon: '✅' },
-                { title: 'Pending Reviews', value: pendingDocsCount > 0 ? pendingDocsCount : '12', color: '#F59E0B', icon: '⏳' },
+                { title: 'Total Requirements', value: workspaceDocs.length > 0 ? workspaceDocs.length : '124', color: '#2563EB', icon: '📋' },
+                { title: 'Approved', value: workspaceDocs.filter(d => d.status === 'Published').length > 0 ? workspaceDocs.filter(d => d.status === 'Published').length : '89', color: '#16A34A', icon: '✅' },
+                { title: 'Pending Reviews', value: workspaceDocs.filter(d => d.status === 'Needs Approval' || d.status === 'In Review').length > 0 ? workspaceDocs.filter(d => d.status === 'Needs Approval' || d.status === 'In Review').length : '12', color: '#F59E0B', icon: '⏳' },
                 { title: 'Business Risks', value: '4', color: '#DC2626', icon: '⚠️' },
               ])}
               <div style={ds.card}>
                 <h3 style={ds.title}>📈 Project Health Analytics</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {[
-                    { label: 'Requirement Completion', pct: 88, color: '#2563EB' },
+                    { label: 'Requirement Completion', pct: avgCompletion || 88, color: '#2563EB' },
                     { label: 'Stakeholder Approval', pct: 72, color: '#16A34A' },
                     { label: 'Workflow Mapping', pct: 64, color: '#F59E0B' },
                   ].map((h, i) => (
@@ -270,8 +598,6 @@ export default function WorkspaceDashboardRouter() {
     }
   };
 
-
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', background: 'var(--background)' }} className="animate-fade-in">
       <DashboardHeader />
@@ -302,10 +628,7 @@ export default function WorkspaceDashboardRouter() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
           {renderCenterContent()}
         </div>
-        
-
       </div>
     </div>
   );
 }
-

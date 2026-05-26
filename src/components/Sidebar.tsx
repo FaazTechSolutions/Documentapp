@@ -16,6 +16,7 @@ import { useTemplateStore } from '@/store/useTemplateStore';
 import { useDocumentStore } from '@/store/useDocumentStore';
 import { WorkspaceRegistry } from '@/lib/workspaceRegistry';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
+import { useSectorStore } from '@/store/useSectorStore';
 
 export default function Sidebar() {
   const router = useRouter();
@@ -62,8 +63,8 @@ export default function Sidebar() {
 
   // Handle 3-second auto-hide inactivity timer
   useEffect(() => {
-    // Only auto-hide on specific pages as requested: Dashboard, Builder, Templates, Documents
-    const autoHidePages = ['dashboard', 'builder', 'templates', 'documents'];
+    // Only auto-hide on specific pages as requested: Dashboard, Builder, Templates
+    const autoHidePages = ['dashboard', 'builder', 'templates'];
     if (!autoHidePages.includes(activeTab)) return;
 
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
@@ -102,6 +103,17 @@ export default function Sidebar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setSidebarMode(prev => prev === 'expanded' ? 'compact' : 'expanded');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const toggleTheme = () => {
     if (isDark) {
       document.body.classList.remove('dark-theme');
@@ -122,10 +134,11 @@ export default function Sidebar() {
 
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId);
 
+  const { activeSector } = useSectorStore();
+
   const mainNav: { id: string, label: string, icon: any, badge?: string, badgeColor?: string, activeColor?: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects', icon: Folder, activeColor: '#3b82f6' },
-    { id: 'documents', label: 'Documents', icon: FileText, badge: '12' },
     { id: 'templates', label: 'Templates', icon: Layers, activeColor: '#f97316' },
     { id: 'template-setup', label: 'Template Setup', icon: Settings },
     { id: 'analytics', label: 'Analytics', icon: BarChart2, activeColor: '#06b6d4' },
@@ -134,7 +147,16 @@ export default function Sidebar() {
     { id: 'knowledge', label: 'Knowledge Base', icon: BookOpen },
     { id: 'notifications', label: 'Notifications', icon: Bell, badge: '8', badgeColor: '#ef4444' },
     { id: 'settings', label: 'Settings', icon: Settings }
-  ];
+  ].filter(item => {
+    if (activeSector === 'operations') {
+      return ['dashboard', 'projects', 'templates', 'template-setup', 'analytics', 'knowledge'].includes(item.id);
+    } else if (activeSector === 'reviews') {
+      return ['dashboard', 'approvals', 'reports', 'notifications', 'analytics'].includes(item.id);
+    } else if (activeSector === 'governance') {
+      return ['dashboard', 'analytics', 'settings'].includes(item.id);
+    }
+    return true;
+  });
 
   const isCollapsed = sidebarMode === 'compact';
   const widthMap = {

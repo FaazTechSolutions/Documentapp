@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 
 export default function DocumentActionMenu({ doc, onEdit }: { doc: any, onEdit?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { duplicateDocument, archiveDocument, restoreDocument, deleteDocument } = useDocumentStore();
@@ -51,10 +52,20 @@ export default function DocumentActionMenu({ doc, onEdit }: { doc: any, onEdit?:
     setIsOpen(false);
   };
 
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isOpen && menuRef.current) {
+      const rect = menuRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpward(spaceBelow < 240);
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div style={{ position: 'relative' }} ref={menuRef}>
       <button 
-        onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
+        onClick={toggleMenu}
         style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.2rem', borderRadius: '4px' }}
       >
         <MoreVertical size={16} />
@@ -62,10 +73,11 @@ export default function DocumentActionMenu({ doc, onEdit }: { doc: any, onEdit?:
 
       {isOpen && (
         <div style={{ 
-          position: 'absolute', right: 0, top: '100%', marginTop: '0.25rem',
+          position: 'absolute', right: 0, 
+          ...(openUpward ? { bottom: '100%', marginBottom: '0.25rem' } : { top: '100%', marginTop: '0.25rem' }),
           background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: '8px', boxShadow: 'var(--shadow-md)', minWidth: '180px',
-          zIndex: 50, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.2rem'
+          borderRadius: '8px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', minWidth: '180px',
+          zIndex: 100, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.2rem'
         }}>
           <button onClick={handleEdit} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', borderRadius: '4px', fontSize: '0.85rem', color: 'var(--text-main)' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <Edit3 size={14} /> Edit Metadata

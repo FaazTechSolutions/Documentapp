@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   Search, Bell, Plus, ChevronDown, Layout, Star, Clock, Settings, Command,
   FileText, Briefcase, Activity, User as UserIcon, MessageSquare, Sparkles,
-  Download, Upload, CheckSquare, ShieldCheck, GitMerge, Play, ChevronRight, PenTool, Hash
+  Download, Upload, CheckSquare, ShieldCheck, GitMerge, Play, ChevronLeft, ChevronRight, PenTool, Hash
 } from 'lucide-react';
 import { useBuilderStore } from '@/store/useBuilderStore';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
@@ -87,7 +87,26 @@ export default function EnterpriseTopNav() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
 
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <button 
+            onClick={() => window.history.back()} 
+            title="Go Back"
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} 
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button 
+            onClick={() => window.history.forward()} 
+            title="Go Forward"
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} 
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} 
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <ChevronRight size={16} />
+          </button>
+          <div style={{ width: '1px', height: '14px', background: 'var(--border)', margin: '0 0.25rem' }} />
           <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--background)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             <Star size={16} />
           </button>

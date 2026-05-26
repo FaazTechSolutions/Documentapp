@@ -5045,7 +5045,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
                   key={item.id}
                   onClick={() => {
                     setActiveBrdTab(item.id);
-                    setActiveView('dashboard');
+                    setViewMode('dashboard');
                   }}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',

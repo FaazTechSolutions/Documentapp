@@ -4915,7 +4915,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
         {/* ==============================================
            LEFT COLUMN: DASHBOARD NAVIGATION
            ============================================== */}
-        {showAiPanel && viewMode !== 'dashboard' && (
+        {showAiPanel && (
           <div className="editor-ai-panel animate-fade-in" style={{ width: '210px', borderRight: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
             <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', position: 'relative' }}>
               {(docType === 'brd' ? [
@@ -5026,7 +5026,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
         {/* ==============================================
            RIGHT COLUMN: PROPERTIES PANEL
            ============================================== */}
-        {showPropertiesPanel && viewMode !== 'dashboard' && (
+        {showPropertiesPanel && (
           <div className="editor-properties-panel animate-fade-in" style={{ width: '290px', borderLeft: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', flexDirection: 'column', padding: '1.25rem', overflowY: 'auto', gap: '1.5rem', flexShrink: 0 }}>
             
             {/* Document Properties section */}

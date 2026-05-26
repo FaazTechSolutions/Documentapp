@@ -104,30 +104,12 @@ interface SectorState {
   setRole: (roleId: string) => void;
   hasPermission: (permission: string) => boolean;
   getActiveRoleLabel: () => string;
+  syncFromStorage: () => void;
 }
 
-// Initialize from localStorage if client-side
-const getInitialSector = (): SectorType => {
-  if (typeof window !== 'undefined') {
-    return (localStorage.getItem('docforge_active_sector') as SectorType) || 'operations';
-  }
-  return 'operations';
-};
-
-const getInitialRole = (sector: SectorType): string => {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('docforge_active_role');
-    if (saved) {
-      const exists = SECTOR_ROLES[sector]?.some(r => r.id === saved);
-      if (exists) return saved;
-    }
-  }
-  return SECTOR_ROLES[sector]?.[0]?.id || 'creator';
-};
-
 export const useSectorStore = create<SectorState>((set, get) => ({
-  activeSector: getInitialSector(),
-  activeRoleId: getInitialRole(getInitialSector()),
+  activeSector: 'operations',
+  activeRoleId: 'creator',
 
   setSector: (sector) => {
     const roles = SECTOR_ROLES[sector];
@@ -157,5 +139,13 @@ export const useSectorStore = create<SectorState>((set, get) => ({
     const { activeSector, activeRoleId } = get();
     const role = SECTOR_ROLES[activeSector]?.find(r => r.id === activeRoleId);
     return role ? role.label : '';
+  },
+
+  syncFromStorage: () => {
+    if (typeof window !== 'undefined') {
+      const sector = (localStorage.getItem('docforge_active_sector') as SectorType) || 'operations';
+      const role = localStorage.getItem('docforge_active_role') || SECTOR_ROLES[sector]?.[0]?.id || 'creator';
+      set({ activeSector: sector, activeRoleId: role });
+    }
   }
 }));

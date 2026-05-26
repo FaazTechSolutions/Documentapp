@@ -31,7 +31,7 @@ export function getSavedDocuments(): SavedDocument[] {
   const state = useDocumentStore.getState();
   // Ensure we migrate if empty but try not to call it in tight loops if possible
   if (state.documents.length === 0) {
-    state.syncFromLegacyStorage();
+    state.syncFromStorage();
   }
   
   // Transform back to SavedDocument interface for legacy support

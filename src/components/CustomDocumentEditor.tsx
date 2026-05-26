@@ -10,6 +10,7 @@ import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { WorkspaceRegistry } from '@/lib/workspaceRegistry';
 import { saveDocument, getSavedDocument, generateDocumentId } from '@/lib/storage';
 import { generateCustomMarkdown } from '@/lib/markdown';
+import { useSectorStore } from '@/store/useSectorStore';
 import GithubModal from './GithubModal';
 import EnterpriseWorkspaceToolbar from './EnterpriseWorkspaceToolbar';
 import { useBuilderStore } from '@/store/useBuilderStore';
@@ -102,6 +103,81 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
   const [activeActionsBlockId, setActiveActionsBlockId] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [configEditorOpen, setConfigEditorOpen] = useState<'sidebarItems' | 'kpiWidgets' | 'workflowSteps' | null>(null);
+
+  const [isDirty, setIsDirty] = useState(false);
+  const initialContentRef = React.useRef<string>('');
+
+  useEffect(() => {
+    if (isLoaded && !initialContentRef.current) {
+      initialContentRef.current = JSON.stringify({ blocks, documentTitle, markdown });
+    }
+  }, [isLoaded, blocks, documentTitle, markdown]);
+
+  useEffect(() => {
+    if (isLoaded && initialContentRef.current) {
+      const current = JSON.stringify({ blocks, documentTitle, markdown });
+      if (current !== initialContentRef.current) {
+        setIsDirty(true);
+      } else {
+        setIsDirty(false);
+      }
+    }
+  }, [blocks, documentTitle, markdown, isLoaded]);
+
+  // Intercept standard page closes or refreshes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to exit?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
+
+  // Intercept sidebar / tab switches / header navigation clicks (client-side exits)
+  useEffect(() => {
+    const handleCaptureClick = (e: MouseEvent) => {
+      if (!isDirty) return;
+
+      let target = e.target as HTMLElement | null;
+      let shouldConfirm = false;
+
+      while (target) {
+        const href = target.getAttribute('href');
+        
+        const isSidebarItem = target.closest('.sidebar-nav-item') || target.closest('[class*="sidebar"]');
+        const isLogo = target.closest('.logo') || target.closest('[class*="logo"]');
+        const isTopNav = target.closest('[class*="top-nav"]') || target.closest('[class*="TopNav"]');
+        const isExitTab = href && !href.includes('tab=builder');
+
+        const isInsideEditor = target.closest('.paper-canvas') || target.closest('.editor-canvas-workspace') || target.closest('.notion-dropdown') || target.closest('[class*="modal"]');
+        const isSaveBtn = target.closest('[title="Save"]') || target.innerText?.toLowerCase().includes('save') || target.closest('.header-actions button');
+
+        if (isExitTab || isSidebarItem || isLogo || isTopNav) {
+          if (!isInsideEditor && !isSaveBtn) {
+            shouldConfirm = true;
+            break;
+          }
+        }
+        
+        target = target.parentElement;
+      }
+
+      if (shouldConfirm) {
+        const confirmLeave = window.confirm("You have unsaved changes. Are you sure you want to exit without saving?");
+        if (!confirmLeave) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }
+    };
+
+    window.addEventListener('click', handleCaptureClick, true);
+    return () => window.removeEventListener('click', handleCaptureClick, true);
+  }, [isDirty]);
 
   // AI Copilot Side-Drawer States
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
@@ -591,6 +667,13 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
   };
 
   const handleSave = () => {
+    const hasEditPermission = useSectorStore.getState().hasPermission('edit_docs');
+    if (!hasEditPermission) {
+      alert("⚠️ Read-Only Mode: You do not have permissions to edit or save documents in the current workspace sector.");
+      setSaveStatus('Draft');
+      return;
+    }
+
     setSaveStatus('Saving...');
     
     // Determine word count and AI generation status for metadata
@@ -641,22 +724,21 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
       setSaveStatus('');
     }, 2000);
     
+    // Update ref and dirty status so user is not prompted upon exiting
+    initialContentRef.current = JSON.stringify({ blocks, documentTitle, markdown });
+    setIsDirty(false);
+
+    alert("saved successfully");
+    
     if (!loadedId) {
       router.replace(`/?tab=builder&id=${documentId}`);
     }
   };
 
-  // Autosave Hook
+  // Autosave Hook disabled - Documents must be saved manually
   useEffect(() => {
-    if (!isLoaded || blocks.length === 0) return;
-    
-    setSaveStatus('Saving...');
-    const debounceTimer = setTimeout(() => {
-      handleSave();
-    }, 2000);
-
-    return () => clearTimeout(debounceTimer);
-  }, [blocks, documentTitle, docType, isLoaded]);
+    // Autosaving disabled per user requirements to enforce manual saves
+  }, []);
 
   const renderBlockOptionsPopover = (block: CustomBlock, index: number) => {
     const colorChoices = [

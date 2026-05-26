@@ -172,7 +172,7 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   const format = searchParams.get('format');
   const projectIdFilter = searchParams.get('projectId');
   
-  const { documents, syncFromLegacyStorage, deleteDocument, archiveDocument } = useDocumentStore();
+  const { documents, syncFromStorage, deleteDocument, archiveDocument } = useDocumentStore();
   const { activeWorkspaceId, workspaces } = useWorkspaceStore();
   
   // New States
@@ -192,8 +192,8 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
-    syncFromLegacyStorage();
-  }, [syncFromLegacyStorage]);
+    syncFromStorage();
+  }, [syncFromStorage]);
 
   const getProjectName = () => {
     if (projectIdFilter) {

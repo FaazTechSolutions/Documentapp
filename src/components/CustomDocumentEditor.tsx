@@ -2721,77 +2721,8 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '842px', background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', color: 'var(--text-main)', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', background: 'var(--background)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <div>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#0891B2', textTransform: 'uppercase', letterSpacing: '0.06em' }}>ENTERPRISE SYSTEM — SRS MANAGEMENT SYSTEM</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.1rem' }}>{documentTitle || 'Enterprise SRS'}</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <input style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-main)', width: '220px', outline: 'none' }} placeholder="🔍 Search APIs, services, schemas..." />
-            {['Dashboard', 'Architecture', 'APIs', 'Monitoring'].map(tab => (
-              <button key={tab} style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', fontWeight: 600, borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>{tab}</button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.75rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Product: <strong style={{ color: 'var(--text-main)' }}>Core System Platform</strong></span>
-            <span style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, background: 'rgba(22,163,74,0.1)', color: '#16A34A' }}>🟢 Production Ready</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          <div style={{ width: '210px', borderRight: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-              {sidebarItems.map(item => (
-                <button key={item.id} onClick={() => setActiveSrsTab(item.id)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left', fontSize: '0.78rem', fontWeight: activeSrsTab === item.id ? 700 : 500, color: activeSrsTab === item.id ? '#0891B2' : 'var(--text-main)', background: activeSrsTab === item.id ? 'rgba(8,145,178,0.08)' : 'transparent', border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s', borderLeft: activeSrsTab === item.id ? '3px solid #0891B2' : '3px solid transparent' }}>
-                  <span style={{ fontSize: '0.9rem' }}>{item.icon}</span> {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-            {renderCenterContent()}
-          </div>
-          <div style={{ width: '230px', borderLeft: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, padding: '1rem', gap: '1rem', overflowY: 'auto' }}>
-            <div>
-              <h4 style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0891B2', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>✨ AI Engineering Insights</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {[
-                  { msg: 'API validation missing on 3 endpoints', color: '#F59E0B' },
-                  { msg: 'Database indexing needed: attendance_logs', color: '#DC2626' },
-                  { msg: 'Deployment risk: staging config drift', color: '#DC2626' },
-                  { msg: 'Security compliance score below 80%', color: '#F59E0B' },
-                ].map((insight, i) => (
-                  <div key={i} style={{ padding: '0.5rem', borderRadius: '6px', background: `${insight.color}08`, borderLeft: `3px solid ${insight.color}`, fontSize: '0.72rem', lineHeight: 1.35, color: 'var(--text-main)' }}>{insight.msg}</div>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {['Generate TDD', 'Generate Test Cases', 'Generate APIs', 'AI Summary'].map(btn => (
-                <button key={btn} style={{ width: '100%', padding: '0.45rem', fontSize: '0.72rem', fontWeight: 700, borderRadius: '6px', border: '1px solid #0891B230', background: 'rgba(8,145,178,0.06)', color: '#0891B2', cursor: 'pointer', textAlign: 'center' }}>{btn}</button>
-              ))}
-            </div>
-            <div>
-              <h4 style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>🕐 Recent Activity</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {[
-                  { msg: 'API schema updated', time: '10m ago', color: '#0891B2' },
-                  { msg: 'Deploy pipeline modified', time: '1h ago', color: '#F59E0B' },
-                  { msg: 'Database migration added', time: '3h ago', color: '#16A34A' },
-                  { msg: 'Monitoring alert triggered', time: '5h ago', color: '#DC2626' },
-                  { msg: 'Security audit completed', time: 'Yesterday', color: '#9333EA' },
-                ].map((act, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.color, flexShrink: 0, marginTop: '0.4rem' }} />
-                    <div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 600, lineHeight: 1.3 }}>{act.msg}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{act.time}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="paper-canvas animate-fade-in" style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '820px', minHeight: '842px', background: 'var(--surface)', padding: '2.5rem 2rem', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', color: 'var(--text-main)', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'auto' }}>
+        {renderCenterContent()}
       </div>
     );
   };
@@ -2839,17 +2770,23 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     };
 
     return (
-      <div style={{
+      <div className="paper-canvas animate-fade-in" style={{
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        minHeight: '100vh',
-        background: '#0F172A',
-        color: '#f8fafc',
-        fontFamily: "'Inter', sans-serif",
+        maxWidth: '820px',
+        minHeight: '842px',
+        background: 'var(--surface)',
+        borderRadius: '16px',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-lg)',
+        color: 'var(--text-main)',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        overflow: 'auto',
+        padding: '2.5rem 2rem'
       }}>
         {/* 1. TOP AGILE NAVIGATION */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', background: 'var(--background)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ display: 'none' }}>
           <div>
             <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#0891B2', textTransform: 'uppercase', letterSpacing: '0.06em' }}>ENTERPRISE SYSTEM - SPRINT PLANNING SYSTEM</div>
             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.1rem' }}>{documentTitle || 'Sprint Planning'}</div>
@@ -2879,7 +2816,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           
           {/* 2. LEFT SIDEBAR NAVIGATION */}
-          <div style={{ width: '240px', background: 'var(--background)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+          <div style={{ display: 'none' }}>
             {[
               { group: 'Planning', items: ['Sprint Overview', 'Sprint Backlog', 'Team Capacity'] },
               { group: 'Execution', items: ['User Stories', 'Epics', 'Tasks', 'Bugs', 'Dependencies', 'Risks'] },
@@ -2914,7 +2851,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
           </div>
 
           {/* CENTER WORKSPACE */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', background: 'radial-gradient(circle at top right, rgba(30, 41, 59, 0.5), transparent 50%), #0F172A' }}>
+          <div style={{ flex: 1, padding: 0 }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               
               {/* HEADER */}
@@ -3186,7 +3123,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
           </div>
 
           {/* 14. RIGHT AI AGILE PANEL */}
-          <div style={{ width: '320px', background: 'var(--surface)', borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'none' }}>
             <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span style={{ fontSize: '1.25rem' }}>✨</span>
               <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>AI Agile Insights</span>
@@ -3526,7 +3463,20 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     };
 
     return (
-      <div style={{ display: 'flex', width: '100%', height: '100%', background: '#0f172a', color: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div className="paper-canvas animate-fade-in" style={{
+        display: 'flex',
+        width: '100%',
+        maxWidth: '820px',
+        minHeight: '842px',
+        background: 'var(--surface)',
+        borderRadius: '16px',
+        border: '1px solid var(--border)',
+        boxShadow: 'var(--shadow-lg)',
+        color: 'var(--text-main)',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        overflow: 'auto',
+        padding: '2.5rem 2rem'
+      }}>
         {/* INJECT KEYFRAMES FOR PULSE */}
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes pulse-ring {
@@ -3549,7 +3499,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
         `}} />
 
         {/* LEFT NAV */}
-        <div style={{ width: '260px', borderRight: '1px solid rgba(255,255,255,0.05)', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(20px)', padding: '1.5rem', overflowY: 'auto' }}>
+        <div style={{ display: 'none' }}>
           {sidebarGroups.map((group, idx) => (
             <div key={idx} style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem', position: 'sticky', top: 0, background: '#0f172a', padding: '0.25rem 0', zIndex: 10 }}>
@@ -3567,12 +3517,12 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
         </div>
 
         {/* CENTER CONTENT */}
-        <div style={{ flex: 1, padding: '2rem 2.5rem', overflowY: 'auto', background: 'radial-gradient(circle at top right, rgba(30, 64, 175, 0.05) 0%, transparent 50%)' }}>
+        <div style={{ flex: 1, padding: 0 }}>
           {renderCenterContent()}
         </div>
 
         {/* RIGHT PANEL - AI & Monitoring */}
-        <div style={{ width: '320px', borderLeft: '1px solid rgba(255,255,255,0.05)', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(20px)', padding: '1.5rem', overflowY: 'auto' }}>
+        <div style={{ display: 'none' }}>
           <div style={ds.card} className="dashboard-hover-card">
             <h3 style={{ ...ds.title, fontSize: '0.85rem' }}>
               <span style={{ color: '#c084fc' }}>🧠</span> AI CO-PILOT INSIGHTS
@@ -4197,101 +4147,8 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '842px', background: 'var(--surface)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', color: 'var(--text-main)', fontFamily: 'Inter, system-ui, sans-serif' }}>
-        {/* ══════ TOP ENTERPRISE NAVIGATION ══════ */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1.25rem', background: 'var(--background)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div>
-              <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.06em' }}>UNITRACON FRD MANAGEMENT SYSTEM</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.1rem' }}>{documentTitle || 'Enterprise FRD'}</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <input style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-main)', width: '220px', outline: 'none' }} placeholder="🔍 Search features, APIs, workflows..." />
-            {['Dashboard', 'Projects', 'APIs', 'Analytics'].map(tab => (
-              <button key={tab} style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', fontWeight: 600, borderRadius: '6px', border: 'none', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>{tab}</button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.75rem' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Product: <strong style={{ color: 'var(--text-main)' }}>Core System Platform</strong></span>
-            <span style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, background: 'rgba(22,163,74,0.1)', color: '#16A34A' }}>🟢 Active Sprint</span>
-          </div>
-        </div>
-
-        {/* ══════ 3-COLUMN BODY ══════ */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* ── LEFT SIDEBAR ── */}
-          <div style={{ width: '210px', borderRight: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-              {sidebarItems.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveFrdTab(item.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',
-                    fontSize: '0.78rem', fontWeight: activeFrdTab === item.id ? 700 : 500,
-                    color: activeFrdTab === item.id ? '#9333EA' : 'var(--text-main)',
-                    background: activeFrdTab === item.id ? 'rgba(147,51,234,0.08)' : 'transparent',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s',
-                    borderLeft: activeFrdTab === item.id ? '3px solid #9333EA' : '3px solid transparent',
-                  }}
-                >
-                  <span style={{ fontSize: '0.9rem' }}>{item.icon}</span> {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ── CENTER WORKSPACE ── */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-            {renderCenterContent()}
-          </div>
-
-          {/* ── RIGHT AI & ACTIVITY PANEL ── */}
-          <div style={{ width: '230px', borderLeft: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, padding: '1rem', gap: '1rem', overflowY: 'auto' }}>
-            {/* AI Insights */}
-            <div>
-              <h4 style={{ fontSize: '0.7rem', fontWeight: 800, color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>✨ AI Insights</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {[
-                  { msg: 'Missing API validations in 4 endpoints', color: '#F59E0B' },
-                  { msg: 'Duplicate workflows found (ATT, LVE)', color: '#DC2626' },
-                  { msg: 'Payroll service dependency unresolved', color: '#DC2626' },
-                  { msg: 'Unmapped database entities: 3 tables', color: '#F59E0B' },
-                ].map((insight, i) => (
-                  <div key={i} style={{ padding: '0.5rem', borderRadius: '6px', background: `${insight.color}08`, borderLeft: `3px solid ${insight.color}`, fontSize: '0.72rem', lineHeight: 1.35, color: 'var(--text-main)' }}>{insight.msg}</div>
-                ))}
-              </div>
-            </div>
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {['Generate SRS', 'Generate Test Cases', 'Generate APIs', 'AI Summary'].map(btn => (
-                <button key={btn} style={{ width: '100%', padding: '0.45rem', fontSize: '0.72rem', fontWeight: 700, borderRadius: '6px', border: '1px solid #9333EA30', background: 'rgba(147,51,234,0.06)', color: '#9333EA', cursor: 'pointer', textAlign: 'center' }}>{btn}</button>
-              ))}
-            </div>
-            {/* Recent Activity */}
-            <div>
-              <h4 style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>🕐 Recent Activity</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {[
-                  { msg: 'FRD updated by Ahmed', time: '5m ago', color: '#9333EA' },
-                  { msg: 'Payroll API modified', time: '1h ago', color: '#F59E0B' },
-                  { msg: 'Validation rules added', time: '3h ago', color: '#16A34A' },
-                  { msg: 'Workflow approved', time: 'Yesterday', color: '#2563EB' },
-                  { msg: 'User story US-ATT-201 created', time: 'Yesterday', color: '#9333EA' },
-                ].map((act, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: act.color, flexShrink: 0, marginTop: '0.4rem' }} />
-                    <div>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 600, lineHeight: 1.3 }}>{act.msg}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{act.time}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="paper-canvas animate-fade-in" style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '820px', minHeight: '842px', background: 'var(--surface)', padding: '2.5rem 2rem', borderRadius: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)', color: 'var(--text-main)', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'auto' }}>
+        {renderCenterContent()}
       </div>
     );
   };

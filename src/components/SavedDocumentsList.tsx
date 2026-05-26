@@ -186,31 +186,34 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
   
   // Bulk Actions
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+  
+  // View Toggle
+  const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
     syncFromLegacyStorage();
   }, [syncFromLegacyStorage]);
 
   const getProjectName = () => {
+    if (projectIdFilter) {
+      try {
+        const projects = JSON.parse(localStorage.getItem('docforge_projects') || '[]');
+        const found = projects.find((p: any) => String(p.id) === String(projectIdFilter));
+        if (found) return found.name;
+      } catch (e) {}
+    }
     if (activeWorkspaceId) {
       const found = workspaces.find(w => w.id === activeWorkspaceId);
       if (found) return found.name;
     }
-    if (!projectIdFilter) return 'All Documents Workspace';
-    try {
-      const projects = JSON.parse(localStorage.getItem('docforge_projects') || '[]');
-      const found = projects.find((p: any) => String(p.id) === String(projectIdFilter));
-      return found ? found.name : 'Unknown Folder';
-    } catch (e) {
-      return 'Folder';
-    }
+    return 'All Documents Workspace';
   };
 
   // Filter & Sort
   let filteredDocs = documents.filter(d => !d.isDeleted);
   
-  // Prefer activeWorkspaceId over projectIdFilter if we are implementing Workspace functionality
-  const effectiveWorkspaceId = activeWorkspaceId || projectIdFilter;
+  // Prefer projectIdFilter over activeWorkspaceId so projects opened from the hub display correctly
+  const effectiveWorkspaceId = projectIdFilter || activeWorkspaceId;
 
   if (effectiveWorkspaceId) {
     filteredDocs = filteredDocs.filter(d => String(d.workspaceId) === String(effectiveWorkspaceId));
@@ -323,13 +326,23 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
               </p>
             </div>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button 
-                onClick={() => { router.push(`/?tab=templates&projectId=${projectIdFilter}`); }}
-                className="btn btn-primary"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
-              >
-                <Plus size={18} /> Create Document
-              </button>
+              {!showTemplates ? (
+                <button 
+                  onClick={() => setShowTemplates(true)}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+                >
+                  <Plus size={18} /> Create Document
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowTemplates(false)}
+                  className="btn btn-secondary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', fontWeight: 600 }}
+                >
+                  <List size={18} /> View Documents
+                </button>
+              )}
             </div>
           </div>
 
@@ -368,9 +381,15 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
           )}
         </header>
 
-        {documents.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '5rem 2rem', background: 'var(--surface)', borderRadius: '16px', border: '1px dashed var(--border)', marginBottom: '3rem' }}>
-            <div style={{ display: 'inline-flex', padding: '1.5rem', background: 'var(--background)', borderRadius: '50%', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+        {showTemplates ? (
+          <div className="animate-fade-in" style={{ marginTop: '1rem', marginBottom: '4rem' }}>
+            {useTemplate && <TemplateMarketplace onUseTemplate={useTemplate} projectIdFilter={projectIdFilter} />}
+          </div>
+        ) : (
+          <>
+            {documents.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '5rem 2rem', background: 'var(--surface)', borderRadius: '16px', border: '1px dashed var(--border)', marginBottom: '3rem' }}>
+                <div style={{ display: 'inline-flex', padding: '1.5rem', background: 'var(--background)', borderRadius: '50%', color: 'var(--text-muted)', marginBottom: '1rem' }}>
               <FileText size={48} />
             </div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-main)' }}>No documents available</h2>
@@ -565,6 +584,8 @@ export default function SavedDocumentsList({ useTemplate }: { useTemplate?: (tit
 
         {/* Template Marketplace Rendered Below */}
         {useTemplate && <TemplateMarketplace onUseTemplate={useTemplate} projectIdFilter={projectIdFilter} />}
+          </>
+        )}
       </div>
 
       {/* Right Side Dynamic AI Insights Panel */}

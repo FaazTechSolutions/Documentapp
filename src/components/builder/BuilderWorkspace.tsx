@@ -3,6 +3,7 @@
 import React from 'react';
 import { useBuilderStore, BuilderModule } from '@/store/useBuilderStore';
 import CustomDocumentEditor from '@/components/CustomDocumentEditor';
+import EnterpriseWorkspaceToolbar from '@/components/EnterpriseWorkspaceToolbar';
 import TemplateDashboard from './TemplateDashboard';
 import WorkspaceSettings from '../workspace/WorkspaceSettings';
 import RequirementsPanel from './RequirementsPanel';
@@ -62,7 +63,7 @@ export default function BuilderWorkspace() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Current Module Context Panel */}
-      {currentModuleData && (
+      {currentModuleData && activeView === 'dashboard' && (
         <div style={{ padding: '1.5rem 2rem', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
           <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '0.75rem', borderRadius: '12px', color: '#3b82f6' }}>
@@ -106,6 +107,11 @@ export default function BuilderWorkspace() {
       <div style={{ flex: 1, overflow: 'auto', background: 'var(--background)' }}>
         {renderActiveView()}
       </div>
+
+      {/* Render toolbar directly here for all views EXCEPT canvas (since canvas renders its own fully-connected toolbar) */}
+      {activeView !== 'canvas' && (
+        <EnterpriseWorkspaceToolbar position="bottom" />
+      )}
     </div>
   );
 }

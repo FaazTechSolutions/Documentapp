@@ -1,10 +1,19 @@
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import EnterpriseTopNav from '@/components/EnterpriseTopNav';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import RightInsightsPanel from '@/components/RightInsightsPanel';
+
+/** Inner component so useSearchParams is inside a Suspense boundary */
+function RightPanelSlot() {
+  const searchParams = useSearchParams();
+  const isBuilder = searchParams.get('tab') === 'builder';
+  if (isBuilder) return null;
+  return <RightInsightsPanel />;
+}
+
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
@@ -35,7 +44,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </main>
         
         <Suspense fallback={<div />}>
-          {!isLoginPage && <RightInsightsPanel />}
+          {!isLoginPage && <RightPanelSlot />}
         </Suspense>
       </div>
     </div>

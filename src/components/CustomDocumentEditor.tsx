@@ -283,9 +283,7 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
           }
           if (meta.type) {
             setDocType(meta.type);
-            if (['srs', 'tdd', 'brd', 'frd', 'sprint'].includes(meta.type)) {
-              setActiveView('dashboard');
-            }
+
           }
           if (meta.isTemplate) {
             setIsTemplate(true);
@@ -5005,68 +5003,62 @@ export default function CustomDocumentEditor({ forceView }: { forceView?: 'dashb
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', background: 'var(--background)' }}>
         
         {/* ==============================================
-           LEFT COLUMN: AI PANEL
+           LEFT COLUMN: DASHBOARD NAVIGATION
            ============================================== */}
         {showAiPanel && viewMode !== 'dashboard' && (
-          <div className="editor-ai-panel animate-fade-in" style={{ width: '310px', borderRight: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', flexDirection: 'column', padding: '1.25rem', overflowY: 'auto', gap: '1rem', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
-              <Sparkles size={18} style={{ color: 'var(--primary)' }} />
-              <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>AI Copilot Panel</h3>
-            </div>
-
-            {/* Chat history */}
-            <div className="copilot-chat-history" style={{ flex: 1, overflowY: 'auto', margin: '0.5rem 0', paddingRight: '0.25rem' }}>
-              {chatHistory.map(msg => (
-                <div key={msg.id} className={`copilot-chat-message ${msg.sender}`} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row' }}>
-                  <div className="copilot-chat-message-avatar" style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}>
-                    {msg.sender === 'ai' ? '🤖' : '👨‍💼'}
-                  </div>
-                  <div className="copilot-message-bubble" style={{ maxWidth: '85%', padding: '0.6rem 0.85rem', fontSize: '0.825rem' }}>
-                    <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
-                    {msg.sender === 'ai' && msg.id !== 'welcome' && (
-                      <div className="copilot-message-actions" style={{ gap: '0.25rem' }}>
-                        <button onClick={() => insertTextAsBlock(msg.text)} className="copilot-action-pill" style={{ fontSize: '0.675rem' }}>
-                          ➕ Insert
-                        </button>
-                        <button onClick={() => replaceActiveBlockWithText(msg.text)} className="copilot-action-pill" style={{ fontSize: '0.675rem' }}>
-                          🔄 Replace
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <div className="editor-ai-panel animate-fade-in" style={{ width: '210px', borderRight: '1px solid var(--border)', background: 'var(--background)', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
+            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.15rem', position: 'relative' }}>
+              {(docType === 'brd' ? [
+                { id: 'executive', icon: '📊', label: 'Executive Summary' },
+                { id: 'templates', icon: '📋', label: 'BRD Templates' },
+                { id: 'requirements', icon: '📄', label: 'Requirement Modules' },
+                { id: 'scope', icon: '🎯', label: 'Scope Management' },
+                { id: 'stakeholders', icon: '👥', label: 'Stakeholders' },
+                { id: 'workflows', icon: '🔄', label: 'Workflows' },
+                { id: 'approvals', icon: '✍️', label: 'Approvals' },
+                { id: 'risks', icon: '⚠️', label: 'Risks' },
+                { id: 'integrations', icon: '🔗', label: 'Integrations' },
+                { id: 'analytics', icon: '📈', label: 'Analytics' },
+                { id: 'timeline', icon: '📅', label: 'Timeline' },
+                { id: 'versions', icon: '🔁', label: 'Version History' },
+                { id: 'attachments', icon: '📎', label: 'Attachments' }
+              ] : docType === 'frd' ? [
+                { id: 'functional', icon: '⚙️', label: 'Functional Overview' },
+                { id: 'user-stories', icon: '👤', label: 'User Stories' },
+                { id: 'system-actors', icon: '🎭', label: 'System Actors' },
+                { id: 'data-model', icon: '💾', label: 'Data Model' },
+                { id: 'api-specs', icon: '🔌', label: 'API Specifications' },
+                { id: 'ui-wireframes', icon: '🖼️', label: 'UI Wireframes' },
+                { id: 'business-rules', icon: '📋', label: 'Business Rules' },
+                { id: 'error-handling', icon: '🛑', label: 'Error Handling' }
+              ] : docType === 'srs' ? [
+                { id: 'architecture', icon: '🏗️', label: 'System Architecture' },
+                { id: 'non-functional', icon: '⚡', label: 'Non-Functional' },
+                { id: 'security', icon: '🔒', label: 'Security Specs' },
+                { id: 'database', icon: '🗄️', label: 'Database Design' },
+                { id: 'deployment', icon: '🚀', label: 'Deployment Plan' }
+              ] : [
+                { id: 'overview', icon: '📊', label: 'Overview' },
+                { id: 'details', icon: '📄', label: 'Details' }
+              ]).map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveBrdTab(item.id);
+                    setActiveView('dashboard');
+                  }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.65rem', textAlign: 'left',
+                    fontSize: '0.78rem', fontWeight: activeBrdTab === item.id ? 700 : 500,
+                    color: activeBrdTab === item.id ? '#2563EB' : 'var(--text-main)',
+                    background: activeBrdTab === item.id ? 'rgba(37,99,235,0.08)' : 'transparent',
+                    border: 'none', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s',
+                    borderLeft: activeBrdTab === item.id ? '3px solid #2563EB' : '3px solid transparent',
+                  }}
+                >
+                  <span style={{ fontSize: '0.9rem' }}>{item.icon}</span> {item.label}
+                </button>
               ))}
-              {aiLoading && (
-                <div className="copilot-chat-message ai" style={{ display: 'flex', gap: '0.5rem' }}>
-                  <div className="copilot-chat-message-avatar" style={{ width: '28px', height: '28px' }}>🤖</div>
-                  <div className="copilot-message-bubble" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 0.85rem', fontSize: '0.825rem' }}>
-                    <div className="login-spinner" style={{ width: '14px', height: '14px', borderColor: 'rgba(2, 132, 199, 0.2)', borderTopColor: 'var(--primary)' }} />
-                    <span>Thinking...</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Input text bar */}
-            <div className="copilot-input-bar">
-              <input 
-                type="text" 
-                placeholder="Ask Copilot..." 
-                className="copilot-input-field"
-                value={copilotInput}
-                onChange={e => setCopilotInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleCallCopilotAI(); }}
-                disabled={aiLoading}
-                style={{ fontSize: '0.825rem', padding: '0.35rem' }}
-              />
-              <button 
-                className="copilot-send-btn" 
-                onClick={() => handleCallCopilotAI()}
-                disabled={aiLoading || !copilotInput.trim()}
-                style={{ width: '28px', height: '28px', fontSize: '0.85rem' }}
-              >
-                ➔
-              </button>
             </div>
           </div>
         )}

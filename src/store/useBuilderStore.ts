@@ -90,7 +90,7 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   activeModule: 'm-req',
   setActiveModule: (module) => set({ activeModule: module }),
 
-  activeView: 'dashboard',
+  activeView: 'canvas',
   setActiveView: (view) => set({ activeView: view }),
 
   requirements: initialRequirements,

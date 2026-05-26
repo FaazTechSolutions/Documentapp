@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, LayoutTemplate, Sparkles, Settings, PenTool, 
-  Save, Undo, Redo, Share2, Search, Bell, ChevronDown, Command, FileText
+  Save, Undo, Redo, Share2, Search, Bell, ChevronDown, Command, FileText, Menu
 } from 'lucide-react';
 import CommandPalette from './CommandPalette';
 import { useBuilderStore } from '@/store/useBuilderStore';
@@ -11,16 +11,18 @@ interface EnterpriseWorkspaceToolbarProps {
   setShowAiPanel?: (show: boolean) => void;
   showPropertiesPanel?: boolean;
   setShowPropertiesPanel?: (show: boolean) => void;
-  isManualEdit: boolean;
-  setIsManualEdit: (edit: boolean) => void;
-  docType: string;
-  documentTitle: string;
+  isManualEdit?: boolean;
+  setIsManualEdit?: (edit: boolean) => void;
+  docType?: string;
+  documentTitle?: string;
   isTemplateBuilder?: boolean;
   currentPageId?: string | null;
   navigationStack?: { id: string; title: string }[];
   onNavigateBack?: () => void;
   saveStatus?: string;
   onSave?: () => void;
+  /** 'top' = borderBottom (default when used inside document editor); 'bottom' = borderTop (when used as BuilderWorkspace status bar) */
+  position?: 'top' | 'bottom';
 }
 
 export default function EnterpriseWorkspaceToolbar({
@@ -28,16 +30,17 @@ export default function EnterpriseWorkspaceToolbar({
   setShowAiPanel,
   showPropertiesPanel,
   setShowPropertiesPanel,
-  isManualEdit,
-  setIsManualEdit,
-  docType,
-  documentTitle,
+  isManualEdit = false,
+  setIsManualEdit = () => {},
+  docType = 'custom',
+  documentTitle = 'Untitled Document',
   isTemplateBuilder,
   currentPageId,
   navigationStack,
   onNavigateBack,
   saveStatus,
-  onSave
+  onSave,
+  position = 'top'
 }: EnterpriseWorkspaceToolbarProps) {
   
   const { activeView, setActiveView } = useBuilderStore();
@@ -81,26 +84,30 @@ export default function EnterpriseWorkspaceToolbar({
 
   return (
     <>
-      {/* Floating Container */}
+      {/* Full-width Toolbar Container */}
       <div style={{
-        position: 'fixed',
-        top: '80px', /* Below the 64px TopNav */
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 100,
-        width: 'fit-content',
-        background: 'rgba(30, 41, 59, 0.95)', /* Dark pill */
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderRadius: '24px', /* Pill shape */
-        padding: '0.35rem 0.75rem',
+        width: '100%',
+        height: '48px',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        gap: '0.75rem',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
+        padding: '0 1.5rem',
+        background: 'var(--surface)',
+        borderTop: position === 'bottom' ? '1px solid var(--border)' : 'none',
+        borderBottom: position === 'top' ? '1px solid var(--border)' : 'none',
+        flexShrink: 0,
+        zIndex: 10
       }}>
+
+        {/* LEFT SECTION: Document Info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FileText size={16} style={{ color: 'var(--primary)' }} />
+            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>{documentTitle}</span>
+          </div>
+          <div style={{ padding: '0.15rem 0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {docType}
+          </div>
+        </div>
 
         {/* CENTER SECTION: Segmented View Switcher */}
         <div style={{
@@ -160,14 +167,14 @@ export default function EnterpriseWorkspaceToolbar({
             <>
               <div style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.1)', margin: '0 0.2rem' }} />
               <button
-                title="AI Copilot"
+                title="Toggle Navigation"
                 onClick={() => setShowAiPanel(!showAiPanel)}
                 style={getSegmentStyles(!!showAiPanel)}
                 onMouseEnter={e => { if (!showAiPanel) { e.currentTarget.style.color = '#ffffff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; } }}
                 onMouseLeave={e => { if (!showAiPanel) { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; } }}
               >
-                <Sparkles size={14} style={{ color: showAiPanel ? '#ffffff' : 'currentColor' }} />
-                Copilot
+                <Menu size={14} style={{ color: showAiPanel ? '#ffffff' : 'currentColor' }} />
+                Navigation
               </button>
             </>
           )}

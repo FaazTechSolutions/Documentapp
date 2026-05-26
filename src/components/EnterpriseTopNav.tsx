@@ -87,7 +87,7 @@ export default function EnterpriseTopNav() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
 
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: '3.5rem' }}>
           <button 
             onClick={() => window.history.back()} 
             title="Go Back"
